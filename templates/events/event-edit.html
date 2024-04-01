@@ -1,0 +1,1558 @@
+<!------------------------------------------------------------------------
+  Copyright 2020 Board of Trustees of the University of Illinois.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  ------------------------------------------------------------------------>
+
+{% extends "base.html" %}
+{% from 'events/confirmation.html' import confirmation %}
+
+{% block title %}
+  Edit - {{post.title}}
+{% endblock %}
+
+{% block styles %}
+  {{ super()}}
+<link href="//cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<link href="//cdn.quilljs.com/1.3.6/quill.bubble.css" rel="stylesheet">
+<link href="//cdn.quilljs.com/1.3.6/quill.core.css" rel="stylesheet">
+<link href="cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/monokai-sublime.min.css" rel="stylesheet">
+<link href="cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.css" rel="stylesheet">
+
+  <style>
+  #htmlDescription {
+  font-size: 18px;
+  overflow-y: visible;
+}
+  .mytooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted black;
+}
+
+.mytooltip .mytooltiptext {
+  visibility: hidden;
+  width: max-content;
+  max-width: 1000px;
+  background-color: #343a40;
+  color: #fff;
+  {#text-align: center;#}
+  border-radius: 6px;
+  padding: 10px;
+
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+}
+
+.mytooltip:hover .mytooltiptext {
+  visibility: visible;
+}
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      #floating-panel {
+        position: absolute;
+        top: 10px;
+        left: 25%;
+        z-index: 5;
+        background-color: #fff;
+        padding: 5px;
+        border: 1px solid #999;
+        text-align: center;
+        font-family: 'Roboto','sans-serif';
+        line-height: 30px;
+        padding-left: 10px;
+      }
+      .ui-autocomplete {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 1000;
+        display: none;
+        float: left;
+        min-width: 160px;
+        padding: 5px 5px;
+        margin: 2px 0 0;
+        list-style: none;
+        font-size: inherit;
+        font-family: inherit;
+        text-align: left;
+        background-color: #ffffff;
+        border: 1px solid #cccccc;
+        border: 1px solid rgba(0, 0, 0, 0.15);
+        border-radius: 4px;
+        -webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+        background-clip: padding-box;
+      }
+
+      .ui-autocomplete > li > div {
+        display: block;
+        padding: 3px 20px;
+        clear: both;
+        font-weight: normal;
+        line-height: 1.42857143;
+        color: #333333;
+        white-space: nowrap;
+      }
+
+      .ui-state-hover,
+      .ui-state-active,
+      .ui-state-focus {
+        text-decoration: none;
+        color: #262626;
+        background-color: #f5f5f5;
+        cursor: pointer;
+      }
+
+      .ui-helper-hidden-accessible {
+        border: 0;
+        clip: rect(0 0 0 0);
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        padding: 0;
+        position: absolute;
+        width: 1px;
+      }
+    </style>
+{% endblock %}
+
+
+{% block modals %}
+{{ confirmation("save", post.title) }}
+{#<div id="SaveModal" class="modal fade" role="dialog">#}
+{# <div class="modal-dialog modal-lg" role="content">#}
+{#   <!-- Modal content-->#}
+{#   <div class="modal-content">#}
+{#     <div class="modal-header">#}
+{#         <h4 class="modal-title">Confirmation </h4>#}
+{#         <button type="button" class="close" data-dismiss="modal">&times;</button>#}
+{#     </div>#}
+{#     <div class="modal-body">#}
+{#         <!-- table form here -->#}
+{#         <div class="form-group row">#}
+{#             <label class="col-12 col-form-label">You are about to publish the following super event <b>{{title}}</b>. All sub-events of this event will also be published with this action.</label>#}
+{#         </div>#}
+{#         <div class="col-md-10">#}
+{#             <button type="button" class="btn btn-secondary btn-sm-1" data-dismiss="modal">Cancel</button>#}
+{#             <button type="submit" class="btn btn-primary btn-sm-1">Confirm</button>#}
+{#         </div>#}
+{#       </div>#}
+{#     </div>#}
+{#   </div>#}
+{# </div>#}
+{% endblock %}
+
+
+{% block content %}
+ <!-- filter and select operations -->
+  <!-- back to all events button -->
+  {% if isUser %}
+  <form id = "form" action = "{{url_for('user_events.user_an_event_edit', id=post['_id'])}}" method="POST" enctype="multipart/form-data">
+  <div class="media">
+    <a class="grey-background-button btn btn-dark" href="{{ url_for('user_events.user_an_event', id=post['_id'])}}" role="button">Back To Event Details</a>
+  </div>
+  {% else %}
+  <form id = "form" action = "{{url_for('event.edit', eventId=post['_id'])}}" method="POST">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('event.source', sourceId=post['sourceId']) }}">{{sourceName}}</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('event.calendar', calendarId=post['calendarId']) }}">{{calendarName}}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{post['title']}}</li>
+    </ol>
+  </nav>
+  {% endif %}
+  <!-- form inputs -->
+     <article class="media content-section">
+       <div class="media-body">
+          <h2><a class="article-title">Edit Event</a></h2>
+          <hr class="divider"/>
+
+          <!-- event group -->
+          <div class="form-group row ">
+            <div class="col-12 col-sm-2">
+              <h5>Group<span style="color: red">*</span> </h5>
+            </div>
+
+            <div class="col-sm-9">
+              <div class="user-group-menu eventsmanager-dropdown-menu">
+                  {% for group in groups %}
+                      {% if post.createdByGroupId == group['id'] %}
+                          <input type="text" name="createdByGroupTitle" id="createdByGroupTitle" value="{{group['title']}}" class="form-control dropdown-menu-inputfield" placeholder="{{group['title']}}" readonly>
+                          <input type="hidden" name="createdByGroupId" id="createdByGroupId" value="{{group['id']}}">
+                      {% endif %}
+                  {% endfor %}
+                  <div class="dropdown-line"></div>
+                  <div class="dropdown-menu-option">
+                      {% for group in groups %}
+                            <div onclick="groupDropDownMenuShow('createdByGroupTitle', '{{group['title']}}', 'createdByGroupId', '{{group['id']}}')" class="usergroup-display-none dropdown-menu-option-item menu-item-text"> {{group['title']}} </div>
+                        {% endfor %}
+                  </div>
+              </div>
+            </div>
+          </div>
+
+           <!-- event title -->
+           <div class="form-group row ">
+            <label class="col-12 col-sm-2 form-control-label">
+              <h5>Event Title<span style="color: red">*</span> </h5>
+            </label>
+            <div class="col-sm-9">
+              <input class="form-control text-input-field" type="text" id="title" name="title" value="{{post.title}}" placeholder="Add a title that describes the event in a few words." required/>
+            </div>
+          </div>
+
+
+          <!-- event url -->
+          {% if post.titleURL%}
+            <div class="form-group row ">
+              <label class="col-12 col-sm-2 form-control-label">
+                <h5>Event URL </h5>
+              </label>
+              <div class="col-sm-9">
+                <input class="form-control text-input-field" type="url" id="titleURL" name="titleURL" value="{{post.titleURL}}" placeholder="If there is a URL with additional event information, add it here."/>
+              </div>
+            </div>
+          {% else %}
+          <div class="form-group row ">
+            <label class="col-12 col-sm-2 form-control-label">
+              <h5>Event URL </h5>
+            </label>
+            <div class="col-sm-9">
+              <input class="form-control text-input-field" type="url" id="titleURL" name="titleURL" placeholder="If there is a URL with additional event information, add it here."/>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- event category -->
+          <div class="form-group row ">
+            <div class="col-12 col-sm-2">
+              <h5>Category<span style="color: red">*</span> </h5>
+            </div>
+            <div class="col-sm-9">
+            <!-- customized drop-down menu for category -->
+              <div class="category-menu eventsmanager-dropdown-menu">
+                <input type="text" id="dropdownmenu-category" name="category" value="{{post.category}}" class="form-control dropdown-menu-inputfield" placeholder="Choose an event category" readonly>
+                  <div class="dropdown-line"></div>
+                  <div class="dropdown-menu-option">
+                      {% for key in eventTypeValues %}
+                            <div onclick="dropDownMenuShow('dropdownmenu-category', '{{key}}')" class="category-display-none dropdown-menu-option-item menu-item-text"> {{key}} </div>
+                      {% endfor %}
+                  </div>
+              </div>
+            </div>
+          </div>
+          <!-- subcategory -->
+{#          {% if post['category'] == 'Athletics' %}#}
+            <div class="form-group row ">
+              <div class="col-12 col-sm-2">
+                <h5>Subcategory </h5>
+              </div>
+              <div class="col-sm-9">
+                  <div class="subcategory-menu eventsmanager-dropdown-menu">
+                    <input type="text" id="dropdownmenu-subcategory" name="subcategory" value="{{post.subcategory}}" class="form-control dropdown-menu-inputfield" placeholder="Choose a subcategory." readonly>
+                      <div class="dropdown-line"></div>
+                      <div class="dropdown-menu-option">
+                          {% for key in subcategoriesMap['Big 10 Athletics'] %}
+                                <div onclick='dropDownMenuShow("dropdownmenu-subcategory", "{{key}}")' class="create-big-10-athletics subcategory-display-none dropdown-menu-option-item menu-item-text"> {{key}} </div>
+                          {% endfor %}
+                          {% for key in subcategoriesMap['Recreation, Health and Fitness'] %}
+                                <div onclick='dropDownMenuShow("dropdownmenu-subcategory", "{{key}}")' class="create-recreation-health-fitness subcategory-display-none dropdown-menu-option-item menu-item-text"> {{key}} </div>
+                          {% endfor %}
+                      </div>
+                  </div>
+
+              </div>
+            </div>
+
+
+          <!-- allDay -->
+          <div class="form-group row ">
+            <div class="col-12 col-sm-2">
+              <h5>All Day Event</h5>
+            </div>
+            <div class="col-sm-1">
+               {% if post.allDay == True %}
+                <input class="form_control" type="checkbox" id="allDay" name="allDay" checked/> Yes
+               {% else %}
+                <input class="form_control" type="checkbox" id="allDay" name="allDay"/> Yes
+               {% endif %}
+            </div>
+          </div>
+          <!-- timezones -->
+          <div class="form-group row ">
+            <div class="col-12 col-sm-2">
+              <h5>Time Zone<span style="color: red">*</span></h5>
+            </div>
+            <div class="col-sm-9">
+               <div class="timezone-menu eventsmanager-dropdown-menu">
+                <input type="text" id="dropdownmenu-timezone" name="timezone" value="{{post.timezone}}" class="form-control dropdown-menu-inputfield" placeholder="Choose the event's time zone." readonly>
+                  <div class="dropdown-line"></div>
+                  <div class="dropdown-menu-option">
+                      {% for key, value in timezones.items() %}
+                            <div onclick="dropDownMenuShow('dropdownmenu-timezone', '{{key}}')" class="timezone-display-none dropdown-menu-option-item menu-item-text"> {{key}} </div>
+                      {% endfor %}
+                  </div>
+               </div>
+            </div>
+          </div>
+          <!-- startDate -->
+          {% if post.startDate%}
+            <div class="form-group row ">
+              <div class="col-12 col-sm-2">
+                <h5> Start Date<span style="color: red">*</span> </h5>
+              </div>
+              <div class="col-sm-6">
+                  {% if post.allDay == True %}
+                  <input class="form-control text-input-field" type="date" onkeydown="return false" id="startDate" name="startDate" value="{{post['startDate']}}" max="9999-12-31" style="width:170px; float:left" required/>
+                  <input class="form-control text-input-field" type="time" onkeydown="return false" id="startTime" name="startTime" value="00:00" style="width:170px" hidden/>
+                  {% else %}
+                  <input class="form-control text-input-field" type="date" onkeydown="return false" id="startDate" name="startDate" value="{{post['startDate'][:10]}}" max="9999-12-31" style="width:170px; float:left" required/>
+                  <input class="form-control text-input-field" type="time" onkeydown="return false" id="startTime" name="startTime" value="{{post['startDate'][11:]}}" style="width:170px; float:left" required/>
+                  {% endif %}
+              </div>
+            </div>
+          {% else %}
+            <div class="form-group row ">
+              <div class="col-12 col-sm-2">
+                <h5> Start Date<span style="color: red">*</span> </h5>
+              </div>
+              <div class="col-sm-6">
+                  <input class="form-control text-input-field" type="date" onkeydown="return false" id="startDate" name="startDate" value="" max="9999-12-31" style="width:170px; float:left" required/>
+                  <input class="form-control text-input-field" type="time" onkeydown="return false" id="startTime" name="startTime" value="00:00" style="width:170px; float:left" required/>
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- endDate -->
+          {% if post.endDate%}
+            <div class="form-group row ">
+              <div class="col-12 col-sm-2">
+                <h5>End Date<span style="color: red">*</span></h5>
+              </div>
+              <div class="col-sm-6">
+                  {% if post.allDay == True %}
+                  <input class="form-control text-input-field" type="date" onkeydown="return false" id="endDate" name="endDate" value="{{post['endDate']}}" max="9999-12-31" style="width:170px; float:left" required/>
+                  <input class="form-control text-input-field" type="time" onkeydown="return false" id="endTime" name="endTime" value="23:59" style="width:170px; float:left" hidden/>
+                  {% else %}
+                  <input class="form-control text-input-field" type="date" onkeydown="return false" id="endDate" name="endDate" value="{{post['endDate'][:10]}}" max="9999-12-31" style="width:170px; float:left" required/>
+                  <input class="form-control text-input-field" type="time" onkeydown="return false" id="endTime" name="endTime" value="{{post['endDate'][11:]}}" style="width:170px; float:left" required/>
+                  {% endif %}
+              </div>
+            </div>
+          {% else %}
+            <div class="form-group row ">
+              <div class="col-12 col-sm-2">
+                <h5> End Date<span style="color: red">*</span></h5>
+              </div>
+              <div class="col-sm-6">
+                {% if post.allDay == True %}
+                <input class="form-control text-input-field" type="date" onkeydown="return false" id="endDate" name="endDate" max="9999-12-31" style="width:170px; float:left" required/>
+                <input class="form-control text-input-field" type="time" onkeydown="return false" id="endTime" name="endTime" style="width:170px; float:left" hidden/>
+                {% else %}
+                <input class="form-control text-input-field" type="date" onkeydown="return false" id="endDate" name="endDate" max="9999-12-31" style="width:170px; float:left" required/>
+                <input class="form-control text-input-field" type="time" onkeydown="return false" id="endTime" name="endTime" style="width:170px; float:left" required/>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+
+{#          <!-- isVirtual -->#}
+{#          <div class="form-group row ">#}
+{#            <div class="col-12 col-sm-2">#}
+{#              <h5>Virtual Event</h5>#}
+{#            </div>#}
+{#            <div class="col-sm-1">#}
+{#               {% if post.isVirtual == True %}#}
+{#                <input class="form_control" type="checkbox" id="isVirtual" name="isVirtual" onchange="selectionChanged2(this)" checked /> Yes#}
+{#               {% else %}#}
+{#                <input class="form_control" type="checkbox" id="isVirtual" name="isVirtual" onchange="selectionChanged(this)"/> Yes#}
+{#               {% endif %}#}
+{#            </div>#}
+{#          </div>#}
+{##}
+{#          <!-- Script to handle changing header -->#}
+{#          <script>#}
+{#            function selectionChanged(element) {#}
+{#              if (document.getElementById('Location Header 1')) {#}
+{#                if (element.checked) {#}
+{#                  document.getElementById('Location Header 1').innerHTML = 'Virtual Event URL';#}
+{#                  document.getElementById('location 1').type = 'url';#}
+{#                }#}
+{#                else {#}
+{#                  document.getElementById('Location Header 1').innerHTML = 'Location Address';#}
+{#                  document.getElementById('location 1').type = 'text';#}
+{##}
+{#                }#}
+{#              }#}
+{#              if (document.getElementById('Location Header 2')) {#}
+{#                if (element.checked) {#}
+{#                  document.getElementById('Location Header 2').innerHTML = 'Virtual Event URL';#}
+{#                  document.getElementById('location 3').type = 'url';#}
+{##}
+{#                }#}
+{#                else {#}
+{#                  document.getElementById('Location Header 2').innerHTML = 'Location Address';#}
+{#                  document.getElementById('location 3').type = 'text';#}
+{##}
+{#                }#}
+{#              }#}
+{#            }#}
+{#          </script>#}
+{##}
+{#          <!-- Second Script to handle changing header -->#}
+{#          <script>#}
+{#            function selectionChanged2(element) {#}
+{#              if (element.checked) {#}
+{#                document.getElementById('Virtual Header').innerHTML = 'Virtual Event URL';#}
+{#                document.getElementById('location 2').type = 'url';#}
+{#              }#}
+{#              else {#}
+{#              document.getElementById('Virtual Header').innerHTML = 'Location Address';#}
+{#              document.getElementById('location 2').type = 'text';#}
+{##}
+{#              }#}
+{#            }#}
+{#          </script>#}
+{##}
+{#          <!-- location -->#}
+{#            {% if post.location and post.location.description and (post.isVirtual == Null or post.isVirtual == False) %}#}
+{#              <div class="form-group row ">#}
+{#                <div class="col-12 col-sm-2">#}
+{#                  <h5 id="Location Header 2">Location Address</h5>#}
+{#                </div>#}
+{#                <div class="col-sm-9">#}
+{#                  <input id="location 3" name="location" class="form-control" type="text" value= "{{post.location.description}}" />#}
+{#                </div>#}
+{#              </div>#}
+{#            {% elif post.location and post.location.description and post.isVirtual == True %}#}
+{#              <div class="form-group row ">#}
+{#                <div class="col-12 col-sm-2">#}
+{#                  <h5 id="Virtual Header">Virtual Event URL </h5>#}
+{#                </div>#}
+{#                <div class="col-sm-9">#}
+{#                  <input id="location 2" name="location" class="form-control" type="url" value= "{{post.location.description}}"/>#}
+{#                </div>#}
+{#              </div>#}
+{#            {% else %}#}
+{#              <div class="form-group row ">#}
+{#                <div class="col-12 col-sm-2">#}
+{#                  <h5 id="Location Header 1">Location Address</h5>#}
+{#                </div>#}
+{#                <div class="col-sm-9">#}
+{#                  <input id="location 1" name="location" class="form-control" type="text"/>#}
+{#                </div>#}
+{#              </div>#}
+{#            {% endif %}#}
+
+          <!-- isVirtual -->
+          <div class="form-group row ">
+            <div class="col-12 col-sm-2">
+              <h5>Virtual Location?</h5>
+            </div>
+            <div class="col-sm-1">
+              <input class="form_control" type="checkbox" id="isVirtual" name="isVirtual" onchange="virtualSelectionChanged(this)"
+               {% if post.isVirtual == True %}checked{% endif %}/> Yes
+            </div>
+          </div>
+
+          <!-- Virtual Event URL -->
+          <div class="form-group row" id="Virtual Event URL" {% if not post.isVirtual %}hidden{% endif %}>
+            <div class="col-12 col-sm-2">
+              <h5 type='text'>Virtual Event URL</h5>
+            </div>
+            <div class="col-sm-9">
+              <input id="virtualEventUrl" name="virtualEventUrl" class="form-control" type="text"
+                     {% if post.isVirtual == True %}value={{ post.virtualEventUrl }}{% endif %}/>
+            </div>
+          </div>
+
+          <!-- isInPerson -->
+          <div class="form-group row ">
+            <div class="col-12 col-sm-2">
+              <h5>Physical Location?</h5>
+            </div>
+            <div class="col-sm-1">
+              <input class="form_control" type="checkbox" id="isInPerson" name="isInPerson" onchange="inPersonSelectionChanged(this)"
+              {% if post.isInPerson == True %}checked{% endif %}/> Yes
+            </div>
+          </div>
+
+          <!-- Location Address -->
+          <div class="form-group row" id="Location Address" {% if not post.isInPerson %}hidden{% endif %}>
+            <div class="col-12 col-sm-2">
+              <h5 type='text'>Location Address</h5>
+            </div>
+            <div class="col-sm-9">
+              <input class="form-control text-input-field" id="location" name="location" type="text" placeholder="Add the event location's complete address or a description of the location."
+              {% if post.isInPerson == True %}value="{{post.location.description}}"{% endif %}/>
+            </div>
+          </div>
+
+          <!-- Script to handle changing header -->
+          <script>
+              function groupDropDownMenuShow(title, titlevalue, id, idvalue) {
+                  if(document.getElementById(id).value != idvalue) {
+                      document.getElementById("submit-data").disabled = false;
+                  }
+                  const oldValue = document.getElementById(id).value
+                  document.getElementById(id).value = idvalue
+                  if(document.getElementById(title).value != titlevalue) {
+                      document.getElementById("submit-data").disabled = false;
+                  }
+                  document.getElementById(title).value = titlevalue
+                  document.getElementById(title).classList.add("dropdown-menu-inputfield-selected")
+              }
+              function dropDownMenuShow(id, value) {
+                  if(document.getElementById(id).value != value) {
+                      document.getElementById("submit-data").disabled = false;
+                  }
+                  const oldValue = document.getElementById(id).value
+                  document.getElementById(id).value = value
+                  if(document.getElementById('dropdownmenu-category').value != "Big 10 Athletics" && document.getElementById('dropdownmenu-category').value != "Recreation, Health and Fitness") {
+                      document.getElementById('dropdownmenu-subcategory').placeholder = "Choose an event subcategory (disabled) ..."
+                      document.getElementById('dropdownmenu-subcategory').value = "Choose an event subcategory (disabled) ..."
+                      document.getElementById('dropdownmenu-subcategory').value = ""
+                  }
+                  if(document.getElementById('dropdownmenu-category').value == "Big 10 Athletics") {
+                      document.getElementById('dropdownmenu-subcategory').placeholder = "Choose an event subcategory"
+                  }
+                  if(document.getElementById('dropdownmenu-category').value == "Recreation, Health and Fitness" ) {
+                      document.getElementById('dropdownmenu-subcategory').placeholder = "Choose an event subcategory"
+                  }
+                  if(document.getElementById('dropdownmenu-category').value == "Big 10 Athletics" && oldValue == "Recreation, Health and Fitness") {
+                      document.getElementById('dropdownmenu-subcategory').value = ""
+                  }
+                  if(document.getElementById('dropdownmenu-category').value == "Recreation, Health and Fitness" && oldValue == "Big 10 Athletics") {
+                      document.getElementById('dropdownmenu-subcategory').value = ""
+                  }
+                  document.getElementById(id).classList.add("dropdown-menu-inputfield-selected")
+              }
+              class Dropdownmenu {
+                  constructor(selector, display) {
+                      this.menu = document.querySelector(selector)
+                      this.display = display
+                  }
+                  onclick() {
+                     let self = this
+                     this.menu.onclick = function() {
+                         console.log("onclick() click");
+                         if(document.getElementById('dropdownmenu-category').value != "Big 10 Athletics" && document.getElementById('dropdownmenu-category').value != "Recreation, Health and Fitness" && self.display == ".subcategory-display-none") {
+                            $(self.display).css({"display": "none"});
+                            return;
+                         }
+                         self.menu.classList.toggle('active')
+                         if (self.menu.classList.contains('active')) {
+                              Array.from($(self)[0].menu.children)
+                                 .filter(child => child.classList.contains("dropdown-line"))[0].style.display = "inherit"
+                              $(self.display).css({"display": "block"})
+                             Array.from($(self)[0].menu.children)
+                                 .filter(function (child) {
+                                     if (child.classList.contains("dropdown-menu-option")) {
+                                         const children = child.children;
+                                         for (let i = 0; i < children.length; i++) {
+                                            if(document.getElementById('dropdownmenu-category').value == "Big 10 Athletics" && children[i].classList.contains('create-recreation-health-fitness')) {
+                                                children[i].style.display = "none";
+                                            }else if (document.getElementById('dropdownmenu-category').value == "Recreation, Health and Fitness" && children[i].classList.contains('create-big-10-athletics')) {
+                                                children[i].style.display = "none";
+                                            }
+                                         }
+                                     }
+                                 })
+                         } else {
+                              Array.from($(self)[0].menu.children)
+                                 .filter(child => child.classList.contains("dropdown-line"))[0].style.display = "none"
+                              $(self.display).css({"display": "none"})
+                         }
+                     };
+                  }
+              }
+              subcategorymenu = new Dropdownmenu('.subcategory-menu', '.subcategory-display-none')
+              subcategorymenu.onclick()
+              usergroupmenu = new Dropdownmenu('.user-group-menu', '.usergroup-display-none')
+              usergroupmenu.onclick()
+              categorymenu = new Dropdownmenu('.category-menu', '.category-display-none')
+              categorymenu.onclick()
+              timezonemenu = new Dropdownmenu('.timezone-menu', '.timezone-display-none')
+              timezonemenu.onclick()
+            function virtualSelectionChanged(element) {
+              if (element.checked) {
+                  document.getElementById('Virtual Event URL').hidden = false;
+              } else {
+                  if (document.getElementById('isInPerson').checked === false) {
+                      element.checked = true;
+                      alert("Either one of Physical Location? or Virtual Location? checkboxes need to be checked.")
+                  } else {
+                      document.getElementById('Virtual Event URL').hidden = true;
+                      document.getElementById('virtualEventUrl').value = '';
+                  }
+              }
+            }
+            function inPersonSelectionChanged(element) {
+              if (element.checked) {
+                  document.getElementById('Location Address').hidden = false;
+              } else {
+                  if (document.getElementById('isVirtual').checked === false) {
+                      element.checked = true;
+                      alert("Either one of Physical Location? or Virtual Location? checkboxes need to be checked.")
+                  } else {
+                    document.getElementById('Location Address').hidden = true;
+                    document.getElementById('location').value = '';
+                  }
+              }
+            }
+          </script>
+          <!-- target audience -->
+<!--          <div class="form-group row ">-->
+<!--            <div class="col-12 col-sm-2">-->
+<!--              <h5>Target Audience </h5>-->
+<!--            </div>-->
+<!--            <div class="col-sm-9">-->
+<!--              <div class="form-group">-->
+<!--                <select multiple id="targetAudience" name="targetAudience" class="selectpicker" title="Audience">-->
+<!--                  {% for key in targetAudienceMap %}-->
+<!--                    {% if audience_dic[key] == 1 %}-->
+<!--                      <option value = "{{key}}" id = {{key}} selected = true>{{key}}</option>-->
+<!--                    {% else %}-->
+<!--                      <option value = "{{key}}" id = {{key}}>{{key}}</option>-->
+<!--                    {% endif %}-->
+<!--                  {% endfor %}-->
+<!--                </select>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
+
+
+          <!-- isGroupPrivate -->
+          <div class="form-group row ">
+            <div class="col-12 col-sm-2">
+              <h5>Private Event</h5>
+            </div>
+            <div class="col-sm-1">
+               {% if post.isGroupPrivate == True %}
+                <input class="form_control" type="checkbox" id="isGroupPrivate" name="isGroupPrivate" checked/> Yes
+               {% else %}
+                <input class="form_control" type="checkbox" id="isGroupPrivate" name="isGroupPrivate"/> Yes
+               {% endif %}
+            </div>
+          </div>
+
+          <!-- freeEvent -->
+          <div class="form-group row ">
+            <div class="col-12 col-sm-2">
+              <h5>Free Event</h5>
+            </div>
+            <div class="col-sm-1">
+               {% if post.isEventFree == True %}
+                <input class="form_control" type="checkbox" id="isEventFree" name="isEventFree" checked/> Yes
+               {% else %}
+                <input class="form_control" type="checkbox" id="isEventFree" name="isEventFree"/> Yes
+               {% endif %}
+            </div>
+          </div>
+
+          <!-- cost -->
+          {% if post.cost%}
+            <div class="form-group row ">
+              <div class="col-12 col-sm-2">
+                <h5>Cost Description</h5>
+              </div>
+              <div class="col-sm-9">
+                <input class="form-control text-input-field" type="text" name="cost" value="{{post.cost}}" placeholder="Details about the cost associated with this event or expected donations, etc. (if any)"/>
+              </div>
+            </div>
+          {% else %}
+            <div class="form-group row ">
+              <div class="col-12 col-sm-2">
+                <h5>Cost Description</h5>
+              </div>
+              <div class="col-sm-9">
+                <input class="form-control text-input-field" type="text" name="cost" placeholder="Details about the cost associated with this event or expected donations, etc. (if any)"/>
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- contacts -->
+          <div class="form-group row ">
+            <div class="col-12 col-sm-2">
+              <h5>Contacts </h5>
+            </div>
+            <div class="col-sm-9">
+              <span role="button" class="add-a-contact add-one btn">Add Contact <img src="{{url_for('static',filename = 'icon-add.svg')}}" class="icon-add"></span>
+            </div>
+          </div>
+
+          <!-- HIDDEN DYNAMIC ELEMENT -->
+          <div class="contact-group dynamic-element" style="display:none">
+            <!-- contact fields : first&lastName + email + phone -->
+            <div class = "form-group row" >
+              <div class="col-sm-3 offset-sm-2">
+                <input class="form-control text-input-field" id="firstName" name="firstName" type="text"  pattern="[A-Za-z0-9]{1,20}" placeholder="First Name" />
+              </div>
+              <div class="col-sm-3">
+                <input class="form-control text-input-field" id="lastName" name="lastName" type="text"  pattern="[A-Za-z0-9]{1,20}" placeholder="Last Name"/>
+              </div>
+            </div>
+            <div class = "form-group row" >
+              <!-- contact fields : first&lastName + email + phone -->
+              <div class="col-sm-3 offset-sm-2">
+                <input class="form-control text-input-field" id="contactEmail" name="email" type="email" placeholder="Email"/>
+              </div>
+              <div class="col-sm-3">
+                <input class="form-control text-input-field" id="contactPhone" name="phone" type="text" pattern="^\+?\d{10,13}" placeholder="Phone (10 to 13 digits)"/>
+              </div>
+              <div class="col-sm-3">
+                <input class="form-control text-input-field" id="organization" name="organization" type="text" placeholder="Organization"/>
+              </div>
+              <!-- End of fields-->
+              <div class="col-md-1">
+                <span role="button" class="delete btn btn-outline-dark btn-sm-1">Delete</span>
+              </div>
+            </div>
+          </div>
+          <!-- END OF HIDDEN ELEMENT -->
+
+          <div class="dynamic-stuff">
+            <!-- existing stuff-->
+            {% if post.contacts %}
+              {% for contact in post.contacts %}
+              <div class="exist-contact contact-group">
+                <div class = "form-group row" >
+                  <div class="col-sm-3 offset-sm-2">
+                    {% if contact.firstName %}
+                      <input class="form-control text-input-field" id="firstName" name="firstName" type="text"  pattern="[A-Za-z0-9]{1,20}" placeholder="First Name" value="{{contact.firstName}}"/>
+                    {% else %}
+                      <input class="form-control text-input-field" id="firstName" name="firstName" type="text"  pattern="[A-Za-z0-9]{1,20}" placeholder="First Name"/>
+                    {% endif %}
+                  </div>
+                  <div class="col-sm-3">
+                    {% if contact.lastName %}
+                      <input class="form-control text-input-field" id="lastName" name="lastName" type="text"  pattern="[A-Za-z0-9]{1,20}" placeholder="Last Name" value="{{contact.lastName}}"/>
+                    {% else %}
+                      <input class="form-control text-input-field" id="lastName" name="lastName" type="text"  pattern="[A-Za-z0-9]{1,20}" placeholder="Last Name"/>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class = "form-group row" >
+                  <div class="col-sm-3 offset-sm-2">
+                    {% if contact.email %}
+                      <input class="form-control text-input-field" id="contactEmail" name="email" type="email" placeholder="Email" value="{{contact.email}}"/>
+                    {% else %}
+                      <input class="form-control text-input-field" id="contactEmail" name="email" type="email" placeholder="Email"/>
+                    {% endif %}
+                  </div>
+                  <div class="col-sm-3">
+                    {% if contact.phone %}
+                      <input class="form-control text-input-field" id="contactPhone" name="phone" type="text" pattern="^\+?\d{10,13}" placeholder="Phone (10 to 13 digits)" value="{{contact.phone}}"/>
+                    {% else %}
+                      <input class="form-control text-input-field" id="contactPhone" name="phone" type="text" pattern="^\+?\d{10,13}" placeholder="Phone (10 to 13 digits)" />
+                    {% endif %}
+                  </div>
+                  <div class="col-sm-3">
+                    {% if contact.organization %}
+                      <input class="form-control text-input-field" id="organization" name="organization" type="text" placeholder="Organization" value="{{contact.organization}}"/>
+                    {% else %}
+                      <input class="form-control text-input-field" id="organization" name="organization" type="text" placeholder="Organization" />
+                    {% endif %}
+                  </div>
+                  <!-- End of fields-->
+                  <div class="col-md-1">
+                    <span role="button" class="delete btn btn-outline-dark btn-sm-1">Delete</span>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            {% endif %}
+          </div>
+
+          <!-- tags -->
+          <meta id="availableTags" data-tags="{{tags}}">
+          <div class="form-group row ">
+            <div class="col-12 col-sm-2">
+              <h5>Tags </h5>
+            </div>
+                <div class="col-sm-9">
+                    <input id="tags" name="tags" class="form-control text-input-field" type="text" value="{{ tags_text }}" placeholder="Start typing to select and add one or more keyword tags related to this event.">
+                </div>
+          </div>
+
+          <!-- sponsor -->
+          {% if post.sponsor%}
+            <div class="form-group row ">
+              <div class="col-12 col-sm-2">
+                <h5>Sponsor </h5>
+              </div>
+              <div class="col-sm-9">
+                <input class="form-control text-input-field" type="text" id="sponsor" name="sponsor" value="{{post.sponsor}}" placeholder="Add the name of the person or organization conducting this event." />
+              </div>
+            </div>
+          {% else %}
+            <div class="form-group row ">
+              <div class="col-12 col-sm-2">
+                <h5>Sponsor </h5>
+              </div>
+              <div class="col-sm-9">
+                <input class="form-control text-input-field" type="text" id="sponsor" name="sponsor" placeholder="Add the name of the person or organization conducting this event."/>
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- description -->
+          <div class="form-group row ">
+            <div class="col-12 col-sm-2">
+              <h5>Description </h5>
+            </div>
+            <div class="col-12 col-sm-9" style="margin-bottom: 50px">
+                <div name = "htmlDescription" id="htmlDescription" class="form-control" rows="12"></div>
+                <input type="hidden" name="longDescription" id="longDescription">
+            </div>
+          </div>
+
+          <!-- event image -->
+          <div class="form-group row ">
+            <div class="col-12 col-sm-2">
+              <h5>Event Image </h5>
+            </div>
+            <div class="col-sm-9">
+              <div class="input-group mb-3">
+                <div class="custom-file">
+                  <input type="file" accept={{extensions}} class="custom-file-input" name = "file" id="file" data-toggle="popover" data-trigger="manual" data-placement="bottom" data-content="Failed to upload. Only support no larger than {{ size_limit }} MB">
+                  <label id="custom-file-label" class="custom-file-label" for="file">Choose an image (Max file size {{ size_limit }} MB).)</label>
+                </div>
+                <div class="input-group-append">
+                  {% if image %}
+                  <button title="Delete event image" class="btn btn-outline-danger delete-image rounded-right" type="button" id="inputGroupFileAddon04">Delete</button>
+                  {% else %}
+                  <button title="Delete event image" class="btn btn-outline-danger delete-image rounded-right" type="button" id="inputGroupFileAddon04" disabled>Delete</button>
+                  {% endif %}
+                  <input type="hidden" id="delete-image" name="delete-image" value = 0>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- image preview -->
+          {% if image %}
+          <div class="form-group row" id = "image-display">
+            <div class="col-12 col-sm-2"></div>
+            <div class="col-sm-9">
+              <img id = "preview-image" src = "{{ url_for('user_events.view_image', id=post['_id']) }}" style = "max-width: 600px; max-height: 337px;"/>
+
+            </div>
+          </div>
+          {% else %}
+          <div class="form-group row" id = "image-display" style = "display: none;">
+            <div class="col-12 col-sm-2"></div>
+            <div class="col-sm-9">
+              <img id = "preview-image" src = "" style = "max-width: 600px; max-height: 337px;"/>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- location map TODO no api key allow currently -->
+          <!-- <div class="form-group row ">
+            <div class="col-12 col-sm-2">
+              <h5>Location </h5>
+            </div>
+            <div class="col-12 col-sm-9">
+              <div id="floating-panel">
+                {% if post.location and post.location.description %}
+                  <input id="address" type="text" value="{{post.location.description}}">
+                {% else %}
+                  <input id="address" type="text" value="University of Illinois at Urbana-Champaign, Champaign, IL">
+                {% endif %}
+                <input id="geocode" type="button" class="btn btn-dark btn-sm" value="Geocode">
+              </div>
+              <div id="map" class="z-depth-1-half map-container" style="width: 720px"></div>
+            </div>
+          </div> -->
+
+          <!-- registration url -->
+          {% if post.registrationURL%}
+            <div class="form-group row ">
+              <label class="col-12 col-sm-2 form-control-label">
+                <h5>Registration URL</h5>
+              </label>
+              <div class="col-sm-9">
+                <input class="form-control text-input-field" type="url" id="registrationURL" name="registrationURL" value="{{post.registrationURL}}" placeholder="Link to the event registration page"/>
+              </div>
+            </div>
+          {% else %}
+          <div class="form-group row ">
+            <label class="col-12 col-sm-2 form-control-label">
+              <h5>Registration URL</h5>
+            </label>
+            <div class="col-sm-9">
+              <input class="form-control text-input-field" type="url" id="registrationURL" name="registrationURL" placeholder="Add a link to the event registration page (if any)."/>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- registration label -->
+          {% if post.registrationLabel%}
+            <div class="form-group row ">
+              <label class="col-12 col-sm-2 form-control-label">
+                <h5>Registration Label</h5>
+              </label>
+              <div class="col-sm-9">
+                <input class="form-control text-input-field" id="registrationLabel" name="registrationLabel" value="{{post.registrationLabel}}" placeholder="Add a text label to display on the event registration button (e.g., Register Here!)."/>
+              </div>
+            </div>
+          {% else %}
+          <div class="form-group row ">
+            <label class="col-12 col-sm-2 form-control-label">
+              <h5>Registration Label</h5>
+            </label>
+            <div class="col-sm-9">
+              <input class="form-control text-input-field" id="registrationLabel" name="registrationLabel" placeholder="Add a text label to display on the event registration button (e.g., Register Here!)."/>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- freeEvent -->
+          <div class="form-group row" id="displayOnlyWithSuperEventBox">
+            <div class="col-12 col-sm-2">
+              <h5>Display Only as Part of a Super Event.</h5>
+            </div>
+            <div class="col-sm-1">
+               {% if post.displayOnlyWithSuperEvent == True %}
+                <input class="form_control" type="checkbox" id="displayOnlyWithSuperEvent" name="displayOnlyWithSuperEvent" checked/> Yes
+               {% else %}
+                <input class="form_control" type="checkbox" id="displayOnlyWithSuperEvent" name="displayOnlyWithSuperEvent"/> Yes
+               {% endif %}
+            </div>
+          </div>
+
+          <!-- super event check box -->
+          <div class="form-group row" id="super-check" onclick="display_super_event_description()">
+            <div class="col-12 col-sm-2">
+                <div class="mytooltip"><h5>Super Event</h5>
+                    <span class="mytooltiptext">A super event is a large event made up of multiple smaller events. For example, a conference with multiple sessions for presentations, tutorials, workshops, etc., is an excellent example of a super event. In this example, the conference will be the super event, and the individual sessions will be the sub-events.</span>
+                </div>
+            </div>
+                <div class="col-12 col-sm-8">
+                    {% if post.isSuperEvent == true%}
+                        <input class="form_control" name="isSuperEvent" type="checkbox" id="super-event" checked> Yes
+                    {% elif 'superEventID' in post %}
+                        <input class="form_control" name="isSuperEvent" type="checkbox" id="super-event" disabled> This feature is not available for sub-events.
+                    {% else %}
+                        <input class="form_control" name="isSuperEvent" type="checkbox" id="super-event"> Yes
+                    {% endif %}
+                </div>
+          </div>
+
+          <!-- add sub-event-->
+         {% if post.isSuperEvent == true %}
+          <div id="super-des" class="form-group">
+         {% else %}
+          <div id="super-des" class="form-group" style="display:none" >
+         {% endif %}
+            <div class="form-group row">
+              <div class="col-12 col-sm-2 form-group"  id="super-des-title"  >
+{#                  <h5>Add Sub-Event </h5>#}
+                <div class="mytooltip"><h5>Add Sub-Event</h5>
+                    <span class="mytooltiptext">A sub-event is a smaller event that's part of a larger super event (e.g., a conference). You can link any existing event created through the Rokwire Events Manager as a sub-event to a super event. The only exceptions are other existing super events and sub-events and the current event. The hierarchy of super events and sub-events go only for one level.</span>
+                </div>
+              </div>
+
+              <div class="col-sm-9">
+                <span role="button" class="add-a-contact add-sub btn" id="addsub">Link Sub-Event <img src="{{url_for('static',filename = 'icon-add.svg')}}" class="icon-add"></span>
+                <label for="addsub">Add one or more sub-events (e.g., separate sessions in a conference) to this super event.</label><br><br>
+              </div>
+            </div>
+          </div>
+
+           <div class="form-group sub-group dynamic-element-sub" style="display:none">
+                <div class = "form-group row" >
+                      <div class="form-group col-sm-3 offset-sm-2">
+                            <input class="form-control text-input-field search-id" id="sub-id" name="name" type="text" placeholder="Search sub-events by title." />
+                            <input class="form-control text-input-field" type="hidden" name="id" placeholder=''>
+                            <input class="form-control text-input-field" type="hidden" name="eventId" placeholder=''>
+                            <input class="form-control text-input-field" type="hidden" name="status" placeholder=''>
+                      </div>
+
+                      <div class="col-sm-3 form-group" >
+                        <input class="form-control text-input-field" id="track" name="track" type="text" placeholder="Track (e.g., a session track)."/>
+                      </div>
+
+                      <div class="form-group dropdown show">
+                          <div class="form-group">
+                            <select class="form-control offset-sm-2" id="isFeatured" name = "isFeatured">
+                              <option>Featured</option>
+                              <option>Not Featured</option>
+                            </select>
+                          </div>
+                      </div>
+                    <div class="offset-sm-1">
+                        <span role="button" class="delete-sub btn btn-outline-dark form-control btn-sm-1">Unlink</span>
+                    </div>
+                </div>
+            </div>
+
+           <div id="sub-current" class="dynamic-stuff-sub">
+              <!-- existing sub-events-->
+               {% if post.subEvents %}
+                    {% for sub in post.subEvents %}
+                        <div class="form-group sub-group dynamic-element-sub">
+                            <div class = "form-group row" >
+                                  <div class="form-group col-sm-3 offset-sm-2">
+                                        {% if sub.name %}
+                                            <input class="form-control search-id" id="sub-id" name="name" type="text" placeholder="Search sub-events by title." value="{{sub.name}}" />
+                                            <input type="hidden" name="id" value="{{sub.id}}"/>
+                                            {% if sub.eventId %}
+                                            <input type="hidden" name="eventId" value="{{sub.eventId}}"/>
+                                            {% else %}
+                                            <input type="hidden" name="eventId" value=""/>
+                                            {% endif %}
+
+                                            {% if sub.status %}
+                                            <input type="hidden" name="status" value="{{sub.status}}"/>
+                                            {% else %}
+                                            <input type="hidden" name="status" value=""/>
+                                            {% endif %}
+                                        {% else %}
+                                            <input class="form-control search-id" id="sub-id" name="name" type="text" placeholder="Search sub-events by title." />
+                                        {% endif %}
+                                  </div>
+
+                                  <div class="col-sm-3 form-group" >
+                                    {% if sub.track %}
+                                    <input class="form-control text-input-field" id="track" name="track" type="text" placeholder="Track (e.g., a conference session track)." value="{{sub.track}}"/>
+                                    {% else %}
+                                    <input class="form-control text-input-field" id="track" name="track" type="text" placeholder="Track (e.g., a conference session track)."/>
+                                    {% endif %}
+                                  </div>
+
+                                  <div class="form-group dropdown show">
+                                      <div class="form-group">
+                                        <select class="form-control offset-sm-2" id="isFeatured" name = "isFeatured">
+                                          {% if sub.isFeatured == True %}
+                                          <option>Featured</option>
+                                          <option>Not Featured</option>
+                                          {% else %}
+                                          <option>Not Featured</option>
+                                          <option>Featured</option>
+                                          {% endif %}
+                                        </select>
+                                      </div>
+                                  </div>
+                                <div class="offset-sm-1">
+                                    <span role="button" class="delete-sub btn btn-outline-dark form-control btn-sm-1">Unlink</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor%}
+               {% endif %}
+              <!-- none -->
+           </div>
+
+        </div>
+     </article>
+
+  <!-- cancel/submit button groups -->
+  <div class="row justify-content-center">
+   <div role="toolbar" aria-label="Toolbar with button groups">
+     <div class="btn-group mr-2" role="group" aria-label="first group">
+       {% if isUser %}
+       <a class="white-background-button" href="{{ url_for('user_events.user_an_event', id=post['_id']) }}" role="button">Cancel</a>
+       {% else %}
+       <a class="white-background-button" href="{{ url_for('event.detail', eventId=post['_id']) }}" role="button">Cancel</a>
+       {% endif %}
+     </div>
+     <div class="btn-group mr-2" role="group" aria-label="Second group">
+       <!-- discard the modal use js to alarm Confirmation later -->
+       <!-- <span class="btn btn-block nav-link btn-primary" role="button" data-toggle="modal" data-html="true" data-target="#SaveModal">Save</span> -->
+       <button id="submit-data" class="orange-background-button" type="submit">Save</button>
+     </div>
+   </div>
+  </div>
+</form>
+
+{% endblock %}
+
+<!-- js script for select list in form -->
+{% block scripts %}
+  {{super()}}
+   <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.9/dist/js/bootstrap-select.min.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.js"></script>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+   <!-- <script src="https://maps.googleapis.com/maps/api/geocode/json?address=1600+Amphitheatre+Parkway,+Mountain+View,+CA&key={{apiKey}}"></script> -->
+
+   <script>
+      //change into local time before load
+    var quill = new Quill('#htmlDescription', {
+      modules: {
+        toolbar: [
+          ['bold', 'italic', 'underline', 'link'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        ]
+      },
+      placeholder: 'Add a detailed event description, including as many details as possible.',
+      theme: 'snow'  // or 'bubble'
+    });
+
+    {% if post.longDescription %}
+        var txt = document.createElement("textarea");
+        txt.innerHTML = '{{post.longDescription}}';
+        const delta = quill.clipboard.convert(txt.value)
+        quill.setContents(delta, 'silent')
+    {% endif %}
+    quill.on('text-change', function(delta, source) {
+        var html = quill.root.innerHTML;
+        // Copy HTML content in hidden form
+        $('#longDescription').val( html );
+        });
+
+    $('#submit-data').on('click', () => {
+        // Get HTML content
+        var html = quill.root.innerHTML;
+
+        // Copy HTML content in hidden form
+        $('#longDescription').val( html )
+    })
+
+      /*
+          var start_utc = document.getElementById('startDate').value.replace("T", " ");
+          var end_utc = document.getElementById('endDate').value.replace("T", " ");
+          var allDay = document.getElementById('allDay');
+          if (allDay.checked == true) {
+            var stillUtc_start = moment(start_utc).toDate();
+            var stillUtc_end = moment(end_utc).toDate();
+            var start_local = moment(stillUtc_start).local().format('YYYY-MM-DD');
+            var end_local = moment(stillUtc_end).local().format('YYYY-MM-DD');
+          } else {
+             var stillUtc_start = moment.utc(start_utc).toDate();
+            var stillUtc_end = moment.utc(end_utc).toDate();
+            var start_local = moment(stillUtc_start).local().format('YYYY-MM-DDTHH:mm:ss');
+            var end_local = moment(stillUtc_end).local().format('YYYY-MM-DDTHH:mm:ss');
+          }
+          document.getElementById('startDate').value = start_local;
+          document.getElementById('endDate').value = end_local;
+       */
+
+      //set up google map geocoding
+      //set the default position as center of uiuc
+      function initMap() {
+         var map = new google.maps.Map(document.getElementById('map'), {
+           zoom: 17,
+           {% if post.location and post.location.latitude and post.location.longitude %}
+              center: {lat: {{post.location.latitude}}, lng: {{post.location.longitude}}}
+           {% else %}
+              center: {lat: 40.1019523, lng: -88.2293555}
+           {% endif %}
+         });
+         var geocoder = new google.maps.Geocoder();
+
+         document.getElementById('geocode').addEventListener('click', function() {
+           geocodeAddress(geocoder, map);
+         });
+       }
+
+       function geocodeAddress(geocoder, resultsMap) {
+         var address = document.getElementById('address').value;
+         geocoder.geocode({'address': address}, function(results, status) {
+           if (status === 'OK') {
+             resultsMap.setCenter(results[0].geometry.location);
+             var marker = new google.maps.Marker({
+               map: resultsMap,
+               position: results[0].geometry.location
+             });
+           } else {
+             alert('Geocode was not successful for the following reason: ' + status);
+           }
+         });
+       }
+
+     //Set the save button disabled in default
+      $("document").ready(function(){
+        if (document.getElementById("super-event").checked === true) {
+          document.getElementById('displayOnlyWithSuperEvent').disabled = true;
+          document.getElementById('displayOnlyWithSuperEventBox').hidden = true;
+        }
+        $('select').each(function() {
+            $(this).data('selected', $('option:selected', this).val());
+        });
+        $('select').change(function() {
+            if ($(this).val() != $(this).data('selected')) {
+                $(this).find(':submit, input[type="image"]')
+                    .prop('disabled', false);
+            } else {
+                $(this).find(':submit, input[type="image"]')
+                    .prop('disabled', true);
+            }
+        })
+        $('form').each(function(index){
+          $(this).data('serialized', $(this).serialize()) //store the original serialize data into attr 'serialized'
+        }).on('change input', function(){  // event handler of input change
+            $(this).find(':submit, input[type="image"]')
+                .prop('disabled', $(this).serialize() == $(this).data('serialized'));
+
+            // Check if input with type files has changed
+            var changedFiles = $( ":file" ).filter(function( index ) {
+                return this.value != this.defaultValue;
+            }).length;
+
+            if ( changedFiles > 0) {
+                $(this).find(':submit, input[type="image"]')
+                    .prop('disabled', false);
+            }
+        }).find(':submit, input[type="image"]').prop('disabled', true);
+      });
+
+     //only allow subcategory to be choose when the category is Athletics
+     $('#form select[name="category"]').on("change", function(event) {
+       if(event.target.value != "Big 10 Athletics"){
+         $('#subcategory').prop("disabled", true);
+         $('#subcategory').prop("title", "Choose an event subcategory (disabled) ...");
+         $('#subcategory-placeholder').text('Choose an event subcategory (disabled) ...');
+         $('#subcategory-placeholder').prop('selected', true)
+       }else{
+         $('#subcategory').prop("disabled", false);
+         $('#subcategory').prop("title", "Choose an event subcategory ...");
+         $('#subcategory-placeholder').text('Choose an event subcategory ...');
+         $('#subcategory-placeholder').prop('selected', true)
+       }
+     })
+
+     //change back to utc time on submit
+      /*
+         var myform = document.getElementById('form');
+         myform.onsubmit = function(){
+           var start_local = document.getElementById('startDate').value.replace("T", " ");
+           var start_utc = new Date(start_local).toISOString();
+           document.getElementById('startDate').value = start_utc.replace("Z", "");
+
+           var end_local = document.getElementById('endDate').value.replace("T", " ");
+           var end_utc = new Date(end_local).toISOString();
+           document.getElementById('endDate').value = end_utc.replace("Z", "");
+         };
+       */
+
+    //Clone the hidden element and shows it
+   $('.add-one').click(function(){
+     $('.dynamic-element').first().clone().appendTo('.dynamic-stuff').show();
+     attach_delete();
+   });
+
+   $('.exist-contact').ready(function(){
+     attach_delete();
+   });
+
+   //Attach functionality to delete buttons
+   function attach_delete(){
+     $('.delete').off();
+     $('.delete').click(function(){
+       console.log("click");
+       $(this).closest('.contact-group').remove();
+       $('#form').find('input:submit, button:submit').prop("disabled", false);
+     });
+   }
+
+   //Clone the hidden element and shows it for tags
+   /*
+   $('.add-tag').click(function(){
+     $('.dynamic-element-tags').first().clone().appendTo('.dynamic-stuff-tags').show();
+     attach_delete_tags();
+   });
+
+   $('.exist-tags').ready(function(){
+     attach_delete_tags();
+   });
+
+   //Attach functionality to delete buttons for tags
+   function attach_delete_tags(){
+     $('.delete-tag').off();
+     $('.delete-tag').click(function(){
+       $(this).closest('.tag-group').remove();
+       $('#form').find('input:submit, button:submit').prop("disabled", false);
+     });
+   }
+   */
+       //Super event checkbox
+   function display_super_event_description(){
+     var check = document.getElementById("super-event");
+     var sub = document.getElementById("super-des");
+     var subCurrent = document.getElementById("sub-current");
+     if (check.checked == true){
+        document.getElementById('displayOnlyWithSuperEvent').disabled = true;
+        document.getElementById('displayOnlyWithSuperEventBox').hidden = true;
+        document.getElementById('displayOnlyWithSuperEvent').checked = false;
+        sub.style.display = "block";
+        subCurrent.style.display = "block";
+     } else {
+        document.getElementById('displayOnlyWithSuperEvent').disabled = false;
+        document.getElementById('displayOnlyWithSuperEventBox').hidden = false;
+        sub.style.display = "none";
+        subCurrent.style.display = "none";
+     }
+   }
+
+   //Clone the hidden element and shows it for sub-event
+   $('.add-sub').click(function(){
+     $('.dynamic-element-sub').first().clone().appendTo('.dynamic-stuff-sub').show();
+     attach_delete_sub();
+     attach_sub_search();
+   });
+
+   $('.exist-sub').ready(function(){
+     attach_delete_sub();
+   });
+
+   //Attach functionality to delete buttons for sub-event
+   function attach_delete_sub(){
+     $('.delete-sub').off();
+     $('.delete-sub').click(function(){
+       console.log("click");
+       $(this).closest('.sub-group').remove();
+       $('#form').find('input:submit, button:submit').prop("disabled", false);
+     });
+   }
+
+   //Attach functionality to sub-event-id search
+   function attach_sub_search() {
+    $(".search-id").autocomplete(
+      {
+        minLength: 2,
+        source: function(request, response) {
+          $.ajax({
+            url: "{{ url_for('user_events.searchsub_exclude_itself', id=post['_id']) }}"+"?data="+request.term,
+            type:"GET",
+            dataType: "json",
+            success: function(data) {
+              response($.map(data, function(item){
+                return {
+                  label: item.label + " (Category:" +item.category + ", StartDate: " + item.startDate + ")",
+                  value : item.label,
+                  data: item
+                }
+              }))
+            }
+          });
+        },
+        select: function (event, ui){
+          selectedItemData = ui.item.data;
+          id_input = $(event.target).next('input')
+          id_input.val(selectedItemData.value)
+          if ('status' in selectedItemData)
+            if (selectedItemData.status === 'pending') {
+                event_id_input = id_input.next('input')
+                event_id_input.val(selectedItemData.eventId)
+                status_input = event_id_input.next('input')
+                status_input.val(selectedItemData.status)
+            }
+        }
+      }
+    );
+   }
+
+   // Handle all-day event
+   $("#allDay").change(function () {
+      /*
+      let $startDate = $("#startDate");
+      let $endDate = $("#endDate");
+
+      let startDate = moment($startDate.val());
+      let endDate = moment($endDate.val());
+      */
+      if (this.checked) {
+        document.getElementById('startTime').setAttribute("hidden","hidden");
+        document.getElementById('startTime').removeAttribute("required");
+        document.getElementById('endTime').setAttribute("hidden","hidden");
+        document.getElementById('endTime').removeAttribute("required");
+        /*
+        $endDate.attr("type", "date");
+        $startDate.attr("type", "date");
+        console.log($startDate.val())
+        var today = new Date();
+        var dd = today.getDate();
+        var mm = today.getMonth()+1;
+        var yyyy = today.getFullYear();
+        if(dd<10){
+          dd='0'+dd
+        }
+        if(mm<10){
+          mm='0'+mm
+        }
+        date = yyyy+'-'+mm+'-'+dd;
+        $startDate.val(startDate.format("YYYY-MM-DD"));
+        $endDate.val(endDate.format("YYYY-MM-DD"));
+        if ($startDate.val() != ""){
+          document.getElementById("endDate").setAttribute("min", $startDate.val());
+
+        } else {
+          document.getElementById("endDate").setAttribute("min", date);
+        }
+      */
+      } else {
+        document.getElementById('startTime').removeAttribute("hidden");
+        document.getElementById('startTime').setAttribute("required", "required");
+        document.getElementById('endTime').removeAttribute("hidden");
+        document.getElementById('endTime').setAttribute("required", "required");
+        /*$startDate.attr("type", "datetime-local");
+        $endDate.attr("type", "datetime-local");
+
+        $startDate.val(startDate.format("YYYY-MM-DDTHH:mm"));
+        $endDate.val(endDate.hour(23).minute(59).format("YYYY-MM-DDTHH:mm"));
+        var today = new Date();
+        var dd = today.getDate();
+        var mm = today.getMonth()+1;
+        var yyyy = today.getFullYear();
+        if(dd<10){
+          dd='0'+dd
+        }
+        if(mm<10){
+          mm='0'+mm
+        }
+        date = yyyy+'-'+mm+'-'+dd;
+        var dateTime = date+'T'+'00:00:00';
+        if ($startDate.val() != ""){
+          document.getElementById("endDate").setAttribute("min", $startDate.val());
+
+        } else {
+          document.getElementById("endDate").setAttribute("min", date);
+        }*/
+      }
+    });
+
+    // Handle endDate constraint based on the choice of startDate
+    $('#startDate').change(function(){
+      var start = $('#startDate').val()
+      document.getElementById("endDate").setAttribute("min", start)
+      var end = $('#endDate').val()
+      if (end < start){
+        $('#endDate').val(null)
+        $('#endTime').val(null)
+      }
+    })
+
+    // Handle image upload and preview
+    $('input[type="file"]').change(function(input){
+        //console.log("detect image change");
+        var size = (input.target.files[0].size / 1024 / 1024).toFixed(4)
+        if(size > {{size_limit}}){
+          $('input[type="file"]').popover('show');
+          $('input[type="file"]').val(null)
+          setTimeout(function(){ $('input[type="file"]').popover('hide'); }, 2000);
+        } else {
+          $('input[type="file"]').popover('hide');
+          $('.delete-image').prop('disabled', false);
+          document.getElementById("image-display").style = "";
+          var fileName = input.target.files[0].name;
+          $('.custom-file-label').html(fileName);
+          var reader = new FileReader();
+          reader.onload = function (e) {
+              $('#preview-image')
+                  .attr('src', e.target.result);
+          };
+          reader.readAsDataURL(input.target.files[0]);
+        }
+    });
+
+    // delete button for image upload
+    $('.delete-image').click(function() {
+      console.log("click the image delete button")
+      $("#form").find(':submit, input[type="image"]').prop('disabled', false);
+      $('.delete-image').prop('disabled', true);
+      $('.custom-file-label').html('');
+      $("#file").val(null);
+      $('#preview-image').attr('src', '');
+      document.getElementById("image-display").style.display = "none";
+      $("#form").off('change input');
+      document.getElementById("delete-image").value = 1
+    });
+
+    // set the min value of startDate to be current time as the default behavior
+    var today = new Date();
+    var dd = today.getDate();
+    var mm = today.getMonth()+1;
+    var yyyy = today.getFullYear();
+    if(dd<10){
+      dd='0'+dd
+    }
+    if(mm<10){
+      mm='0'+mm
+    }
+    date = yyyy+'-'+mm+'-'+dd;
+    var dateTime = date+'T'+'00:00:00';
+
+    // set the min value of endDate to be startDate
+    var start = $('#startDate').val()
+    document.getElementById("endDate").setAttribute("min", start);
+
+    const availableTags = (new Function("return " + $('#availableTags').data("tags") + ";")());
+    function split( val ) {
+      return val.split( /,\s*/ );
+    }
+    function extractLast( term ) {
+      return split( term ).pop();
+    }
+
+    $( "#tags" ).on( "keydown", function( event ) {
+        if ( event.keyCode === $.ui.keyCode.TAB &&
+            $( this ).autocomplete( "instance" ).menu.active ) {
+          event.preventDefault();
+        }
+      })
+      .autocomplete({
+        minLength: 0,
+        source: function( request, response ) {
+          // delegate back to autocomplete, but extract the last term
+          response( $.ui.autocomplete.filter(
+            availableTags, extractLast( request.term ) ) );
+        },
+        focus: function() {
+          // prevent value inserted on focus
+          return false;
+        },
+        select: function( event, ui ) {
+          var terms = split( this.value );
+          // remove the current input
+          terms.pop();
+          // add the selected item
+          terms.push( ui.item.value );
+          // add placeholder to get the comma-and-space at the end
+          terms.push( "" );
+          this.value = terms.join( ", " );
+          return false;
+        }
+      });
+    $( "#form" ).on( "submit", function(event) {
+      if (document.getElementById("super-event").checked && "{{ post.eventStatus }}" === "approved") {
+          event.preventDefault();
+          $('#confirmModal').modal();
+      }
+      let tags = split(document.getElementById('tags').value);
+      for (let i = 0; i < tags.length - 1; i++) {
+          if (!availableTags.includes(tags[i])){
+            alert("Tags must be selected from list.");
+            event.preventDefault();
+          }
+      }
+      if (tags[tags.length - 1] !== "") {
+          if (!availableTags.includes(tags[tags.length - 1])){
+            alert("Tags must be selected from list.");
+            event.preventDefault();
+          }
+      }
+    })
+   </script>
+   <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ apiKey }}&callback=initMap"></script>
+{% endblock %}

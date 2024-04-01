@@ -1,0 +1,80 @@
+<!------------------------------------------------------------------------
+  Copyright 2020 Board of Trustees of the University of Illinois.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  ------------------------------------------------------------------------>
+
+{% extends 'base.html' %}
+{% from 'events/searchbox.html' import searchbox %}
+{% block header %}
+  <h1>{% block title %}Event Sources{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb calendar-event-breadcrumb">
+    <li class="breadcrumb-item active" aria-current="page">{{title}}</li>
+  </ol>
+</nav>
+
+<h1 class="text-center calendar-event-title">{{title}}</h1>
+
+{#<div class="container-fluid">#}
+{#  <div class="row m-3">#}
+{#    <div class="col"></div>#}
+{#    <div class="col-6 float-right">#}
+{#      {{ searchbox(eventTypeValues, "source", sourceId)}}#}
+{#    </div>#}
+{#  </div>#}
+{#</div>#}
+
+<div class="row">
+  <div class="col-2">
+    <div class="nav flex-column nav-pills calendar-event-listing-column" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+      {% for key, value in allsources.items() %}
+        {% if key == sourceId %}
+	       <a class="calendar-event-text calendar-event-button-active nav-link active" id="v-pills-school-tab" data-toggle="pill" href="#" role="tab" aria-controls="v-pills-school" aria-selected="true">{{value[0]}}</a>
+        {% else %}
+	       <a class="nav-link calendar-event-text" id="v-pills-school-tab" href="{{url_for('event.source', sourceId=key)}}" role="tab" aria-selected="false">{{value[0]}}</a>
+        {% endif %}
+      {% endfor %}
+      <a class="nav-link calendar-event-text" id="v-pills-school-tab" href="{{url_for('event.setting')}}" role="tab" aria-selected="false">Setting</a>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="tab-content" id="v-pills-tabContent">
+      <div class="tab-pane fade show active" id="v-pills-school" role="tabpanel" aria-labelledby="v-pills-school-tab">
+
+        <div id = "accordion">
+          {% for item in calendars %}
+            {% for key, value in item.items() %}
+              <div class="calendar-event-card">
+                <a href="{{url_for('event.calendar', calendarId=key)}}">
+                  <h5 class="calendar-event-text">{{ value }}</h5>
+                </a>
+              </div>
+            {% endfor %}
+          {% endfor %}
+        </div>
+
+        {% if calendars|length == 0 %}
+        <div class="text-center">There are no calendars under this source.</div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

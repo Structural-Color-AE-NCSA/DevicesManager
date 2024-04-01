@@ -1,0 +1,360 @@
+<!------------------------------------------------------------------------
+  Copyright 2020 Board of Trustees of the University of Illinois.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  ------------------------------------------------------------------------>
+
+{% extends 'base.html' %}
+<!--{% from 'events/searchbox.html' import searchboxUser %}-->
+{% block title %}
+  Devices
+{% endblock %}
+
+{% block create_event %}
+  {% if g.user["access"] == "both" or g.user["access"] == "user" or g.user["access"] == "source" %}
+  <a class="orange-background-button" style="display: none" href="{{ url_for('user_events.add_new_event') }}" role="button">Create Event</a>
+  {% endif %}
+{% endblock %}
+{% block content %}
+    <div>
+    <div class="row justify-content-center" style="margin-right:300px">
+    <div class="col form-check" style="visibility: hidden">
+{#            <h5 class="user-group-text">Group</h5>#}
+            <div class="form-check form-check-inline">
+          <label class="form-check-label" for="materialInline1"><h5> Group </h5></label>
+        </div>
+    <div class="form-check form-check-inline align-middle">
+{#    <select name="group" id="group" class="form-control w-auto float-left mt-2" data-style="btn-outline-primary" title="Group...">#}
+{#          <option value="all" {% if selected_group == 'all' %}selected{% endif %}>All Groups</option>#}
+{#      {% for group in groups %}#}
+{#          <option value="{{group['id']}}" id={{group['id']}} {% if selected_group == group['id'] %}selected{% endif %}>{{group['title']}}</option>#}
+{#      {% endfor %}#}
+{#    </select>#}
+    <div class="eventsmanager-create-dropdown-menu user-group-create-menu">
+      {% if selected_group == 'all' or selected_group == none %}
+          <input type="text" name="createdByGroupId" id="createdByGroupId" class="dropdown-menu-inputfield" placeholder="All Groups" readonly>
+          <input type="hidden" name="group" id="group" value="all">
+      {% else %}
+          {% for group in groups %}
+              {% if selected_group == group['id'] %}
+                <input type="text" name="createdByGroupId" id="createdByGroupId" value="{{group['title']}}" class="dropdown-menu-inputfield" placeholder="{{group['title']}}" readonly>
+                  <input type="hidden" name="group" id="group" value="{{group['id']}}">
+              {% endif %}
+          {% endfor %}
+      {% endif %}
+
+      <div class="dropdown-line"></div>
+      <div class="dropdown-menu-option">
+        <div onclick="groupDropDownMenuShow('createdByGroupId', 'All Groups', 'group', 'all')" class="usergroup-display-none dropdown-menu-option-item menu-item-text"> All Groups </div>
+          {% for group in groups %}
+                <div onclick="groupDropDownMenuShow('createdByGroupId', '{{group['title']}}', 'group', '{{group['id']}}')" class="usergroup-display-none dropdown-menu-option-item menu-item-text"> {{group['title']}} </div>
+            {% endfor %}
+      </div>
+    </div>
+    </div>
+    <div class="form-check form-check-inline align-middle left-title">
+      <h1>User Events</h1>&nbsp
+    </div>
+    </div>
+    </div>
+
+    <!-- filter and select operations -->
+    <div class="row justify-content-around">
+      <!--  checkbox group -->
+
+      <div class="col form-check">
+        <div class="form-check form-check-inline">
+          <label class="form-check-label" for="materialInline1"><h4>Show </h4></label>
+        </div>
+        <div class="form-check form-check-inline align-middle">
+          <input type="checkbox" class="filter-checkbox form-check-input" id="materialInline1" {% if "approved" in select_status %}checked{%endif%}>
+          <label class="form-check-label" for="materialInline1">
+              <!-- temporary change Approved to Published-->
+            <span class="badge badge-pill badge-publish small-body-text">Published </span>
+          </label>
+        </div>
+        <!-- comment out disapproved
+        <div class="form-check form-check-inline">
+            <input type="checkbox" class="form-check-input" id="materialInline2" {% if "disapproved" in select_status %}checked{%endif%}>
+            <label class="form-check-label" for="materialInline2">
+              <span class="badge badge-pill badge-danger">Disapproved </span>
+            </label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input type="checkbox" class="form-check-input" id="materialInline3" {% if "published" in select_status %}checked{%endif%}>
+            <label class="form-check-label" for="materialInline3">
+              <span class="badge badge-pill badge-info">Published </span>
+            </label>
+        </div>
+         -->
+        <div class="form-check form-check-inline align-middle">
+          <input type="checkbox" class="filter-checkbox form-check-input" id="materialInline4" {% if "pending" in select_status %}checked{%endif%}>
+          <label class="form-check-label" for="materialInline4">
+            <span class="badge badge-pill badge-pending small-body-text">Pending </span>
+          </label>
+        </div>
+        <div class="form-check form-check-inline align-middle" style="visibility: hidden">
+          <input type="checkbox" class="filter-checkbox form-check-input" id="materialInline5" {% if "hide_past" in select_status %}checked{%endif%}>
+          <label class="form-check-label" for="materialInline5">
+            <span class="badge badge-pill badge-hide-past-events small-body-text">Hide Past Events </span>
+          </label>
+        </div>
+      </div>
+      <!-- Search form -->
+      <div class="form-check form-check-inline row justify-content-end" >
+{#        <div style="margin-right: 2px">#}
+        <div style="visibility: hidden">
+            <span>From</span>
+          <input type="date" id="from" value="{{start}}" max="9999-12-31"/>
+            <span>to</span>
+          <input type="date" id="to" value="{{end}}" max="9999-12-31"/>
+            <button id="time-range-reset" type="button" class="grey-background-button" style="margin-bottom: 3px" onclick="document.getElementById('from').value='';document.getElementById('to').value=''">Reset</button>
+        </div>
+
+{#      <select title="Events Per Page" id="per_page" class="form-control w-auto">#}
+{#          {% for key in page_config %}#}
+{#              <option value = "{{key}}"{% if per_page == key %}selected{% endif %}>{{key}}</option>#}
+{#          {% endfor %}#}
+{#      </select>#}
+
+      <div class="perpage-create-menu eventsmanager-perpage-dropdown-menu">
+        <input type="text" id="per_page" name="per_page" value='{{ per_page }}' class="form-control dropdown-menu-inputfield" placeholder="Choose events per page" readonly>
+          <div class="dropdown-line"></div>
+          <div class="dropdown-menu-option">
+              {% for key in page_config %}
+                    <div onclick="dropDownMenuShow('per_page', '{{key}}')" class="perpage-display-none dropdown-menu-option-item menu-item-text"> {{key}} </div>
+              {% endfor %}
+          </div>
+       </div>
+    </div>
+
+      <span title="Events Per Page" style="margin-top: 5px">Events Per Page</span>
+      </div>
+    <!-- comment out search GUI
+      <form class="form-inline" id ="searchform" action="{{ url_for('user_events.user_events')}}" method="post">
+        <div>
+          <button type="submit" class="btn btn-outline-primary mb-2">Search</button>
+        </div>
+        <div class="form-group mx-sm-2 mb-2">
+          <input type="text" class="form-control" name = "searchInput" placeholder="Search Events..." aria-label="Search">
+        </div>
+      </form>
+      -->
+    </div>
+
+
+    <div class="row row-content">
+      <div class="col-12">
+        <hr class="divider"/>
+        <div id = "accordion">
+          {% for eventID in posts_dic%}
+            <div class="card">
+              <div class="card-header" role="tab", id = "head">
+                <div class = "col-12 col-md-11" style="overflow: hidden; padding-top: 3px; padding-bottom: 3px">
+                  <a href="{{ url_for('user_events.user_an_event', id=posts_dic[eventID][0]['_id']) }}" class="btn btn-default ml-auto float-left" >
+                      {% if posts_dic[eventID][0].title|length > 76 %}
+                      <h5 class="mb-0" align="left" style="width: 680px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ posts_dic[eventID][0].title }}</h5>
+                      {% else %}
+                      <h5 class="mb-0" align="left" style="overflow:hidden; white-space:nowrap">{{ posts_dic[eventID][0].title }}</h5>
+                      {% endif %}
+                  </a>
+                    <div style="margin-top: 11px">
+                        {% if posts_dic[eventID][0].isSuperEvent %}
+{#                            <div style="color:white; vertical-align: middle; float:left" class="badge badge-pill badge-primary small-body-text">Super Event</div>#}
+                            <div class="badge badge-pill badge-primary small-body-text super-event-badge super-event-badge-text">Super Event</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div style="height: 17px; padding-left: 27px; display:flex">
+{#                <div style="margin-top: 0.5em; color:white; vertical-align: middle; float:left" class="badge badge-pill badge-primary">{{ posts_dic[eventID][0].timezone }}</div>#}
+                    <div style="display:flex; overflow: hidden; padding-right: 10px">
+                        <h6 style="padding-right: 5px">Starts:</h6>
+                        <span class="date">{{posts_dic[eventID][0].startDate}} </span>
+                    </div>
+                    <div style="display:flex; overflow: hidden">
+                        {% if posts_dic[eventID][0].allDay and posts_dic[eventID][0].endDate %}
+                            <h6 style="padding-right: 5px;margin-left: 58px">Ends: </h6>
+                            <span class="date">{{ posts_dic[eventID][0].endDate}}</span>
+                        {% endif %}
+                        {% if posts_dic[eventID][0].endDate and posts_dic[eventID][0].allDay == false %}
+                            <h6 style="padding-right: 5px">Ends: </h6>
+                            <span class="date">{{ posts_dic[eventID][0].endDate}}</span>
+                        {% else %}
+                            <!-- <span class="date">Not Available</span> -->
+                        {% endif %}
+                    </div>
+                </div>
+                <!-- comment out dropdown history
+                <div class = "col-12 dropdown">
+                  <a class="btn btn-default ml-auto float-right data" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" >
+                    <span id="edit_{{eventId}}">
+                      <svg height="18" class="octicon octicon-triangle-down v-align-middle" viewBox="0 0 12 16" version="1.1" width="10" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M0 5l6 6 6-6H0z"></path>
+                      </svg>
+                    </span>
+                  </a>
+
+                  <div class="dropdown-menu dropdown-menu-right" id="myDropdown">
+                    <a class="dropdown-item disabled">Request History</a>
+                    <div class="dropdown-divider"></div>
+                    {% for post_version in posts_dic[eventID]%}
+                      <a class="dropdown-item" href="{{ url_for('user_events.user_an_event', id=post_version['_id']) }}">
+                        <span class="dataModified">{{post_version.dataModified}}</span>
+                        {% if post_version.eventStatus == "approved" %}
+                          <span class="badge badge-pill badge-success">A</span>
+                        {% elif post_version.eventStatus == "disapproved"%}
+                          <span class="badge badge-pill badge-danger">D</span>
+                        {% elif post_version.eventStatus == "pending"%}
+                          <span class="badge badge-pill badge-warning">P</span>
+                        {% else %}
+                          <span class="badge badge-pill badge-info">P</span>
+                        {% endif %}
+                      </a>
+                    {% endfor%}
+                  </div>
+                </div>
+                -->
+              </div>
+          </div>
+        {% endfor%}
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-center">
+  {{ pagination_links }}
+  </div>
+
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  {% include 'events/select_status.html' %}
+  <script src="..\static\js\user-events.js"></script>
+  <script>
+          function dropDownMenuShow(id, value) {
+              document.getElementById(id).value = value
+          }
+        $(document).on("input keypress paste change", ".dropdown-menu-inputfield", function () {
+            console.log("usergroup change");
+        });
+        function usergroupChange() {
+            console.log("usereventGroupChange");
+            data = document.getElementById('group').value
+             $.ajax({
+                url: "{{ url_for('user_events.user_events') }}",
+                dataType: 'json',
+                type: 'POST',
+                data: {
+                    group: data,
+                },
+            }).always(function () {
+                location.reload(true);
+            });
+        }
+        function perpageChange() {
+            console.log("per page change");
+            $.ajax({
+                url: "{{ url_for('user_events.user_events') }}",
+                dataType: 'json',
+                type: 'POST',
+                data: {
+                    per_page: document.getElementById('per_page').value,
+                },
+            }).always(function () {
+                location.reload(true);
+            });
+        }
+        function groupDropDownMenuShow(title, titlevalue, id, idvalue) {
+          document.getElementById(id).value = idvalue
+          document.getElementById(title).value = titlevalue
+      }
+      class Dropdownmenu {
+          constructor(selector, display) {
+              this.menu = document.querySelector(selector)
+              this.display = display
+          }
+          onclick() {
+             let self = this
+             this.menu.onclick = function() {
+                 console.log("onclick() click");
+                 self.menu.classList.toggle('active')
+                 if (self.menu.classList.contains('active')) {
+                      Array.from($(self)[0].menu.children)
+                         .filter(child => child.classList.contains("dropdown-line"))[0].style.display = "inherit"
+                      $(self.display).css({"display": "block"})
+                 } else {
+                      Array.from($(self)[0].menu.children)
+                         .filter(child => child.classList.contains("dropdown-line"))[0].style.display = "none"
+                      $(self.display).css({"display": "none"})
+                     {#usergroupChange()#}
+                     if (self.menu.classList.contains('perpage-create-menu')) {
+                         perpageChange()
+                     }
+                     if (self.menu.classList.contains('user-group-create-menu')) {
+                         usergroupChange()
+                     }
+                 }
+             };
+          }
+      }
+      usergroupmenu = new Dropdownmenu('.user-group-create-menu', '.usergroup-display-none')
+      usergroupmenu.onclick()
+      perpagemenu = new Dropdownmenu('.perpage-create-menu', '.perpage-display-none')
+      perpagemenu.onclick()
+      $( document ).ready(function() {
+          const pagination = $(".pagination")
+          const left_href = pagination.children(":first").children(":first").attr('href');
+          if (left_href === undefined) {
+              pagination.children(":first").replaceWith(
+                  $('<li class="page-item"><img class="page-link pagination-left" src="{{ url_for('static',filename = 'pagination-triangle-reversed.svg') }}"> </li>')
+              );
+          } else {
+              pagination.children(":first").replaceWith(
+                  $('<li class="page-item"> <a href="' + left_href + '"> <img class="page-link pagination-left" src="{{ url_for('static',filename = 'pagination-triangle-reversed.svg') }}"></a> </li>')
+              );
+          }
+          const right_href = pagination.children(":last").children(":first").attr('href')
+          if (right_href === undefined) {
+              pagination.children(":last").replaceWith(
+                  $('<li class="page-item"> <img class="page-link pagination-right" src="{{ url_for('static',filename = 'pagination-triangle.svg') }}"> </li>')
+              );
+          } else {
+              pagination.children(":last").replaceWith(
+                  $('<li class="page-item"> <a href="' + right_href + '"> <img class="page-link pagination-right" src="{{ url_for('static',filename = 'pagination-triangle.svg') }}"> </a> </li>')
+              );
+          }
+      });
+  </script>
+  <!-- <script>
+    $(".dataModified").each(function(index){
+      console.log("hi");
+      console.log($(this).text());
+      dataModified_utc = $(this).text().replace("T", " ");
+      console.log(dataModified_utc);
+      dataModified_local = new Date(dataModified_utc+"Z");
+      $(this).text(dataModified_local.toLocaleString());
+    });
+  </script> -->
+
+{% endblock %}
+
+
+{% block styles %}
+  {{ super()}}
+  <style>
+  .date {
+      font-size: small;
+  }
+  </style>
+{% endblock %}

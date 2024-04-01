@@ -1,0 +1,91 @@
+<!------------------------------------------------------------------------
+  Copyright 2020 Board of Trustees of the University of Illinois.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  ------------------------------------------------------------------------>
+
+<script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
+<script>
+    function reselect_time_range() {
+        let from = moment(document.getElementById('from').value).utc();
+        let to = moment(document.getElementById('to').value).utc();
+        let from_string = from.format('YYYY-MM-DD');
+        let to_string = to.format('YYYY-MM-DD');
+        if (document.getElementById('from').value === "") from_string = "";
+        if (document.getElementById('to').value === "") to_string = "";
+        $.ajax({
+            url: "{{ url_for('user_events.time_range') }}",
+            dataType: 'json',
+            type: 'POST',
+            data: {
+                from: from_string,
+                to: to_string,
+            },
+        }).always(function () {
+            location.reload(true);
+        });
+    }
+
+    $("#materialInline1, #materialInline2, #materialInline3, #materialInline4, #materialInline5").on('click', function () {
+        let approved = ($('#materialInline1').is(':checked') ? 1 : 0);
+        let disapproved = ($('#materialInline2').is(':checked') ? 1 : 0);
+        let published = ($('#materialInline3').is(':checked') ? 1 : 0);
+        let pending = ($('#materialInline4').is(':checked') ? 1 : 0);
+        let hide_past = ($('#materialInline5').is(':checked') ? 1 : 0);
+        $.ajax({
+            {% if isUser %}
+                url: "{{ url_for('user_events.select') }}",
+            {% else %}
+                url: "{{ url_for('event.select') }}",
+            {% endif %}
+            dataType: 'json',
+            type: 'POST',
+            data: {
+                approved: approved,
+                disapproved: disapproved,
+                published: published,
+                pending: pending,
+                hide_past: hide_past
+            },
+        }).always(function () {
+            location.reload(true);
+        });
+    })
+
+    $("#from, #to").on('change', reselect_time_range)
+    $("#time-range-reset").on('click', reselect_time_range)
+    $("#per_page").on('change', function () {
+        $.ajax({
+            url: "{{ url_for('user_events.user_events') }}",
+            dataType: 'json',
+            type: 'POST',
+            data: {
+                per_page: document.getElementById('per_page').value,
+            },
+        }).always(function () {
+            location.reload(true);
+        });
+    })
+    $("#group").on('change', function () {
+        $.ajax({
+            url: "{{ url_for('user_events.user_events') }}",
+            dataType: 'json',
+            type: 'POST',
+            data: {
+                group: document.getElementById('group').value,
+            },
+        }).always(function () {
+            location.reload(true);
+        });
+    })
+</script>

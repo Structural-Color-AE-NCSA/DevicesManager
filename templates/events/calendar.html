@@ -1,0 +1,224 @@
+<!------------------------------------------------------------------------
+  Copyright 2020 Board of Trustees of the University of Illinois.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  ------------------------------------------------------------------------>
+
+{% extends 'base.html' %}
+
+{% from 'events/confirmation.html' import confirmation %}
+{% from 'events/searchbox.html' import searchbox %}
+
+{% block header %}
+<h1>{% block title %}{{title}}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{url_for('event.source', sourceId=source[0])}}">{{source[1]}}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{title}}</li>
+  </ol>
+</nav>
+
+<h1 class="text-center">{{title}}
+  <!-- {% if calendarStatus == "approved" %}
+  <span class="badge badge-success">Approved</span>
+  {% endif %} -->
+</h1>
+
+{% if calendarStatus == "approved" %}
+{{ confirmation("disapprove", title) }}
+{% else %}
+{{ confirmation("approve", title) }}
+{% endif %}
+
+<div class="row justify-content-around">
+{#  <div class="row mt-3 mb-3">#}
+{#    <div class="col text-center">#}
+{#      {% if calendarStatus == "approved" %}#}
+{#      <button type="button" class="btn btn-outline-danger" data-toggle="modal" data-target="#confirmModal">Disapprove All Events In Calendar</button>#}
+{#      {% else %}#}
+{#      <button type="button" class="btn btn-success" data-toggle="modal" data-target="#confirmModal">Approve All Events In Calendar</button>#}
+{#      {% endif %}#}
+{#    </div>#}
+{#  </div>#}
+
+  <div class="col form-check mt-3 mb-3">
+      <div class="form-check form-check-inline"><h4>Show</h4></div>
+
+      <div class="form-check form-check-inline align-middle">
+          <input type="checkbox" class="filter-checkbox form-check-input" id="materialInline3" {% if "published" in select_status %}checked{%endif%}>
+          <label class="form-check-label" for="materialInline3">
+              <span class="badge badge-pill badge-publish small-body-text">Published </span>
+          </label>
+      </div>
+
+      <div class="form-check form-check-inline align-middle">
+        <input type="checkbox" class="filter-checkbox form-check-input" id="materialInline1" {% if "approved" in select_status %}checked{%endif%}>
+        <label class="form-check-label bage-warning" for="materialInline1">
+            <span class="badge badge-pill badge-pending small-body-text">Pending </span>
+        </label>
+      </div>
+{#      <div class="form-check form-check-inline">#}
+{#          <input type="checkbox" class="form-check-input" id="materialInline2" {% if "disapproved" in select_status %}checked{%endif%}>#}
+{#          <label class="form-check-label" for="materialInline2">Disapproved</label>#}
+{#      </div>#}
+
+{#      <div class="form-check form-check-inline">#}
+{#          <input type="checkbox" class="form-check-input" id="materialInline4" {% if "pending" in select_status %}checked{%endif%}>#}
+{#          <label class="form-check-label" for="materialInline4">Pending</label>#}
+{#      </div>#}
+    <!--  checkbox group -->
+{#    <div class="col-6 float-right">#}
+{#      {{ searchbox(eventTypeValues, "calendar", calendarId) }}#}
+{#    </div>#}
+
+  </div>
+
+      <div class="form-check form-check-inline row justify-content-end" style="float: right">
+        <div style="margin-right: 20px">
+            <span>From</span>
+          <input type="date" id="from_calendar" value="{{start}}" max="9999-12-31"/>
+            <span>to</span>
+          <input type="date" id="to_calendar" value="{{end}}" max="9999-12-31"/>
+            <button id="time-range-reset" type="button" class="grey-background-button" style="margin-bottom: 3px" onclick="document.getElementById('from_calendar').value='';document.getElementById('to_calendar').value=''">Reset</button>
+        </div>
+
+        <div class="form-check form-check-inline row justify-content-end" >
+          <select title="Events Per Page" id="per_page" class="w-auto">
+            {% for key in page_config %}
+            <option title="Events Per Page" value = "{{key}}"{% if per_page == key %}selected{% endif %}>{{key}}</option>
+            {% endfor %}
+          </select>
+          <span style="margin-top: 5px; margin-left: 5px">Events Per Page</span>
+        </div>
+
+</div>
+</div>
+<div id = "accordion">
+  {% for post in posts %}
+      <div class="card">
+          <div class="card-header" role="tab", id = "head">
+            <div class = "col-12 col-md-11" style="overflow: hidden; padding-top: 3px; padding-bottom: 3px">
+              <a href="{{url_for('event.detail', eventId=post._id) }}" class="btn btn-default ml-auto float-left" >
+                  {% if post.title|length > 76 %}
+                  <h5 class="mb-0" align="left" style="width: 680px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ post.title }}</h5>
+                  {% else %}
+                  <h5 class="mb-0" align="left" style="overflow:hidden; white-space:nowrap">{{ post.title }}</h5>
+                  {% endif %}
+              </a>
+            </div>
+            <div style="height: 17px; padding-left: 27px; display:flex">
+                <div style="display:flex; overflow: hidden; padding-right: 10px">
+                    <h6 style="padding-right: 5px">Starts:</h6>
+                    <span class="date">{{post.startDate}} </span>
+                </div>
+                <div style="display:flex; overflow: hidden">
+                    {% if post.allDay == True and post.endDate %}
+                        <h6 style="padding-right: 5px; margin-left: 60px">Ends: </h6>
+                        <span class="date">{{ post.endDate }}</span>
+                    {% else %}
+                        <h6 style="padding-right: 5px">Ends: </h6>
+                        <span class="date">{{ post.endDate }}</span>
+                    {% endif %}
+                </div>
+            </div>
+          </div>
+        </div>
+  {% endfor %}
+</div>
+
+<div class="d-flex justify-content-center">
+{{ pagination.links }}
+</div>
+
+{% endblock %}
+
+{% block scripts%}
+  {{ super() }}
+  {% include 'events/select_status.html' %}
+  <script>
+    $("#approvebutton").click(function() {
+      $.post("{{ url_for('event.approveCalendar') }}",
+      {
+        "calendarId": {{ calendarId}}
+      },
+      function(data) {
+        if (data == "success") {
+          location.reload();
+        }
+      });
+    });
+
+    $("#disapprovebutton").click(function() {
+      $.post("{{ url_for('event.disapproveCalendar') }}",
+      {
+        "calendarId": {{ calendarId}}
+      },
+      function(data) {
+        if (data == "success") {
+          location.reload();
+        }
+      });
+    });
+    function reselect_time_range() {
+        debugger
+        let from_calendar = moment(document.getElementById('from_calendar').value).utc();
+        let to_calendar = moment(document.getElementById('to_calendar').value).utc();
+        let from_string = from_calendar.format('YYYY-MM-DD');
+        let to_string = to_calendar.format('YYYY-MM-DD');
+        if (document.getElementById('from_calendar').value === "") from_string = "";
+        if (document.getElementById('to_calendar').value === "") to_string = "";
+        $.ajax({
+            url: "{{ url_for('event.time_range_calendar') }}",
+            dataType: 'json',
+            type: 'POST',
+            data: {
+                from: from_string,
+                to: to_string,
+            },
+        }).always(function () {
+            location.reload(true);
+        });
+    }
+    $("#from_calendar, #to_calendar").on('change', reselect_time_range)
+    $("#time-range-reset").on('click', reselect_time_range)
+
+
+
+      $( document ).ready(function() {
+          const pagination = $(".pagination")
+          const left_href = pagination.children(":first").children(":first").attr('href');
+          if (left_href === undefined) {
+              pagination.children(":first").replaceWith(
+                  $('<li class="page-item"><img class="page-link pagination-left" src="{{ url_for('static',filename = 'pagination-triangle-reversed.svg') }}"> </li>')
+              );
+          } else {
+              pagination.children(":first").replaceWith(
+                  $('<li class="page-item"> <a href="' + left_href + '"> <img class="page-link pagination-left" src="{{ url_for('static',filename = 'pagination-triangle-reversed.svg') }}"></a> </li>')
+              );
+          }
+          const right_href = pagination.children(":last").children(":first").attr('href')
+          if (right_href === undefined) {
+              pagination.children(":last").replaceWith(
+                  $('<li class="page-item"> <img class="page-link pagination-right" src="{{ url_for('static',filename = 'pagination-triangle.svg') }}"> </li>')
+              );
+          } else {
+              pagination.children(":last").replaceWith(
+                  $('<li class="page-item"> <a href="' + right_href + '"> <img class="page-link pagination-right" src="{{ url_for('static',filename = 'pagination-triangle.svg') }}"> </a> </li>')
+              );
+          }
+      });
+  </script>
+{% endblock %}

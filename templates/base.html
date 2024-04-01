@@ -1,0 +1,176 @@
+<!------------------------------------------------------------------------
+  Copyright 2020 Board of Trustees of the University of Illinois.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  ------------------------------------------------------------------------>
+
+<!doctype html>
+<html lang="en">
+  <head>
+    {% block metas %}
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
+      <meta charset="utf-8">
+    {% endblock %}
+
+    <title>{% block title %}{% endblock %}</title>
+
+    {% block styles %}
+      <link rel="stylesheet" href="https://use.typekit.net/qjr3liq.css">
+      <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+      <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/css/bootstrap-select.min.css">
+      <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
+    {% endblock %}
+  </head>
+  <body>
+    <header class="sitebar">
+      <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
+      <a class="navbar-brand" href="https://illinois.edu">
+        <img src="{{url_for('static',filename = 'block-i-white-orange.png')}}">
+      </a>
+      <a class="events-manager-navbar-title-link" href="{{ url_for('home.home') }}">
+          <h1 class="events-manager-navbar-title">
+              Devices Manager
+          </h1>
+      </a>
+        <div class="container" style="justify-content: flex-start;">
+      {% block create_event %}{% endblock %}
+        </div>
+        <div class="row align-items-center flex-nowrap">
+        {% if g.user %}
+          <!-- {% from 'events/searchbox.html' import searchbox %}
+          {{ searchbox(g.eventTypeValues) }} -->
+          <!-- {% if not no_search %}
+            <div class="col text-nowrap">
+              <div class="ui-widget">
+                <label for="searchbar">Search: </label>
+                <input id="searchbar">
+              </div>
+            </div>
+          {% endif %} -->
+          <div ><span class="text-light text-nowrap">Hello, {{ g.user["username"] }}</span></div>
+            <a role="button" class="login-logout-button white-background-button" href="{{ url_for('auth.logout') }}">Logout</a>
+        {% else %}
+            <a role="button" class="login-logout-button white-background-button" href="{{ url_for('auth.login') }}">Login</a>
+        {% endif %}
+
+        </div>
+      </nav>
+    </header>
+
+    {% for message in get_flashed_messages() %}
+        <div class="flash alert alert-danger eventsmanager-flash" role="alert">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    {% block modals %}
+    {% endblock %}
+    <main role="main" class="container" >
+      <div class = "container d-none d-md-block content-padding">
+        {% block content%}
+        {% endblock %}
+      </div>
+    </main>
+
+    {% block scripts %}
+      <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+      <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
+      <script src="https://cdn.jsdelivr.net/gh/xcash/bootstrap-autocomplete@v2.3.5/dist/latest/bootstrap-autocomplete.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.9/dist/js/bootstrap-select.min.js"></script>
+      <script >
+        $(
+          function() {
+              // TODO: cache part could possibly be optimized
+              var cache = {};
+              $("#searchbar").autocomplete({
+                  minLength: 2,
+                  source: function(request, response) {
+                      var term = request.term;
+                      if (term in cache) {
+                          response(cache[term]);
+                          return;
+                      }
+                      $.ajax({
+                          {% if isUser %}
+                            url: "{{ url_for('user_events.search') }}"+"?data="+request.term,
+                          {% else %}
+                            url: "{{ url_for('event.search') }}"+"?data="+request.term,
+                          {% endif %}
+                          dataType: "json",
+                          type: "GET",
+                          success: function(data) {
+                              cache[term] = data;
+                              response(data);
+                          }
+                      });
+                  } 
+              })
+            
+              $(".search-id").autocomplete({
+                minLength: 2,
+                source: function(request, response) {
+                  console.log(request.term);
+                  $.ajax({
+                    url: "{{ url_for('user_events.searchsub_exclude_itself', id=eventId) }}"+"?data="+request.term,
+                    type:"GET",
+                    dataType: "json",
+                    success: function(data) {
+                      response($.map(data, function(item){
+                        return {
+                          label: item.label + " (Category:" +item.category + ", StartDate: " + item.startDate + ")",
+                          value : item.label,
+                          data: item
+                        }
+                      }))
+                    }
+                  });
+                },
+                select: function (event, ui){
+                  selectedItemData = ui.item.data;
+                  id_input = $(event.target).next('input')
+                  id_input.val(selectedItemData.value)
+                }
+              });
+          }
+      )
+      </script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/js/bootstrap-select.min.js"></script>
+    {% endblock %}
+  </body>
+<div class="footer">
+    <img src="{{ url_for('static', filename='powered-by-rokwire-no-i-block.svg') }}"
+     class="powered-by-rokwire-no-i-block" alt="powered by rokwire">
+    <div class='footer-wrapper'>
+        <span class="footer-text version">
+          Version {{ get_version() }}
+        </span>
+        <span class="footer-text copyright">
+          Copyright 2022
+        </span>
+        <a href="https://www.vpaa.uillinois.edu/resources/web_privacy" class="privacy-policy">
+          Privacy Policy
+        </a>
+    </div>
+</div>
+<style>
+    :root {
+        --background-url: url('{{ url_for('static', filename='icon-selected.svg', _external=True) }}');
+    }
+</style>
+</html>
