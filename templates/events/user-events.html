@@ -176,57 +176,7 @@
                       {% endif %}
                   </div>
                 </div>
-                <!--
-                <div style="height: 17px; padding-left: 27px; display:flex">
-                    <div style="display:flex; overflow: hidden; padding-right: 10px">
-                        <h6 style="padding-right: 5px">Starts:</h6>
-                        <span class="date">{{posts_dic[eventID][0].startDate}} </span>
-                    </div>
-                    <div style="display:flex; overflow: hidden">
-                        {% if posts_dic[eventID][0].allDay and posts_dic[eventID][0].endDate %}
-                            <h6 style="padding-right: 5px;margin-left: 58px">Ends: </h6>
-                            <span class="date">{{ posts_dic[eventID][0].endDate}}</span>
-                        {% endif %}
-                        {% if posts_dic[eventID][0].endDate and posts_dic[eventID][0].allDay == false %}
-                            <h6 style="padding-right: 5px">Ends: </h6>
-                            <span class="date">{{ posts_dic[eventID][0].endDate}}</span>
-                        {% else %}
-                            <span class="date">Not Available</span>
-                        {% endif %}
-                    </div>
-                </div>
-                -->
-
-                <!-- comment out dropdown history
-                <div class = "col-12 dropdown">
-                  <a class="btn btn-default ml-auto float-right data" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" >
-                    <span id="edit_{{eventId}}">
-                      <svg height="18" class="octicon octicon-triangle-down v-align-middle" viewBox="0 0 12 16" version="1.1" width="10" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M0 5l6 6 6-6H0z"></path>
-                      </svg>
-                    </span>
-                  </a>
-
-                  <div class="dropdown-menu dropdown-menu-right" id="myDropdown">
-                    <a class="dropdown-item disabled">Request History</a>
-                    <div class="dropdown-divider"></div>
-                    {% for post_version in posts_dic[eventID]%}
-                      <a class="dropdown-item" href="{{ url_for('user_events.user_an_event', id=post_version['_id']) }}">
-                        <span class="dataModified">{{post_version.dataModified}}</span>
-                        {% if post_version.eventStatus == "approved" %}
-                          <span class="badge badge-pill badge-success">A</span>
-                        {% elif post_version.eventStatus == "disapproved"%}
-                          <span class="badge badge-pill badge-danger">D</span>
-                        {% elif post_version.eventStatus == "pending"%}
-                          <span class="badge badge-pill badge-warning">P</span>
-                        {% else %}
-                          <span class="badge badge-pill badge-info">P</span>
-                        {% endif %}
-                      </a>
-                    {% endfor%}
-                  </div>
-                </div>
-                -->
+                
               </div>
           </div>
         {% endfor%}
