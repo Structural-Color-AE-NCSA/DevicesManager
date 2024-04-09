@@ -18,13 +18,22 @@ from flask import (
 from .config import Config
 from git import Repo
 import os
+import json
 
 bp = Blueprint('home', __name__, url_prefix=Config.URL_PREFIX)
 
 @bp.route('/', methods=['GET'])
 def home():
     repo = Repo(os.path.dirname(os.path.realpath(__file__)))
-    gitinfo = "{}#branch:{} sha:{}".format(repo.tags[-1], repo.active_branch.name, repo.head.commit.hexsha[0: 6])
+    print('repo:', repo.tags)
+    print('repo:', repo.active_branch.name)
+    print('repo:', repo.head.commit.hexsha)
+    gitinfo = None
+    if len(repo.tags) > 0:
+        gitinfo = "{}#branch:{} sha:{}".format(repo.tags[-1], repo.active_branch.name, repo.head.commit.hexsha[0: 6])
+    else:
+        gitinfo = "{}#branch:{} sha:{}".format(0, repo.active_branch.name, repo.head.commit.hexsha[0: 6])
+    
     if 'error' in request.args:
         error = request.args['error']
         return render_template("home/home.html", error=error, gitinfo=gitinfo)

@@ -37,7 +37,7 @@ provider_info = client.provider_config(Config.ISSUER_URL)
 # Store registration details
 info = {"client_id": Config.CLIENT_ID, "client_secret": Config.CLIENT_SECRET, "redirect_uris": Config.REDIRECT_URIS}
 client_reg = RegistrationResponse(**info)
-client.store_registration_info(client_reg)
+# client.store_registration_info(client_reg)
 
 
 def check_login(view):
@@ -163,26 +163,26 @@ def login_ldap(username, password, error):
     return False
 
 
-def login_shi():
-    session["state"] = rndstr()
-    session["nonce"] = rndstr()
-    claims_request = ClaimsRequest(
-        userinfo=Claims(
-            uiucedu_uin={"essential": True}
-        )
-    )
-    args = {
-        "client_id": client.client_id,
-        "response_type": "code",
-        "scope": Config.SCOPES,
-        "claims": claims_request,
-        "nonce": session["nonce"],
-        "redirect_uri": client.registration_response["redirect_uris"][0],
-        "state": session["state"]
-    }
-    auth_req = client.construct_AuthorizationRequest(request_args=args)
-    login_url = auth_req.request(client.authorization_endpoint)
-    return Redirect(login_url)
+# def login_shi():
+#     session["state"] = rndstr()
+#     session["nonce"] = rndstr()
+#     claims_request = ClaimsRequest(
+#         userinfo=Claims(
+#             uiucedu_uin={"essential": True}
+#         )
+#     )
+#     args = {
+#         "client_id": client.client_id,
+#         "response_type": "code",
+#         "scope": Config.SCOPES,
+#         "claims": claims_request,
+#         "nonce": session["nonce"],
+#         "redirect_uri": client.registration_response["redirect_uris"][0],
+#         "state": session["state"]
+#     }
+#     auth_req = client.construct_AuthorizationRequest(request_args=args)
+#     login_url = auth_req.request(client.authorization_endpoint)
+#     return Redirect(login_url)
 
 
 @bp.route('/login')
@@ -195,84 +195,84 @@ def login():
     return login_db("test", "test", None)
 
 
-@bp.route('/callback')
-def callback():
-    if Config.LOGIN_MODE != "shibboleth":
-        return redirect(url_for("auth.login"))
-    response = request.environ["QUERY_STRING"]
-    authentication_response = client.parse_response(AuthorizationResponse, info=response, sformat="urlencoded")
-    code = authentication_response["code"]
-    try:
-        assert authentication_response["state"] == session["state"]
-    except KeyError:
-        return redirect(url_for("home.home", error="Unexpected Error, please try again"))
-    args = {"code": code}
-    token_response = client.do_access_token_request(state=authentication_response["state"],
-                                                    request_args=args,
-                                                    authn_method="client_secret_basic")
+# @bp.route('/callback')
+# def callback():
+#     if Config.LOGIN_MODE != "shibboleth":
+#         return redirect(url_for("auth.login"))
+#     response = request.environ["QUERY_STRING"]
+#     authentication_response = client.parse_response(AuthorizationResponse, info=response, sformat="urlencoded")
+#     code = authentication_response["code"]
+#     try:
+#         assert authentication_response["state"] == session["state"]
+#     except KeyError:
+#         return redirect(url_for("home.home", error="Unexpected Error, please try again"))
+#     args = {"code": code}
+#     token_response = client.do_access_token_request(state=authentication_response["state"],
+#                                                     request_args=args,
+#                                                     authn_method="client_secret_basic")
 
-    user_info = client.do_user_info_request(state=authentication_response["state"]).to_dict()
-    # For use in groups retrieval for admin check below
-    session["uin"] = user_info["uiucedu_uin"]
+#     user_info = client.do_user_info_request(state=authentication_response["state"]).to_dict()
+#     # For use in groups retrieval for admin check below
+#     session["uin"] = user_info["uiucedu_uin"]
 
-    if token_response.get("id_token") and token_response.get("id_token").jwt:
-        session["id_token"] = token_response.get("id_token").jwt
-    else:
-        session.clear()
-        return redirect(url_for("home.home", error="Login error, please try again later."))
+#     if token_response.get("id_token") and token_response.get("id_token").jwt:
+#         session["id_token"] = token_response.get("id_token").jwt
+#     else:
+#         session.clear()
+#         return redirect(url_for("home.home", error="Login error, please try again later."))
 
-    if "uiucedu_is_member_of" not in user_info:
-        session.clear()
-        return redirect(url_for("home.home", error="You don't have permission to login the event manager"))
+#     if "uiucedu_is_member_of" not in user_info:
+#         session.clear()
+#         return redirect(url_for("home.home", error="You don't have permission to login the event manager"))
 
-    rokwire_auth = list(filter(
-        lambda x: "urn:mace:uiuc.edu:urbana:authman:app-rokwire-service-policy-" in x,
-        user_info["uiucedu_is_member_of"]
-    ))
+#     rokwire_auth = list(filter(
+#         lambda x: "urn:mace:uiuc.edu:urbana:authman:app-rokwire-service-policy-" in x,
+#         user_info["uiucedu_is_member_of"]
+#     ))
 
-    if len(rokwire_auth) == 0:
-        return redirect(url_for("auth.login"))
-    else:
-        # fill in user information
-        session['user_info'] = user_info
-        session["name"] = user_info["name"]
-        session["email"] = user_info["email"]
-        # check for corresponding privilege
-        is_user_admin = False
-        is_source_admin = False
-        for tag in rokwire_auth:
-            if "rokwire em calendar events admins" in tag:
-                is_source_admin = True
-                break
-        # TODO: we are storing cookie by our own but not by code, may change it later
-        if 'uiucedu_is_member_of' in session.get('user_info'):
-            # check the AD group access
-            if 'urn:mace:uiuc.edu:urbana:authman:app-rokwire-service-policy-rokwire groups access' in \
-                    session.get('user_info').get('uiucedu_is_member_of'):
-                admin_groups, _ = get_admin_groups()
-                # check the login user must have at least one admin group access.
-                if len(admin_groups) > 0:
-                    is_user_admin = True
-        if is_user_admin and is_source_admin:
-            session["access"] = "both"
-            session.permanent = True
-            if 'login' not in session:
-                return redirect(url_for("home.home"))
-            elif session['entry'] == 'user_events':
-                return redirect(url_for("user_events.user_events"))
-            elif session['entry'] == 'event':
-                return redirect(url_for("event.source", sourceId=0))
-        elif is_user_admin:
-            session["access"] = "user"
-            session.permanent = True
-            return redirect(url_for("user_events.user_events"))
-        elif is_source_admin:
-            session["access"] = "source"
-            session.permanent = True
-            return redirect(url_for("event.source", sourceId=0))
-        else:
-            session.clear()
-            return redirect(url_for("home.home", error="You don't have permission to login the event manager"))
+#     if len(rokwire_auth) == 0:
+#         return redirect(url_for("auth.login"))
+#     else:
+#         # fill in user information
+#         session['user_info'] = user_info
+#         session["name"] = user_info["name"]
+#         session["email"] = user_info["email"]
+#         # check for corresponding privilege
+#         is_user_admin = False
+#         is_source_admin = False
+#         for tag in rokwire_auth:
+#             if "rokwire em calendar events admins" in tag:
+#                 is_source_admin = True
+#                 break
+#         # TODO: we are storing cookie by our own but not by code, may change it later
+#         if 'uiucedu_is_member_of' in session.get('user_info'):
+#             # check the AD group access
+#             if 'urn:mace:uiuc.edu:urbana:authman:app-rokwire-service-policy-rokwire groups access' in \
+#                     session.get('user_info').get('uiucedu_is_member_of'):
+#                 admin_groups, _ = get_admin_groups()
+#                 # check the login user must have at least one admin group access.
+#                 if len(admin_groups) > 0:
+#                     is_user_admin = True
+#         if is_user_admin and is_source_admin:
+#             session["access"] = "both"
+#             session.permanent = True
+#             if 'login' not in session:
+#                 return redirect(url_for("home.home"))
+#             elif session['entry'] == 'user_events':
+#                 return redirect(url_for("user_events.user_events"))
+#             elif session['entry'] == 'event':
+#                 return redirect(url_for("event.source", sourceId=0))
+#         elif is_user_admin:
+#             session["access"] = "user"
+#             session.permanent = True
+#             return redirect(url_for("user_events.user_events"))
+#         elif is_source_admin:
+#             session["access"] = "source"
+#             session.permanent = True
+#             return redirect(url_for("event.source", sourceId=0))
+#         else:
+#             session.clear()
+#             return redirect(url_for("home.home", error="You don't have permission to login the event manager"))
 
 
 # @bp.route('/select-events', methods=['GET', 'POST'])

@@ -168,15 +168,16 @@
                       <h5 class="mb-0" align="left" style="overflow:hidden; white-space:nowrap">{{ posts_dic[eventID][0].title }}</h5>
                       {% endif %}
                   </a>
-                    <div style="margin-top: 11px">
-                        {% if posts_dic[eventID][0].isSuperEvent %}
-{#                            <div style="color:white; vertical-align: middle; float:left" class="badge badge-pill badge-primary small-body-text">Super Event</div>#}
-                            <div class="badge badge-pill badge-primary small-body-text super-event-badge super-event-badge-text">Super Event</div>
-                        {% endif %}
-                    </div>
+                  <div>
+                      {% if posts_dic[eventID][0].isConnected %}
+                          <div class="badge badge-pill badge-primary small-body-text connected-badge super-event-badge-text">Connected</div>
+                      {% else %}
+                          <div class="badge badge-pill badge-primary small-body-text disconnected-badge super-event-badge-text">Disconnected</div>
+                      {% endif %}
+                  </div>
                 </div>
+                <!--
                 <div style="height: 17px; padding-left: 27px; display:flex">
-{#                <div style="margin-top: 0.5em; color:white; vertical-align: middle; float:left" class="badge badge-pill badge-primary">{{ posts_dic[eventID][0].timezone }}</div>#}
                     <div style="display:flex; overflow: hidden; padding-right: 10px">
                         <h6 style="padding-right: 5px">Starts:</h6>
                         <span class="date">{{posts_dic[eventID][0].startDate}} </span>
@@ -190,10 +191,12 @@
                             <h6 style="padding-right: 5px">Ends: </h6>
                             <span class="date">{{ posts_dic[eventID][0].endDate}}</span>
                         {% else %}
-                            <!-- <span class="date">Not Available</span> -->
+                            <span class="date">Not Available</span>
                         {% endif %}
                     </div>
                 </div>
+                -->
+
                 <!-- comment out dropdown history
                 <div class = "col-12 dropdown">
                   <a class="btn btn-default ml-auto float-right data" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" >

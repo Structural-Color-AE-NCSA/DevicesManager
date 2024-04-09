@@ -64,7 +64,8 @@ def scheduler_add_job(current_app, scheduler, func, start_date, *args, **kwargs)
 
 def create_scheduler(app):
     today = datetime.today()
-    startDate = datetime(today.year, today.month, today.day, int(app.config['SCHEDULER_HOUR']), int(app.config['SCHEDULER_MINS']), 00, 00)
+    # startDate = datetime(today.year, today.month, today.day, int(app.config['SCHEDULER_HOUR']), int(app.config['SCHEDULER_MINS']), 00, 00)
+    startDate = datetime(today.year, today.month, today.day, today.hour, today.minute, 00, 00)
     scheduler = BackgroundScheduler({'apscheduler.timezone': 'US/Central'})
     scheduler.add_listener(event_exception_listener, EVENT_JOB_ERROR)
     scheduler.add_listener(event_start_listener, EVENT_SCHEDULER_STARTED)
