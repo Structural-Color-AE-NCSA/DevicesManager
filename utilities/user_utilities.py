@@ -28,7 +28,6 @@ from bson.errors import InvalidId
 from datetime import datetime, date
 from dateutil import tz
 
-from .rabbitMQ.rpc_client import RpcClient
 from .source_utilities import s3_publish_image
 from PIL import Image
 import boto3
@@ -112,9 +111,8 @@ def get_all_user_events_count(group_ids, select_status, start=None, end=None):
                                         # "createdByGroupId": {"$in": group_ids},
                                         "eventStatus": {"$in": select_status}}))
 
-def get_all_device_status_pagination(skip, limit):
-    statusRpc = RpcClient()
-    response = statusRpc.call() #[{'_id': 0, 'title': 'device_0', 'isConnected': True}]
+def get_all_device_status_pagination(skip, limit, rpcDeviceReceiver):
+    response = rpcDeviceReceiver.call() #[{'_id': 0, 'title': 'device_0', 'isConnected': True}]
     begin = skip
     end = min(len(response), skip + limit)
     device_status_by_deviceID = {}

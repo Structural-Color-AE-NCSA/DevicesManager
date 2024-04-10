@@ -27,6 +27,7 @@ from .auth import role_required
 from flask import jsonify
 from .utilities.user_utilities import *
 from .utilities.constants import *
+from .utilities.rabbitMQ.receiver import RpcDevicesReceiver
 from flask_paginate import Pagination, get_page_args
 from .config import Config
 from werkzeug.utils import secure_filename
@@ -42,6 +43,8 @@ logging.basicConfig(level=logging.INFO, datefmt='%Y-%m-%dT%H:%M:%S',
 __logger = logging.getLogger("user_events.py")
 
 userbp = Blueprint('user_events', __name__, url_prefix=Config.URL_PREFIX+'/user-events')
+
+rpcDeviceReceiver = RpcDevicesReceiver()
 
 @userbp.route('/', methods=['GET', 'POST'])
 @role_required("user")
@@ -114,7 +117,7 @@ def user_events():
         if "group" in session and session["group"] != 'all':
             group_ids = [session["group"]]
         
-        posts_dic = get_all_device_status_pagination(offset, per_page) 
+        posts_dic = get_all_device_status_pagination(offset, per_page, rpcDeviceReceiver) 
         pagination = Pagination(page=page, per_page=per_page, total=total, css_framework='bootstrap4')
 
     return render_template("events/user-events.html", posts_dic = posts_dic,

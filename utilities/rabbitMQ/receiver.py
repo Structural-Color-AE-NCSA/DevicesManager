@@ -4,7 +4,7 @@ import uuid
 import json
 
 
-class RpcClient(object):
+class RpcDevicesReceiver(object):
 
     def __init__(self):
         self.connection = pika.BlockingConnection(
