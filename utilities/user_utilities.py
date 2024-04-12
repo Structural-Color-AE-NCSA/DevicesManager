@@ -27,6 +27,7 @@ from bson.objectid import ObjectId
 from bson.errors import InvalidId
 from datetime import datetime, date
 from dateutil import tz
+
 from .source_utilities import s3_publish_image
 from PIL import Image
 import boto3
@@ -45,7 +46,8 @@ logging.basicConfig(level=logging.INFO, datefmt='%Y-%m-%dT%H:%M:%S',
 __logger = logging.getLogger("user_utilities.py")
 
 GOOGLEKEY = Config.GOOGLE_KEY
-gmaps = googlemaps.Client(key=GOOGLEKEY)
+# gmaps = googlemaps.Client(key=GOOGLEKEY)
+gmaps = None
 
 
 def get_all_user_events(select_status):
@@ -109,6 +111,16 @@ def get_all_user_events_count(group_ids, select_status, start=None, end=None):
                                         # "createdByGroupId": {"$in": group_ids},
                                         "eventStatus": {"$in": select_status}}))
 
+def get_all_device_status_pagination(skip, limit, response):
+    begin = skip
+    end = min(len(response), skip + limit)
+    device_status_by_deviceID = {}
+    for device_status in response[begin:end]:
+        device_ID = device_status['_id']
+        device = [device_status]
+        if device:
+            device_status_by_deviceID[device_ID] = device
+    return device_status_by_deviceID, len(response)
 
 def get_all_user_events_pagination(group_ids, select_status, skip, limit, startDate=None, endDate=None):
     today = date.today().strftime("%Y-%m-%dT%H:%M:%S")

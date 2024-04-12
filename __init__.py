@@ -48,7 +48,7 @@ def create_app(config_class=Config):
     app = Flask(__name__, static_url_path=staticpath)
     app.config.from_object(Config)
 
-    __logger.info("Events Manager starts.")
+    __logger.info("Devices Manager starts.")
     init_db(app)
     try:
         os.mkdir(app.config['WEBTOOL_IMAGE_MOUNT_POINT'])
@@ -79,7 +79,9 @@ def create_app(config_class=Config):
     def utility_processor():
         def get_version():
             repo = Repo(os.path.dirname(os.path.realpath(__file__)))
-            return repo.tags[-1]
+            if len(repo.tags) > 0:
+                return repo.tags[-1]
+            return 0
 
         return dict(get_version=get_version)
 

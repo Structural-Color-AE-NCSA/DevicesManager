@@ -27,6 +27,7 @@ from .auth import role_required
 from flask import jsonify
 from .utilities.user_utilities import *
 from .utilities.constants import *
+from .utilities.rabbitMQ.receiver import RpcDevicesReceiver
 from flask_paginate import Pagination, get_page_args
 from .config import Config
 from werkzeug.utils import secure_filename
@@ -42,6 +43,8 @@ logging.basicConfig(level=logging.INFO, datefmt='%Y-%m-%dT%H:%M:%S',
 __logger = logging.getLogger("user_events.py")
 
 userbp = Blueprint('user_events', __name__, url_prefix=Config.URL_PREFIX+'/user-events')
+
+rpcDeviceReceiver = RpcDevicesReceiver()
 
 @userbp.route('/', methods=['GET', 'POST'])
 @role_required("user")
@@ -88,67 +91,22 @@ def user_events():
             page, per_page, offset = get_page_args(page_parameter='page', per_page_parameter='per_page')
         except ValueError:
             page = 1
+            
         if 'per_page' in session:
             per_page = session['per_page']
         else:
             per_page = Config.PER_PAGE
             session['per_page'] = per_page
         offset = (page - 1) * per_page
-        if 'from' in session:
-            group_ids = get_admin_group_ids()
-            if "group" in session and session["group"] != 'all':
-                group_ids = [session["group"]]
-            total = get_all_user_events_count(group_ids, select_status, start_date_filter, end_date_filter)
-        else:
-            group_ids = get_admin_group_ids()
-            if "group" in session and session["group"] != 'all':
-                group_ids = [session["group"]]
-            total = get_all_user_events_count(group_ids, select_status)
-        if page <= 0 or offset >= total:
+
+        response = rpcDeviceReceiver.get_device_status()
+        if page <= 0 or offset >= len(response):
             offset = 0
             page = 1
-        if 'from' in session:
-            #Modifications
-            group_ids = get_admin_group_ids()
-            if "group" in session and session["group"] != 'all':
-                group_ids = [session["group"]]
-            posts_dic = get_all_user_events_pagination(group_ids, select_status, offset, per_page, start_date_filter, end_date_filter)
-        else:
-            #Modifications
-            group_ids = get_admin_group_ids()
-            if "group" in session and session["group"] != 'all':
-                group_ids = [session["group"]]
-            group_ids = ["ce2e5e44-52e2-11ec-bef4-0a58a9feac02"]
-            posts_dic = get_all_user_events_pagination(group_ids, select_status, offset, per_page)
-        for list in posts_dic.values():
-            post = list[0]
-            if 'timezone' in post:
-                post['startDate'] = utc_to_time_zone(post.get('timezone'), post['startDate'], post['allDay'])
-                if post['allDay']:
-                    post['startDate'] = datetime.strptime(post['startDate'], '%Y-%m-%d').strftime('%m/%d/%Y')
-                else:
-                    post['startDate'] = datetime.strptime(post['startDate'], '%Y-%m-%dT%H:%M:%S').strftime('%m/%d/%Y %I:%M %p')
-            else:
-                post['startDate'] = get_datetime_in_local(post.get('location'), post['startDate'], post['allDay'])
-                if post['allDay']:
-                    post['startDate'] = datetime.strptime(post['startDate'], '%Y-%m-%d').strftime('%m/%d/%Y')
-                else:
-                    post['startDate'] = datetime.strptime(post['startDate'], '%Y-%m-%dT%H:%M:%S').strftime('%m/%d/%Y %I:%M %p')
-            if 'endDate' in post:
-                if 'timezone' in post:
-                    post['endDate'] = utc_to_time_zone(post.get('timezone'), post['endDate'], post['allDay'])
-                    if post['allDay']:
-                        post['endDate'] = datetime.strptime(post['endDate'], '%Y-%m-%d').strftime('%m/%d/%Y')
-                    else:
-                        post['endDate'] = datetime.strptime(post['endDate'], '%Y-%m-%dT%H:%M:%S').strftime('%m/%d/%Y %I:%M %p')
-                else:
-                    post['endDate'] = get_datetime_in_local(post.get('location'), post['endDate'], post['allDay'])
-                    if post['allDay']:
-                        post['endDate'] = datetime.strptime(post['endDate'], '%Y-%m-%d').strftime('%m/%d/%Y')
-                    else:
-                        post['endDate'] = datetime.strptime(post['endDate'], '%Y-%m-%dT%H:%M:%S').strftime('%m/%d/%Y %I:%M %p')
-        pagination = Pagination(page=page, per_page=per_page, total=total, css_framework='bootstrap4')
 
+        posts_dic, total = get_all_device_status_pagination(offset, per_page, response)
+        total_devices_count = total
+        pagination = Pagination(page=page, per_page=per_page, total=total, css_framework='bootstrap4')
 
     return render_template("events/user-events.html", posts_dic = posts_dic,
                             select_status=select_status, page=page,

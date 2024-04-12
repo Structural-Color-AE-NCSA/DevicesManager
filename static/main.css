@@ -511,6 +511,14 @@ h5 {
   background-color: #1d58a7;
 }
 
+.connected-badge {
+  background-color: #8fce00;
+}
+
+.disconnected-badge {
+  background-color: #f44336;
+}
+
 .badge-publish {
   height: 20px;
   font-size: 14px;

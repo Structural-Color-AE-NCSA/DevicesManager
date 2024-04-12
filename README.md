@@ -6,7 +6,7 @@ MongoDB's service needs to be started and a Mongo Shell needs to be connected in
 
 - For MacOS
 ```
-brew services start mongodb-community@4.2
+brew services start mongodb/brew/mongodb-community@4.4
 mongo
 ```
 
@@ -78,7 +78,7 @@ MongoDB needs to be installed for the flask app to run and interface with a data
 - For MacOS, prerequisites are having XCode and Homebrew
 ```
 brew tap mongodb/brew
-brew install mongodb-community@4.2
+brew install mongodb-community@4.4
 ```
 - For Ubuntu LTS releases
 ```
@@ -100,3 +100,11 @@ sudo apt-get install -y mongodb-org
 ```
 
 The template setup configuration exists in config.py.template, to run locally a new file config.py needs to be created accounting for changes based on your local environment setup.  
+
+## RabbitMQ setup
+
+Run RabbitMQ server in a separate terminal:
+`docker run -it --rm --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3.13-management`
+
+Also run dummy adaptor in a separate terminal:
+`python3 rpc_server.py`
