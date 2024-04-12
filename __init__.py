@@ -48,7 +48,7 @@ def create_app(config_class=Config):
     app = Flask(__name__, static_url_path=staticpath)
     app.config.from_object(Config)
 
-    __logger.info("Events Manager starts.")
+    __logger.info("Devices Manager starts.")
     init_db(app)
     try:
         os.mkdir(app.config['WEBTOOL_IMAGE_MOUNT_POINT'])

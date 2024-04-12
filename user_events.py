@@ -98,26 +98,14 @@ def user_events():
             per_page = Config.PER_PAGE
             session['per_page'] = per_page
         offset = (page - 1) * per_page
-        
-        if 'from' in session:
-            group_ids = get_admin_group_ids()
-            if "group" in session and session["group"] != 'all':
-                group_ids = [session["group"]]
-            total = get_all_user_events_count(group_ids, select_status, start_date_filter, end_date_filter)
-        else:
-            group_ids = get_admin_group_ids()
-            if "group" in session and session["group"] != 'all':
-                group_ids = [session["group"]]
-            total = get_all_user_events_count(group_ids, select_status)
-        if page <= 0 or offset >= total:
+
+        response = rpcDeviceReceiver.get_device_status()
+        if page <= 0 or offset >= len(response):
             offset = 0
             page = 1
-            
-        group_ids = get_admin_group_ids()
-        if "group" in session and session["group"] != 'all':
-            group_ids = [session["group"]]
-        
-        posts_dic = get_all_device_status_pagination(offset, per_page, rpcDeviceReceiver) 
+
+        posts_dic, total = get_all_device_status_pagination(offset, per_page, response)
+        total_devices_count = total
         pagination = Pagination(page=page, per_page=per_page, total=total, css_framework='bootstrap4')
 
     return render_template("events/user-events.html", posts_dic = posts_dic,
