@@ -60,9 +60,9 @@ def init_db(app):
     # Set up Mongo client for text indexing
     global client
     client = MongoClient(Config.MONGO_URL)
-    db = client.get_database('rokwire')
-    events = db['eventsmanager_events']
-    events.create_index([("title", pymongo.TEXT)])
+    db = client.get_database('devices')
+    events = db['devicesmanager_devices']
+    events.create_index([("device_id", pymongo.TEXT)])
 
 
 ######################################################################

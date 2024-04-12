@@ -36,7 +36,7 @@ import glob
 from ..config import Config
 from .constants import *
 from .event_time_conversion import *
-from ..db import find_all, find_one, update_one, find_distinct, insert_one, find_one_and_update, delete_events_in_list, \
+from ..db import find_all, find_one, replace_one, update_one, find_distinct, insert_one, find_one_and_update, delete_events_in_list, \
     text_index_search, group_text_index_search
 import logging
 from time import gmtime
@@ -120,6 +120,7 @@ def get_all_device_status_pagination(skip, limit, response):
         device = [device_status]
         if device:
             device_status_by_deviceID[device_ID] = device
+            create_new_device_info({"device_id": device_ID}, {"device_id": device_ID, "device_info": device})
     return device_status_by_deviceID, len(response)
 
 def get_all_user_events_pagination(group_ids, select_status, skip, limit, startDate=None, endDate=None):
@@ -607,6 +608,14 @@ def disapprove_user_event(objectId):
     if not result:
         __logger.error("Disapprove event {} fails in disapprove_event".format(objectId))
 
+
+def create_new_device_info(condition, new_device_info):
+    if find_one(current_app.config['DEVICE_COLLECTION'], condition):
+        result = replace_one(current_app.config['DEVICE_COLLECTION'], condition, new_device_info)
+    else:
+        result = insert_one(current_app.config['DEVICE_COLLECTION'], new_device_info)
+    return result
+    
 
 def create_new_user_event(new_user_event):
     update_result = None
