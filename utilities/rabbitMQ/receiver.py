@@ -2,13 +2,14 @@
 import pika
 import uuid
 import json
+from ...config import Config
 
 
 class RpcDevicesReceiver(object):
 
     def __init__(self):
-        self.connection = pika.BlockingConnection(
-            pika.ConnectionParameters(host='localhost'))
+        parameters = pika.URLParameters(Config.RABBITMQ_URI)
+        self.connection = pika.BlockingConnection(parameters)
 
         self.channel = self.connection.channel()
 
@@ -20,19 +21,20 @@ class RpcDevicesReceiver(object):
             on_message_callback=self.on_response,
             auto_ack=True)
         
-        self.channel.exchange_declare(exchange='device_commands', exchange_type='direct')
-        
         self.device_callback_queue = {}
-        deviceIDs = {'device_0':0, 'device_1':1, 'device_2':2, 'device_3':3, 'device_4':4}
+        deviceIDs = {'device_0':0, 'device_1':1, 'device_2':2, 'device_3':3, 'device_4':4, 
+    'device_5':5, 'device_6':6, 'device_7':7, 'device_8':8, 'device_9':9}
         for deviceTitle in deviceIDs.keys():
             result = self.channel.queue_declare(queue='', exclusive=True)
             callback_queue = result.method.queue
             self.device_callback_queue[deviceTitle] = callback_queue
-            
+
             self.channel.basic_consume(
                 queue=self.device_callback_queue[deviceTitle],
                 on_message_callback=self.on_response,
                 auto_ack=True)
+        
+        self.channel.exchange_declare(exchange='device_commands', exchange_type='direct')
 
         self.response = None
         self.corr_id = None
@@ -41,7 +43,7 @@ class RpcDevicesReceiver(object):
         if self.corr_id == props.correlation_id:
             self.response = json.loads(body)
 
-    def call(self):
+    def get_device_status(self):
         self.response = None
         self.corr_id = str(uuid.uuid4())
         body = 'device_status'
@@ -75,7 +77,7 @@ class RpcDevicesReceiver(object):
         return self.response
 
 if __name__ == "__main__":
-    statusRpc = RpcClient()
+    statusRpc = RpcDevicesReceiver()
 
     print(" [x] Requesting 3d printer status")
     response = statusRpc.call()

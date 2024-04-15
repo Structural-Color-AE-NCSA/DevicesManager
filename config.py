@@ -24,13 +24,14 @@ load_dotenv()
 
 
 class Config(object):
+    RABBITMQ_URI =  os.getenv('RABBITMQ_URI', 'amqp://guest:guest@localhost/%2F')
     # MONGO_URL to setup connection with target mongoDB
     MONGO_URL = os.getenv('MONGO_URL', 'mongodb://localhost:27017')
     # MONGO_DATABASE refers to the mongoDB's database that we are about to access to
     MONGO_DATABASE = os.getenv("MONGO_DATABASE", "rokwire")
 
     # URL prefix to the events manager
-    URL_PREFIX = os.getenv("URL_PREFIX", "/events-manager")
+    URL_PREFIX = os.getenv("URL_PREFIX", "/devices-manager")
 
     # It refers to database system we use. Currently it should be "mongoDB".
     DBTYPE = os.getenv("DBTYPE", 'mongoDB')

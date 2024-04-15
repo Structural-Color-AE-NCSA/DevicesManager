@@ -111,8 +111,7 @@ def get_all_user_events_count(group_ids, select_status, start=None, end=None):
                                         # "createdByGroupId": {"$in": group_ids},
                                         "eventStatus": {"$in": select_status}}))
 
-def get_all_device_status_pagination(skip, limit, rpcDeviceReceiver):
-    response = rpcDeviceReceiver.call() #[{'_id': 0, 'title': 'device_0', 'isConnected': True}]
+def get_all_device_status_pagination(skip, limit, response):
     begin = skip
     end = min(len(response), skip + limit)
     device_status_by_deviceID = {}
@@ -121,7 +120,7 @@ def get_all_device_status_pagination(skip, limit, rpcDeviceReceiver):
         device = [device_status]
         if device:
             device_status_by_deviceID[device_ID] = device
-    return device_status_by_deviceID
+    return device_status_by_deviceID, len(response)
 
 def get_all_user_events_pagination(group_ids, select_status, skip, limit, startDate=None, endDate=None):
     today = date.today().strftime("%Y-%m-%dT%H:%M:%S")

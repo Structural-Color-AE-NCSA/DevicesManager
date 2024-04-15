@@ -11,7 +11,8 @@ channel = connection.channel()
 channel.queue_declare(queue='rpc_queue')
 channel.exchange_declare(exchange='device_commands', exchange_type='direct')
 
-deviceIDs = {'device_0':0, 'device_1':1, 'device_2':2, 'device_3':3, 'device_4':4}
+deviceIDs = {'device_0':0, 'device_1':1, 'device_2':2, 'device_3':3, 'device_4':4, 
+    'device_5':5, 'device_6':6, 'device_7':7, 'device_8':8, 'device_9':9}
 queue_names = []
 for deviceTitle in deviceIDs.keys():
     result = channel.queue_declare(queue='')
@@ -28,7 +29,8 @@ def generate_command_status():
 
 def getDevicesStatus():
     # {'_id': 0, 'title': 'device_0', 'isConnected': True}
-    deviceID = {'device_0':0, 'device_1':1, 'device_2':2, 'device_3':3, 'device_4':4}
+    deviceID = {'device_0':0, 'device_1':1, 'device_2':2, 'device_3':3, 'device_4':4, 
+    'device_5':5, 'device_6':6, 'device_7':7, 'device_8':8, 'device_9':9}
     devicesStatusList = []
     
     for deviceTitle, deviceId in deviceID.items():
