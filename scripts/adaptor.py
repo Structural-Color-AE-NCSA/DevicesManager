@@ -2,6 +2,7 @@
 import pika
 import random
 import json
+from datetime import datetime
 
 class RpcDevicesAdaptor(object):
 
@@ -65,6 +66,9 @@ class RpcDevicesAdaptor(object):
         command_id = json_body['command_id']
         
         device_command = json_body['command']
+        
+        print(f" [.] Time: {datetime.now()}, Incomming command for device {device_id}: {device_command}")
+        
         device_command_list = device_command.split('_')
         if device_command_list[0] == 'testCommand':
             # Do nothing
