@@ -66,9 +66,12 @@ class RpcDevicesAdaptor(object):
         command_id = json_body['command_id']
         
         device_command = json_body['command']
+<<<<<<< HEAD
         
         print(f" [.] Time: {datetime.now()}, Incomming command for device {device_id}: {device_command}")
         
+=======
+>>>>>>> 54a50d9 (Refactor adaptor.py into a class with main)
         device_command_list = device_command.split('_')
         if device_command_list[0] == 'testCommand':
             # Do nothing
