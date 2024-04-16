@@ -90,7 +90,7 @@ if __name__ == "__main__":
         # {'_id': 3, 'title': 'device_3', 'isConnected': True}
         # {'_id': 4, 'title': 'device_4', 'isConnected': False}
     print(" [x] Sending a 3d printer command")
-    command = {'command_id': str(uuid.uuid4()), 'command': 'test_command', 'device_id': 'device_0'}
+    command = {'command_id': str(uuid.uuid4()), 'command': 'testCommand', 'device_id': 'device_0'}
     response_command = statusRpc.add_command('device_0', command)
     print(f" [.] Got response:")
     print(response_command)

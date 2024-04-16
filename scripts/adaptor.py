@@ -53,9 +53,24 @@ def on_request(ch, method, props, body):
 def on_command_request(ch, method, props, body):
     json_body = json.loads(body)
     print(f" [.] incomming command: {json_body}")
-    # {'command_id': str(uuid.uuid4()), 'command': 'test_command', 'device_id': 'id_1'}
+    # {'command_id': str(uuid.uuid4()), 'command': 'testCommand', 'device_id': 'id_1'}
     device_id = json_body['device_id']
     command_id = json_body['command_id']
+    
+    device_command = json_body['command']
+    device_command_list = device_command.split('_')
+    if device_command_list[0] == 'testCommand':
+        # Do nothing
+        print('testing add device command, do nothing')
+    elif device_command_list[0] == 'moveTo':
+        # command = moveTo_x_y_z
+        x_coord = float(device_command_list[1])
+        y_coord = float(device_command_list[2])
+        z_coord = float(device_command_list[3])
+        print(f"moving device to (x, y, z): ({x_coord}, {y_coord}, {z_coord})")
+    else:
+        print(f"we don't support this command yet, direct default case, command = {device_command}")
+    
     device_status = generate_command_status()
     status = json.dumps({
         'command_id': command_id, 'device_status': device_status, 'device_id': device_id
