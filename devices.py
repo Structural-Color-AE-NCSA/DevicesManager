@@ -115,6 +115,20 @@ def user_events():
                             groups=groups,
                             selected_group=session.get('group'))
 
+@userbp.route('/device/<device_id>',  methods=['GET'])
+@role_required("user")
+def user_an_device(device_id):
+    print('device id = ', device_id)
+    # device = find_device(device_id)
+    return render_template("events/device.html", device_id = device_id)
+
+@userbp.route('/device/<device_id>',  methods=['POST'])
+@role_required("user")
+def send_device_command(device_id):
+    input_command = request.form.get('input_command')
+    print('device_id = ', device_id, '\ninput_command = ', input_command)
+    return render_template("events/device.html", device_id = device_id)
+
 @userbp.route('/event/<id>',  methods=['GET'])
 @role_required("user")
 def user_an_event(id):

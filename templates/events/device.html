@@ -1,0 +1,35 @@
+<!------------------------------------------------------------------------
+  Copyright 2020 Board of Trustees of the University of Illinois.
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+      http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  ------------------------------------------------------------------------>
+
+  {% extends 'base.html' %}
+  {% block title %}
+  Single Device
+  {% endblock %}
+  {% block content %}
+  <h1>This page shows information about device: {{ device_id }}</h1>
+  <h1>Device Information:</h1>
+<ul>
+    <li><strong>Device ID:</strong> {{ device_id }}</li>
+    <li><strong>Device Name:</strong> My Device</li> <!-- Hardcoded device name -->
+    <li><strong>Connection Status:</strong> Connected</li> <!-- Hardcoded connection status -->
+</ul>
+
+<!-- 2. Input field and button to send commands -->
+<form method="post" action="{{ url_for('user_events.send_device_command', device_id=device_id, input_command=input_command) }}">
+    <label for="input_command">Enter Command:</label>
+    <input type="text" id="input_command" name="input_command" required>
+    <input type="hidden" name="device_id" value="{{ device_id }}">
+    <button type="submit">Send Command</button>
+</form>
+  {% endblock %}
+  
