@@ -31,5 +31,12 @@
     <input type="hidden" name="device_id" value="{{ device_id }}">
     <button type="submit">Send Command</button>
 </form>
+{%if sent_command %}
+<div>
+        <span>Command ID: {{ command_id }}</span>
+        <br/>
+        <span>Command Status: {{ command_status }}</span>
+</div>
+{% endif %}
   {% endblock %}
   

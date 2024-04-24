@@ -22,15 +22,15 @@ class RpcDevicesReceiver(object):
             auto_ack=True)
         
         self.device_callback_queue = {}
-        deviceIDs = {'device_0':0, 'device_1':1, 'device_2':2, 'device_3':3, 'device_4':4, 
-    'device_5':5, 'device_6':6, 'device_7':7, 'device_8':8, 'device_9':9}
-        for deviceTitle in deviceIDs.keys():
+        deviceIDs = {'device_0':'0x0', 'device_1':'0x1', 'device_2':'0x1', 'device_3':'0x3', 'device_4':'0x4', 
+            'device_5':'0x5', 'device_6':'0x6', 'device_7':'0x7', 'device_8':'0x8', 'device_9':'0x9'}
+        for deviceTitle, deviceID in deviceIDs.items():
             result = self.channel.queue_declare(queue='', exclusive=True)
             callback_queue = result.method.queue
-            self.device_callback_queue[deviceTitle] = callback_queue
+            self.device_callback_queue[deviceID] = callback_queue
 
             self.channel.basic_consume(
-                queue=self.device_callback_queue[deviceTitle],
+                queue=self.device_callback_queue[deviceID],
                 on_message_callback=self.on_response,
                 auto_ack=True)
         
@@ -90,8 +90,8 @@ if __name__ == "__main__":
         # {'_id': 3, 'title': 'device_3', 'isConnected': True}
         # {'_id': 4, 'title': 'device_4', 'isConnected': False}
     print(" [x] Sending a 3d printer command")
-    command = {'command_id': str(uuid.uuid4()), 'command': 'testCommand', 'device_id': 'device_0'}
-    response_command = statusRpc.add_command('device_0', command)
+    command = {'command_id': str(uuid.uuid4()), 'command': 'testCommand', 'device_id': '0'}
+    response_command = statusRpc.add_command('0', command)
     print(f" [.] Got response:")
     print(response_command)
     

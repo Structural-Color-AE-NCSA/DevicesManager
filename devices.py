@@ -18,6 +18,7 @@ import requests
 import json
 from datetime import datetime, timedelta
 from .utilities import source_utilities, notification
+import uuid
 
 from flask import Flask, render_template, url_for, flash, redirect, Blueprint, request, session, current_app, \
     send_from_directory, abort
@@ -120,14 +121,22 @@ def user_events():
 def user_an_device(device_id):
     print('device id = ', device_id)
     # device = find_device(device_id)
-    return render_template("events/device.html", device_id = device_id)
+    return render_template("events/device.html", device_id = device_id, 
+                           sent_command = False)
 
 @userbp.route('/device/<device_id>',  methods=['POST'])
 @role_required("user")
 def send_device_command(device_id):
     input_command = request.form.get('input_command')
     print('device_id = ', device_id, '\ninput_command = ', input_command)
-    return render_template("events/device.html", device_id = device_id)
+    command = {'command_id': str(uuid.uuid4()), 'command': input_command, 'device_id': device_id}
+    response_command = rpcDeviceReceiver.add_command(device_id, command)
+    print(f" [.] Got response:")
+    print(response_command)
+    return render_template("events/device.html", device_id = device_id,
+                           sent_command = True,
+                           command_id = response_command['command_id'],
+                           command_status = response_command['command_status'])
 
 @userbp.route('/event/<id>',  methods=['GET'])
 @role_required("user")
