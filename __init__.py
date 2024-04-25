@@ -27,7 +27,7 @@ from .auth import check_login
 from .auth import bp as auth_bp
 from .event import bp as event_bp
 from .home import bp as home_bp
-from .user_events import userbp as user_bp
+from .devices import userbp as user_bp
 from .scheduler import create_scheduler, drop_scheduler
 from .utilities import source_utilities
 

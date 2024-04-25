@@ -21,6 +21,19 @@ class RpcDevicesReceiver(object):
             on_message_callback=self.on_response,
             auto_ack=True)
         
+        self.device_callback_queue = {}
+        deviceIDs = {'device_0':0, 'device_1':1, 'device_2':2, 'device_3':3, 'device_4':4, 
+    'device_5':5, 'device_6':6, 'device_7':7, 'device_8':8, 'device_9':9}
+        for deviceTitle in deviceIDs.keys():
+            result = self.channel.queue_declare(queue='', exclusive=True)
+            callback_queue = result.method.queue
+            self.device_callback_queue[deviceTitle] = callback_queue
+
+            self.channel.basic_consume(
+                queue=self.device_callback_queue[deviceTitle],
+                on_message_callback=self.on_response,
+                auto_ack=True)
+        
         self.channel.exchange_declare(exchange='device_commands', exchange_type='direct')
 
         self.response = None
@@ -77,7 +90,7 @@ if __name__ == "__main__":
         # {'_id': 3, 'title': 'device_3', 'isConnected': True}
         # {'_id': 4, 'title': 'device_4', 'isConnected': False}
     print(" [x] Sending a 3d printer command")
-    command = {'command_id': str(uuid.uuid4()), 'command': 'test_command', 'device_id': 'device_0'}
+    command = {'command_id': str(uuid.uuid4()), 'command': 'testCommand', 'device_id': 'device_0'}
     response_command = statusRpc.add_command('device_0', command)
     print(f" [.] Got response:")
     print(response_command)
