@@ -120,9 +120,12 @@ def user_events():
 @role_required("user")
 def user_an_device(device_id):
     print('device id = ', device_id)
+    device = get_device_info({"device_id": device_id})
+    device_info = device['device_info'][0]
     # device = find_device(device_id)
     return render_template("events/device.html", device_id = device_id, 
-                           sent_command = False)
+                           sent_command = False,
+                           device_info = device_info)
 
 @userbp.route('/device/<device_id>',  methods=['POST'])
 @role_required("user")
@@ -133,10 +136,13 @@ def send_device_command(device_id):
     response_command = rpcDeviceReceiver.add_command(device_id, command)
     print(f" [.] Got response:")
     print(response_command)
+    device = get_device_info({"device_id": device_id})
+    device_info = device['device_info'][0]
     return render_template("events/device.html", device_id = device_id,
                            sent_command = True,
                            command_id = response_command['command_id'],
-                           command_status = response_command['command_status'])
+                           command_status = response_command['command_status'],
+                           device_info = device_info)
 
 @userbp.route('/event/<id>',  methods=['GET'])
 @role_required("user")

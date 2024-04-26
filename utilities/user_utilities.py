@@ -615,6 +615,9 @@ def create_new_device_info(condition, new_device_info):
     else:
         result = insert_one(current_app.config['DEVICE_COLLECTION'], new_device_info)
     return result
+
+def get_device_info(condition):
+    return find_one(current_app.config['DEVICE_COLLECTION'], condition)
     
 
 def create_new_user_event(new_user_event):

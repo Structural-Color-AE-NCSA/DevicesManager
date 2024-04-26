@@ -24,7 +24,7 @@ load_dotenv()
 
 
 class Config(object):
-    RABBITMQ_URI =  os.getenv('RABBITMQ_URI', 'amqp://guest:guest@localhost/%2F')
+    RABBITMQ_URI =  os.getenv('RABBITMQ_URI', 'amqp://guest:guest@localhost/?heartbeat=0')
     # MONGO_URL to setup connection with target mongoDB
     MONGO_URL = os.getenv('MONGO_URL', 'mongodb://localhost:27017')
     # MONGO_DATABASE refers to the mongoDB's database that we are about to access to

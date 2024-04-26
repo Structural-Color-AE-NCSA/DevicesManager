@@ -22,7 +22,7 @@ class RpcDevicesReceiver(object):
             auto_ack=True)
         
         self.device_callback_queue = {}
-        deviceIDs = {'device_0':'0x0', 'device_1':'0x1', 'device_2':'0x1', 'device_3':'0x3', 'device_4':'0x4', 
+        deviceIDs = {'device_0':'0x0', 'device_1':'0x1', 'device_2':'0x2', 'device_3':'0x3', 'device_4':'0x4', 
             'device_5':'0x5', 'device_6':'0x6', 'device_7':'0x7', 'device_8':'0x8', 'device_9':'0x9'}
         for deviceTitle, deviceID in deviceIDs.items():
             result = self.channel.queue_declare(queue='', exclusive=True)
