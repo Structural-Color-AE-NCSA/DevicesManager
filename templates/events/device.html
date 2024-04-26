@@ -19,9 +19,15 @@
   <h1>This page shows information about device: {{ device_id }}</h1>
   <h1>Device Information:</h1>
 <ul>
-    <li><strong>Device ID:</strong> {{ device_id }}</li>
-    <li><strong>Device Name:</strong> My Device</li> <!-- Hardcoded device name -->
-    <li><strong>Connection Status:</strong> Connected</li> <!-- Hardcoded connection status -->
+    <li><strong>Device ID: </strong>{{ device_id }}</li>
+    <li><strong>Device Name: </strong>{{ device_info.title }}</li> <!-- Hardcoded device name -->
+    <li><strong>Connection Status: </strong>
+      {% if device_info.isConnected %}
+        <div class="badge badge-pill badge-primary small-body-text connected-badge super-event-badge-text">Connected</div>
+      {% else %}
+        <div class="badge badge-pill badge-primary small-body-text disconnected-badge super-event-badge-text">Disconnected</div>
+      {% endif %}
+</li> <!-- Hardcoded connection status -->
 </ul>
 
 <!-- 2. Input field and button to send commands -->
