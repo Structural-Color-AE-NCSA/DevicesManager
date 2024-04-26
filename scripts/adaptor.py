@@ -8,7 +8,7 @@ class RpcDevicesAdaptor(object):
 
     def __init__(self):
         self.connection = pika.BlockingConnection(
-            pika.ConnectionParameters(host='localhost'))
+            pika.ConnectionParameters(host='localhost', heartbeat=0))
 
         self.channel = self.connection.channel()
 
