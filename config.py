@@ -28,7 +28,7 @@ class Config(object):
     # MONGO_URL to setup connection with target mongoDB
     MONGO_URL = os.getenv('MONGO_URL', 'mongodb://localhost:27017')
     # MONGO_DATABASE refers to the mongoDB's database that we are about to access to
-    MONGO_DATABASE = os.getenv("MONGO_DATABASE", "rokwire")
+    MONGO_DATABASE = os.getenv("MONGO_DATABASE", "devices")
 
     # URL prefix to the events manager
     URL_PREFIX = os.getenv("URL_PREFIX", "/devices-manager")
@@ -46,6 +46,8 @@ class Config(object):
 
     # EVENT_COLLECTION defines the event collection name we are using to store events
     EVENT_COLLECTION = os.getenv("EVENT_COLLECTION", "eventsmanager_events")
+    
+    DEVICE_COLLECTION = os.getenv("DEVICE_COLLECTION", "devicesmanager_devices")
 
     # URL prefix to get the information of a specific event id.
     FAVORITE_EVENTID_ENDPOINT_PREFIX = os.getenv("FAVORITE_EVENTID_ENDPOINT_PREFIX", 'http://localhost:9001/profiles/device-data?favorites.eventId=')

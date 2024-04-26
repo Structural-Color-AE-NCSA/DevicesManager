@@ -107,4 +107,4 @@ Run RabbitMQ server in a separate terminal:
 `docker run -it --rm --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3.13-management`
 
 Also run dummy adaptor in a separate terminal:
-`python3 rpc_server.py`
+`python3 scripts/adaptor.py`

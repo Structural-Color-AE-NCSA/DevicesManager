@@ -15,15 +15,15 @@ class RpcDevicesAdaptor(object):
         self.channel.queue_declare(queue='rpc_queue')
         self.channel.exchange_declare(exchange='device_commands', exchange_type='direct')
 
-        self.deviceIDs = {'device_0':0, 'device_1':1, 'device_2':2, 'device_3':3, 'device_4':4, 
-            'device_5':5, 'device_6':6, 'device_7':7, 'device_8':8, 'device_9':9}
+        self.deviceIDs = {'device_0':'0x0', 'device_1':'0x1', 'device_2':'0x1', 'device_3':'0x3', 'device_4':'0x4', 
+            'device_5':'0x5', 'device_6':'0x6', 'device_7':'0x7', 'device_8':'0x8', 'device_9':'0x9'}
         self.queue_names = []
-        for deviceTitle in self.deviceIDs.keys():
+        for deviceTitle, deviceID in self.deviceIDs.items():
             result = self.channel.queue_declare(queue='')
             queue_name = result.method.queue
             self.queue_names.append(queue_name)
             self.channel.queue_bind(
-                exchange='device_commands', queue=queue_name, routing_key=deviceTitle)
+                exchange='device_commands', queue=queue_name, routing_key=deviceID)
 
     def get_channel(self):
         return self.channel
@@ -82,9 +82,9 @@ class RpcDevicesAdaptor(object):
         else:
             print(f"we don't support this command yet, direct default case, command = {device_command}")
         
-        device_status = self.generate_command_status()
+        command_status = self.generate_command_status()
         status = json.dumps({
-            'command_id': command_id, 'device_status': device_status, 'device_id': device_id
+            'command_id': command_id, 'command_status': command_status, 'device_id': device_id
         })
         
         ch.basic_publish(exchange='',
