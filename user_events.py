@@ -119,71 +119,14 @@ def user_events():
 @role_required("user")
 def user_an_event(id):
     post = find_user_event(id)
-    groups, _ = get_admin_groups()
-    for group in groups:
-        if group['id'] == post['createdByGroupId']:
-            groupName = group['title']
-    if 'allDay' not in post:
-        post['allDay'] = None
-    if 'timezone' in post:
-        post['startDate'] = utc_to_time_zone(post.get('timezone'), post['startDate'], post['allDay'])
-    else:
-        post['startDate'] = get_datetime_in_local(post.get('location'), post['startDate'], post['allDay'])
-    if'endDate' in post:
-        if 'timezone' in post:
-            post['endDate'] = utc_to_time_zone(post.get('timezone'), post['endDate'], post['allDay'])
-        else:
-            post['endDate'] = get_datetime_in_local(post.get('location'), post['endDate'], post['allDay'])
-    record = find_one(Config.IMAGE_COLLECTION, condition={"eventId": id})
-    if len(glob(path.join(Config.WEBTOOL_IMAGE_MOUNT_POINT, id + '*'))) > 0 \
-            or (record and record.get("status") == "new" or record.get("status") == "replaced"):
-        post['image'] = True
-    # transfer targetAudience into targetAudienceMap format
-    # if ('targetAudience' in post):
-    #     targetAudience_origin_list = post['targetAudience']
-    #     targetAudience_edit_list = []
-    #     for item in targetAudience_origin_list:
-    #         if item == "faculty":
-    #             targetAudience_edit_list += ["Faculty/Staff"]
-    #         elif item == "staff":
-    #             pass
-    #         else:
-    #             targetAudience_edit_list += [item.capitalize()]
-    #     post['targetAudience'] = targetAudience_edit_list
-    post['longDescription'] = post['longDescription'].replace("\n", "<br>")
-    if post['subEvents']:
-        # fill in missing fields: eventId, status
-        # for subEvent in post['subEvents']:
-        #     if 'eventId' not in subEvent:
-        #         fill_missing_subevent_fileds_in_superevent(subEvent['id'], id)
 
-        for subEvent in post['subEvents']:
-            if 'id' in subEvent:
-                event = find_user_event(clickable_utility(subEvent['id']))
-                if event['eventStatus'] == 'approved':
-                    subEvent['isPublished'] = True
-                else:
-                    subEvent['isPublished'] = False
-            elif 'eventId' in subEvent:
-                event = find_user_event(subEvent['eventId'])
-                if event['eventStatus'] == 'approved':
-                    subEvent['isPublished'] = True
-                else:
-                    subEvent['isPublished'] = False
-            else:
-                post['subEvents'].remove(subEvent)
-                __logger.debug("remove incorrect subevent")
-                find_one_and_update(current_app.config['EVENT_COLLECTION'],
-                                             condition={"_id": ObjectId(id)}, update={
-                        "$set": {"subEvents": post['subEvents']}
-                    })
-
-
-    return render_template("events/event.html", post=post, eventTypeMap=eventTypeMap,
+    return render_template("events/device.html", post=post, eventTypeMap=eventTypeMap,
                            isUser=True, apiKey=current_app.config['GOOGLE_MAP_VIEW_KEY'],
                            timestamp=datetime.now().timestamp(),
                            timezones=Config.TIMEZONES,
-                           groupName=groupName)
+                           extensions=",".join("." + extension for extension in Config.ALLOWED_PCP_FILE_EXTENSIONS),
+                           # groupName=groupName
+                            )
 
 @userbp.route('/event/<id>/edit', methods=['GET', 'POST'])
 @role_required("user")
@@ -587,7 +530,7 @@ def user_an_event_edit(id):
                                eventTypeValues=eventTypeValues, subcategoriesMap=subcategoriesMap,
                                targetAudienceMap=targetAudienceMap, isUser=True, tags_text=tags_text,
                                audience_dic=audience_dic, apiKey=current_app.config['GOOGLE_MAP_VIEW_KEY'],
-                               extensions=",".join("." + extension for extension in Config.ALLOWED_IMAGE_EXTENSIONS),
+                               extensions=",".join("." + extension for extension in Config.ALLOWED_PCP_FILE_EXTENSIONS),
                                image=image,
                                size_limit=Config.IMAGE_SIZE_LIMIT,
                                timezones=Config.TIMEZONES,
@@ -907,3 +850,14 @@ def sub_event(eventId):
         __logger.exception(ex)
         __logger.error("Redirect for eventId {} failed".format(eventId))
         abort(500)
+
+@userbp.route('/event/run_pcp_file', methods=['POST'])
+@role_required("user")
+def send_pcp_file():
+    for filename in request.form:
+        print(f'PCP File Name: {filename}')
+        path_to_pcp_file = os.path.join(os.getcwd(), 'pcp', filename)
+        with open(path_to_pcp_file, 'r') as file:
+            file_content = file.read()
+        rpcDeviceReceiver.send_pcp_file(file_content)
+    return jsonify([]), 200

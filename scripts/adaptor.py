@@ -2,6 +2,7 @@
 import pika
 import random
 import json
+import re
 
 connection = pika.BlockingConnection(
     pika.ConnectionParameters(host='localhost'))
@@ -38,10 +39,13 @@ def getDevicesStatus():
     return devicesStatusList
 
 def on_request(ch, method, props, body):
-    print(f" [.] incomming message: {body}")
-    # response = fib(n)
-    status = json.dumps(getDevicesStatus())
-
+    message = json.loads(body)
+    type = message['type']
+    if type == 'device_status':
+        status = json.dumps(getDevicesStatus())
+    elif type == 'pcp_commands':
+        send_pcp_commands(message)
+        status = "OK"
     ch.basic_publish(exchange='',
                      routing_key=props.reply_to,
                      properties=pika.BasicProperties(correlation_id = \
@@ -75,3 +79,33 @@ for queue_n in queue_names:
 
 print(" [x] Awaiting RPC requests")
 channel.start_consuming()
+
+
+def send_pcp_commands(message):
+    pcp_commands = message['data'].splitlines()
+    for cmd in pcp_commands:
+        if len(cmd) <= 0:
+            continue
+        print(cmd)
+        command = cmd.split(".")
+        name = command[0] # device
+        op = None       # operation
+        params = None      # operation params
+        pattern = r'^(.*?)\('
+        match = re.search(pattern, command[1])
+        if match:
+            op = match.group(1)
+        pattern = r'"([^"]*)"'
+        match = re.search(pattern, command[1])
+        if match:
+            params = match.group(1)
+        else:
+            pattern = r'\((.*?)\)'
+            match = re.search(pattern, command[1])
+            if match:
+                params = match.group(1)
+        if name.startswith("axes"):
+            print('axes')
+        elif name.startswith("tool"):
+            print('tool')
+

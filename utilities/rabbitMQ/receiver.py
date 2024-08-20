@@ -33,7 +33,9 @@ class RpcDevicesReceiver(object):
     def get_device_status(self):
         self.response = None
         self.corr_id = str(uuid.uuid4())
-        body = 'device_status'
+        metadata = dict()
+        metadata['type'] = 'device_status'
+        json_string = json.dumps(metadata)
         self.channel.basic_publish(
             exchange='',
             routing_key='rpc_queue',
@@ -41,11 +43,28 @@ class RpcDevicesReceiver(object):
                 reply_to=self.callback_queue,
                 correlation_id=self.corr_id,
             ),
-            body=body)
+            body=json_string)
         while self.response is None:
             self.connection.process_data_events(time_limit=None)
         return self.response
-    
+    def send_pcp_file(self, commands):
+        self.response = None
+        self.corr_id = str(uuid.uuid4())
+        metadata = dict()
+        metadata['type'] = 'pcp_commands'
+        metadata['data'] = commands
+        json_string = json.dumps(metadata)
+        self.channel.basic_publish(
+            exchange='',
+            routing_key='rpc_queue',
+            properties=pika.BasicProperties(
+                reply_to=self.callback_queue,
+                correlation_id=self.corr_id,
+            ),
+            body=json_string)
+        while self.response is None:
+            self.connection.process_data_events(time_limit=None)
+        return self.response
     def add_command(self, device_id, command):
         self.response = None
         self.corr_id = str(uuid.uuid4())

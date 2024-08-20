@@ -1,0 +1,391 @@
+<!------------------------------------------------------------------------
+  Copyright 2020 Board of Trustees of the University of Illinois.
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+      http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  ------------------------------------------------------------------------>
+
+{% extends 'base.html' %}
+
+{% from 'events/confirmation.html' import confirmation %}
+{% from 'events/notification.html' import notification %}
+
+{% block title %}
+  {{ post.title }}
+{% endblock %}
+
+{% block create_event %}
+  {% if g.user["access"] == "both" or g.user["access"] == "user" or g.user["access"] == "source" %}
+  <a class="orange-background-button" style="margin-left:20px" href="{{ url_for('user_events.add_new_event') }}" role="button">Create Event</a>
+  {% endif %}
+{% endblock %}
+
+{% block modals %}
+
+{{ confirmation("PCP", post.title) }}
+
+<!-- publish Confirmation form -->
+<div class="modal fade" id="PublishModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">
+          Publish event
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        You are about to execute this PCP file <b>{{post.title}}</b>.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="white-background-button" data-dismiss="modal">Cancel</button>
+        <button type="button" class="orange-background-button" id="publish-modal-btn-yes">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+  <!-- filter and select operations -->
+  {% if isUser %}
+      <div>
+          {% if post.superEventID and post.superEventID != '' %}
+              <div class="media" style="float: left; margin-right: 10px">
+                <a class="grey-background-button" href="{{ url_for('user_events.user_events') }}" role="button">Back To All Events</a>
+              </div>
+              <div class="media">
+                <a class="grey-background-button" href="{{ url_for('user_events.user_an_event', id=post.superEventID) }}" role="button">Back To Super Event</a>
+              </div>
+          {% else %}
+              <div class="media">
+                <a class="grey-background-button" href="{{ url_for('user_events.user_events') }}" role="button">Back To All Devices</a>
+              </div>
+          {% endif %}
+      </div>
+  {% else %}
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('event.source', sourceId=post['sourceId']) }}">{{sourceName}}</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('event.calendar', calendarId=post['calendarId']) }}">{{calendarName}}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{post['title']}}</li>
+    </ol>
+  </nav>
+  {% endif %}
+     <form id="myForm">
+    <article class="media content-section">
+      <div class="media-body">
+        <h2><a class="article-title" href="{{ post.titleURL}}">{{ post.title }}</a></h2>
+        <hr class="divider"/>
+
+        <!-- Grid container to hold image at top-right -->
+        <div class="grid container"
+        style="display: grid;grid-auto-flow: column;grid-auto-rows: auto;grid-template-columns: [left] 66.67% [right] 33.33%;">
+          <div class="item1" style="grid-area: auto / left;">
+            {% if post.eventStatus%}
+            <div class="row">
+              <div class="col-12 col-sm-3">
+                <h5>Event Status </h5>
+              </div>
+              <p class="col-sm-9 small-body-text">
+                {% if post.eventStatus == "approved" %}
+                    <!-- temporily change to published -->
+                    {% if isUser %}
+                        <span class="badge badge-pill badge-publish small-body-text">Published </span>
+                    {% else %}
+                        <span class="badge badge-pill badge-pending small-body-text">Pending </span>
+                    {% endif %}
+                {% elif post.eventStatus == "disapproved"%}
+                  <span class="badge badge-pill badge-danger">{{ post.eventStatus }} </span>
+                {% elif post.eventStatus == "pending"%}
+                  <span class="badge badge-pill badge-pending">{{ post.eventStatus }} </span>
+                {% else %}
+                  <span class="badge badge-pill badge-publish">{{ post.eventStatus }} </span>
+                {% endif %}
+              </p>
+
+            </div>
+            {% endif %}
+          </div>
+
+
+          <div class="item3" style="grid-area: auto / left;">
+            <!-- event group -->
+              <div class="row">
+                <div class="col-12 col-sm-3">
+                  <h5>Group </h5>
+                </div>
+                <p class="col-sm-9 small-body-text">{{groupName}}</p>
+              </div>
+          </div>
+          <div style="grid-area: auto / left;">
+            <!-- event group -->
+              <div class="row">
+                <div class="col-12 col-sm-3">
+                  <h5>Device Name </h5>
+                </div>
+                <p class="col-sm-9 small-body-text">{{post.createdBy}}</p>
+              </div>
+          </div>
+
+          <div class="item2" style="grid-area: auto / left;">
+            <!-- event category -->
+            {% if post.category %}
+              <div class="row">
+                <div class="col-12 col-sm-3">
+                  <h5>Category </h5>
+                </div>
+                <p class="col-sm-9 small-body-text">{{post.category}}</p>
+              </div>
+            {% endif %}
+
+            <!-- event subcategory -->
+            {% if post.subcategory %}
+              <div class="row">
+                <div class="col-12 col-sm-3">
+                  <h5>Sub Category </h5>
+                </div>
+                <p class="col-sm-9 small-body-text">{{post.subcategory}}</p>
+              </div>
+            {% endif %}
+          </div>
+
+        </div>
+
+        <div class="grid container"
+        style="display: grid; grid-auto-rows: auto; grid-template-columns: auto;">
+          <div class="item8">
+          <div class="form-group row ">
+            <div class="col-12 col-sm-2">
+              <h5>PCP File </h5>
+            </div>
+            <div class="col-sm-9">
+              <div class="input-group mb-3">
+
+                <div class="custom-file">
+                  <input type="file" accept={{extensions}} class="custom-file-input" name = "file" id="file" data-toggle="popover" data-trigger="manual" data-placement="bottom" data-content="Failed to upload. Only support no larger than {{ size_limit }} MB">
+                  <label id="custom-file-label" class="custom-file-label" for="file">(Choose one PCP File.)</label>
+                </div>
+{#                <div class="input-group-append">#}
+{#                  {% if image %}#}
+{#                  <button title="Delete event image" class="btn btn-outline-danger delete-image rounded-right" type="button" id="inputGroupFileAddon04">Delete</button>#}
+{#                  {% else %}#}
+{#                  <button title="Delete event image" class="btn btn-outline-danger delete-image rounded-right" type="button" id="inputGroupFileAddon04" disabled>Delete</button>#}
+{#                  {% endif %}#}
+{#                  <input type="hidden" id="delete-image" name="delete-image" value = 0>#}
+{#                </div>#}
+              </div>
+            </div>
+          </div>
+
+
+            <div class="row">
+              <div class="col-12 col-sm-2" id="longDes">
+                <h5> PCP File Content</h5>
+              </div>
+                <!-- show file content -->
+              <style>
+                #file-content {
+                    white-space: pre-wrap; /* Preserve whitespace and line breaks */
+                    border: 1px solid #ccc;
+                    padding: 10px;
+                    margin-top: 10px;
+                    max-width: 600px;
+                    max-height: 400px;
+                    overflow: auto;
+                }
+            </style>
+            <div class="col-sm-9">
+              <div class="input-group mb-3">
+                <div id="file-content"></div>
+              </div>
+            </div>
+            </div>
+
+
+            <!-- displayOnlyWithSuperEvent -->
+              {% if not post.isSuperEvent %}
+                {% if post.displayOnlyWithSuperEvent %}
+                  <div class="row">
+                    <div class="col-12 col-sm-2">
+                      <h5>Display Only with Super Event</h5>
+                    </div>
+                        <p class = "col-sm-9 small-body-text">Yes</p>
+                  </div>
+                {% else %}
+
+                {% endif %}
+              {% endif %}
+
+            <!-- is super event? -->
+            {% if post.isSuperEvent %}
+              <div class="row">
+                <div class="col-12 col-sm-2">
+                  <h5>Is Super Event</h5>
+                </div>
+                    <p class = "col-sm-9 small-body-text">Yes</p>
+              </div>
+            {% else %}
+
+            {% endif %}
+
+
+            <!-- sub event -->
+            {% if post.subEvents %}
+            <div class="row">
+              <div class="col-12 col-sm-2">
+                <h5>Sub-Events</h5>
+              </div>
+              <table class="table table-hover col-sm-9 small-body-text">
+                <thead>
+                  <tr>
+                    <th scope="col-sm-2">Sub-Event Title</th>
+                    <th scope="col-sm-2">Track</th>
+                    <th scope="col-sm-2">Is Featured?</th>
+                    <th scope="col-sm-2">Is Published?</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for subevent in post.subEvents %}
+                  <tr>
+                    <td>
+                     {% if subevent.id%}
+                      <a href ="{{ url_for('user_events.sub_event_platform', platformEventId=subevent.id) }}">{{subevent.name}}</a>
+                    {% else %}
+                      <a href ="{{ url_for('user_events.sub_event', eventId=subevent.eventId) }}">{{subevent.name}}</a>
+                    {% endif %}
+
+                    </td>
+                    <td>{{subevent.track}}</td>
+                    {% if subevent.isFeatured%}
+                      <td>Yes</td>
+                    {% else %}
+                      <td>No</td>
+                    {% endif %}
+                    {% if subevent.isPublished%}
+                      <td>Yes</td>
+                    {% else %}
+                      <td>No</td>
+                    {% endif %}
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+      </div>
+    </article>
+     </form>
+  <div class="row justify-content-center">
+    <div class="btn-toolbar justify-content-center" role="toolbar" aria-label="Toolbar with button groups">
+    {% if isUser %}
+      <div class="btn-group mr-2" role="group" aria-label="First group">
+
+        {% if post.eventStatus == "approved" %}
+        <!-- temporarily hide Disapprove button
+        <button type="button" class="btn btn-outline-danger" data-toggle="modal" data-target="#confirmModal" disabled>Disapprove</button>
+        -->
+        {% else %}
+        <!-- temporarily change Approve to Publish-->
+        <button type="button" class="white-background-button" data-toggle="modal" data-target="#confirmModal">Run PCP</button>
+        {% endif %}
+      </div>
+    {% endif %}
+      <div class="btn-group mr-2" role="group" aria-label="Second group">
+        {% if isUser %}
+        <a class="white-background-button" href="{{ url_for('user_events.user_an_event_edit', id=post['_id']) }}" role="button">Edit</a>
+        {% endif %}
+      </div>
+      {% if isUser %}
+          <div class="btn-group mr-2" role="group" aria-label="Third group">
+            <button class="orange-background-button"
+              data-toggle="modal" data-html="true" data-target="#DeleteModal">
+                Delete
+            </button>
+          </div>
+          {% if post.eventStatus == "approved" %}
+              <div class="btn-group mr-2" role="group" aria-label="Notification group">
+                <button type="button" class="notification-button" data-toggle="modal" data-target="#notificationModal" id="notificationbutton">Notification</button>
+              </div>
+          {% endif %}
+       {% else %}
+          {% if post.eventStatus == "published" %}
+              <div class="btn-group mr-2" role="group" aria-label="Third group">
+                <button type="button" class="white-background-button" data-toggle="modal" data-target="#PendingModal">Pending</button>
+              </div>
+              {%  else %}
+              <div class="btn-group mr-2" role="group" aria-label="First group">
+                <button type="button" class="white-background-button" data-toggle="modal" data-target="#PublishModal" disabled>Publish</button>
+              </div>
+          {% endif %}
+
+          <div class="btn-group mr-2" role="group" aria-label="Third group">
+
+            <button class="orange-background-button"
+              data-toggle="modal" data-html="true" data-target="#DeleteModal">
+                Delete
+            </button>
+          </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endblock %}
+
+
+  <!-- add js for local date format -->
+  {% block scripts %}
+    {{super()}}
+    <script>
+        let pcpFileName = ""
+      const pcpFileNameDisplay = document.getElementById('custom-file-label');
+      document.getElementById('file').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+
+            if (file) {
+                pcpFileNameDisplay.textContent = `Selected file: ${file.name}`;
+                pcpFileName = file.name
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('file-content').textContent = e.target.result;
+                };
+                reader.readAsText(file);
+            } else {
+                alert('Please select a valid text file.');
+            }
+      });
+
+      $("#runpcpbutton").click(function() {
+        debugger
+        {#var formElement = $('#myForm');#}
+        $.ajax({
+            url: "{{ url_for('user_events.send_pcp_file', id=2) }}",
+            type: 'POST',
+            data: pcpFileName,
+            success: function(data){
+                console.log("success send pcp file")
+            }
+        });
+        console.log("Run PCP File")
+      });
+    </script>
+
+{#    {% if post.location %}#}
+{#      {% if post.location.latitude and post.location.longitude %}#}
+{#        <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ apiKey }}&callback=initMap"></script>#}
+{#      {% endif %}#}
+{#    {% endif %}#}
+
+
+  {% endblock %}

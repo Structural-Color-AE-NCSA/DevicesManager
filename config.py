@@ -142,7 +142,8 @@ class Config(object):
     PERMANENT_SESSION_LIFETIME = timedelta(hours=int(os.getenv("SESSION_LIFETIME_IN_HOURS", 1)))
 
     # Allowed image extensions for user event image upload
-    ALLOWED_IMAGE_EXTENSIONS = ast.literal_eval(os.getenv('ALLOWED_IMAGE_EXTENSIONS', "{'png', 'jpg', 'jpeg', 'gif'}"))
+    ALLOWED_IMAGE_EXTENSIONS = ast.literal_eval(os.getenv('ALLOWED_IMAGE_EXTENSIONS', "{'txt'}"))
+    ALLOWED_PCP_FILE_EXTENSIONS = ast.literal_eval(os.getenv('ALLOWED_PCP_FILE_EXTENSIONS', "{'PCP'}"))
 
     # The limit of user-uploaded image (measured in MB)
     IMAGE_SIZE_LIMIT = int(os.getenv('IMAGE_SIZE_LIMIT', 1))
