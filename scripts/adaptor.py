@@ -4,18 +4,20 @@ import random
 import json
 import re
 
-tool = None
-lulzbot = None
-tool_passed = False
-lulzbot_passed = False
 
-# from polychemprint3.tools.ultimusExtruder import ultimusExtruder
-# from polychemprint3.axes.lulzbotTaz6_BP import lulzbotTaz6_BP
-# tool = ultimusExtruder()
-# tool_passed = tool.activate()
-# lulzbot = lulzbotTaz6_BP()
-# lulzbot_passed = lulzbot.activate()
-# lulzbot.move("G28\n")
+try:
+    from polychemprint3.tools.ultimusExtruder import ultimusExtruder
+    from polychemprint3.axes.lulzbotTaz6_BP import lulzbotTaz6_BP
+    tool = ultimusExtruder()
+    tool_passed = tool.activate()
+    lulzbot = lulzbotTaz6_BP()
+    lulzbot_passed = lulzbot.activate()
+    lulzbot.move("G28\n")
+except:
+    tool = None
+    lulzbot = None
+    tool_passed = False
+    lulzbot_passed = False
 
 EXCHANGE_NAME = 'devices_manager'
 connection = pika.BlockingConnection(
