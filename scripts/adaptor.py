@@ -4,27 +4,53 @@ import random
 import json
 import re
 
-from polychemprint3.tools.ultimusExtruder import ultimusExtruder
-from polychemprint3.axes.lulzbotTaz6_BP import lulzbotTaz6_BP
-tool = ultimusExtruder()
-tool_passed = tool.activate()
-lulzbot = lulzbotTaz6_BP()
-passed = lulzbot.activate()
-lulzbot.move("G28\n")
+tool = None
+lulzbot = None
+tool_passed = False
+lulzbot_passed = False
 
+# from polychemprint3.tools.ultimusExtruder import ultimusExtruder
+# from polychemprint3.axes.lulzbotTaz6_BP import lulzbotTaz6_BP
+# tool = ultimusExtruder()
+# tool_passed = tool.activate()
+# lulzbot = lulzbotTaz6_BP()
+# lulzbot_passed = lulzbot.activate()
+# lulzbot.move("G28\n")
+
+EXCHANGE_NAME = 'devices_manager'
 connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host='10.194.243.130'))
+    pika.ConnectionParameters(host='localhost'))
 channel = connection.channel()
-channel.queue_declare(queue='rpc_queue')
-channel.exchange_declare(exchange='device_commands', exchange_type='direct')
-deviceIDs = {'device_0':0, 'device_1':1, 'device_2':2, 'device_3':3, 'device_4':4}
+channel.exchange_declare(exchange=EXCHANGE_NAME, exchange_type='direct', durable=True)
+
+deviceIDs = {'lulzbot':0, 'tool':1}
 queue_names = []
-for deviceTitle in deviceIDs.keys():
-    result = channel.queue_declare(queue='')
-    queue_name = result.method.queue
-    queue_names.append(queue_name)
+# for deviceTitle in deviceIDs.keys():
+#     result = channel.queue_declare(queue='')
+#     queue_name = result.method.queue
+#     queue_names.append(queue_name)
+#     channel.queue_bind(
+#         exchange='device_commands', queue=queue_name, routing_key=deviceTitle)
+
+
+def listen_device_status():
+    queue_name = "device_status_queue"
+    channel.queue_declare(queue=queue_name, durable=True)
     channel.queue_bind(
-        exchange='device_commands', queue=queue_name, routing_key=deviceTitle)
+        exchange=EXCHANGE_NAME, queue=queue_name, routing_key='device_status')
+    channel.basic_consume(
+        queue=queue_name, on_message_callback=on_request, auto_ack=True)
+
+
+def listen_pcp_commands():
+    queue_name = "pcp_file_commands_queue"
+    channel.queue_declare(queue=queue_name, durable=True)
+    channel.queue_bind(
+        exchange=EXCHANGE_NAME, queue=queue_name, routing_key='pcp_file')
+    channel.basic_consume(
+        queue=queue_name, on_message_callback=on_request, auto_ack=True)
+
+
 def send_pcp_commands(message):
     pcp_commands = message['data'].splitlines()
     for cmd in pcp_commands:
@@ -68,33 +94,40 @@ def send_pcp_commands(message):
                 tool.engage()
             elif op == "disengage":
                 tool.disengage()
-def generate_status():
-    return random.choice([True, False])
+
+
 def generate_command_status():
     return random.choice(['Executing', 'Finished', 'Queued'])
-def getDevicesStatus():
-    # {'_id': 0, 'title': 'device_0', 'isConnected': True}
-    deviceID = {'device_0':0, 'device_1':1, 'device_2':2, 'device_3':3, 'device_4':4,
-    'device_5':5, 'device_6':6, 'device_7':7, 'device_8':8, 'device_9':9}
+
+
+def get_devices_status():
     devicesStatusList = []
-    for deviceTitle, deviceId in deviceID.items():
-        status = generate_status()
+    for deviceTitle, deviceId in deviceIDs.items():
+        status = False
+        if deviceTitle == 'tool':
+            status = tool_passed
+        elif deviceTitle == 'lulzbot':
+            status = lulzbot_passed
         devicesStatusList.append({'_id': deviceId, 'title': deviceTitle, 'isConnected': status})
     return devicesStatusList
+
+
 def on_request(ch, method, props, body):
     message = json.loads(body)
     type = message['type']
     if type == 'device_status':
-        status = json.dumps(getDevicesStatus())
+        status = json.dumps(get_devices_status())
+        send_message('device_status_update', status)
     elif type == 'pcp_commands':
         send_pcp_commands(message)
         status = "OK"
-    ch.basic_publish(exchange='',
-                     routing_key=props.reply_to,
-                     properties=pika.BasicProperties(correlation_id = \
-                                                         props.correlation_id),
-                     body=status)
-    ch.basic_ack(delivery_tag=method.delivery_tag)
+
+
+def send_message(routing_key, message):
+    channel.basic_publish(
+        exchange=EXCHANGE_NAME, routing_key=routing_key, body=message)
+
+
 def on_command_request(ch, method, props, body):
     json_body = json.loads(body)
     print(f" [.] incomming command: {json_body}")
@@ -112,9 +145,12 @@ def on_command_request(ch, method, props, body):
                      body=status)
     ch.basic_ack(delivery_tag=method.delivery_tag)
     print('sent response to:', props.reply_to)
+
+
 channel.basic_qos(prefetch_count=1)
-channel.basic_consume(queue='rpc_queue', on_message_callback=on_request)
-for queue_n in queue_names:
-    channel.basic_consume(queue=queue_n, on_message_callback=on_command_request)
-print(" [x] Awaiting RPC requests")
+listen_device_status()
+listen_pcp_commands()
+
+print(" [x] Adaptor starting")
+
 channel.start_consuming()
