@@ -63,7 +63,7 @@
           <input type="checkbox" class="filter-checkbox form-check-input" id="materialInline1" {% if "approved" in select_status %}checked{%endif%}>
           <label class="form-check-label" for="materialInline1">
               <!-- temporary change Approved to Published-->
-            <span class="badge badge-pill badge-publish small-body-text">Published </span>
+            <span class="badge badge-pill badge-success small-body-text">Connected </span>
           </label>
         </div>
         <!-- comment out disapproved
@@ -83,7 +83,7 @@
         <div class="form-check form-check-inline align-middle">
           <input type="checkbox" class="filter-checkbox form-check-input" id="materialInline4" {% if "pending" in select_status %}checked{%endif%}>
           <label class="form-check-label" for="materialInline4">
-            <span class="badge badge-pill badge-pending small-body-text">Pending </span>
+            <span class="badge badge-pill badge-danger small-body-text">Disconnected </span>
           </label>
         </div>
         <div class="form-check form-check-inline align-middle" style="visibility: hidden">
@@ -162,15 +162,15 @@
 
                 <div class = "col-12 col-md-11" style="overflow: hidden; padding-top: 3px; padding-bottom: 3px">
                      <div class="form-check form-check-inline align-right">
-                          <label class="form-check-label" for="materialInline4">
+{#                          <label class="form-check-label" for="materialInline4">#}
                             <a class="notification-button" role="button" onclick="deviceActivate({{ posts_dic[eventID][0]['_id'] }})">Active</a>
-                          </label>
+{#                          </label>#}
                       </div>
 
                       <div class="form-check form-check-inline align-right">
-                          <label class="form-check-label" for="materialInline4">
+{#                          <label class="form-check-label" for="materialInline4">#}
                             <a class="white-background-button" role="button" onclick="deviceDeactivate({{ posts_dic[eventID][0]['_id'] }})">Deactive</a>
-                          </label>
+{#                          </label>#}
                       </div>
                 </div>
                 
