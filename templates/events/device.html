@@ -20,11 +20,11 @@
   {{ post.title }}
 {% endblock %}
 
-{% block create_event %}
-  {% if g.user["access"] == "both" or g.user["access"] == "user" or g.user["access"] == "source" %}
-  <a class="orange-background-button" style="margin-left:20px" href="{{ url_for('user_events.add_new_event') }}" role="button">Create Event</a>
-  {% endif %}
-{% endblock %}
+{#{% block create_event %}#}
+{#  {% if g.user["access"] == "both" or g.user["access"] == "user" or g.user["access"] == "source" %}#}
+{#  <a class="orange-background-button" style="margin-left:20px" href="{{ url_for('user_events.add_new_event') }}" role="button">Create Event</a>#}
+{#  {% endif %}#}
+{#{% endblock %}#}
 
 {% block modals %}
 
@@ -303,18 +303,18 @@
         {% endif %}
       </div>
     {% endif %}
-      <div class="btn-group mr-2" role="group" aria-label="Second group">
-        {% if isUser %}
-        <a class="white-background-button" href="{{ url_for('user_events.user_an_event_edit', id=post['_id']) }}" role="button">Edit</a>
-        {% endif %}
-      </div>
+{#      <div class="btn-group mr-2" role="group" aria-label="Second group">#}
+{#        {% if isUser %}#}
+{#        <a class="white-background-button" href="{{ url_for('user_events.user_an_event_edit', id=post['_id']) }}" role="button">Edit</a>#}
+{#        {% endif %}#}
+{#      </div>#}
       {% if isUser %}
-          <div class="btn-group mr-2" role="group" aria-label="Third group">
-            <button class="orange-background-button"
-              data-toggle="modal" data-html="true" data-target="#DeleteModal">
-                Delete
-            </button>
-          </div>
+{#          <div class="btn-group mr-2" role="group" aria-label="Third group">#}
+{#            <button class="orange-background-button"#}
+{#              data-toggle="modal" data-html="true" data-target="#DeleteModal">#}
+{#                Delete#}
+{#            </button>#}
+{#          </div>#}
           {% if post.eventStatus == "approved" %}
               <div class="btn-group mr-2" role="group" aria-label="Notification group">
                 <button type="button" class="notification-button" data-toggle="modal" data-target="#notificationModal" id="notificationbutton">Notification</button>
