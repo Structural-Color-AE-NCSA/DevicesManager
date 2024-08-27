@@ -68,7 +68,7 @@
               </div>
           {% else %}
               <div class="media">
-                <a class="grey-background-button" href="{{ url_for('user_events.user_events') }}" role="button">Back To All Devices</a>
+                <a class="grey-background-button" href="{{ url_for('device.devices') }}" role="button">Back To All Devices</a>
               </div>
           {% endif %}
       </div>
@@ -175,14 +175,6 @@
                   <input type="file" accept={{extensions}} class="custom-file-input" name = "file" id="file" data-toggle="popover" data-trigger="manual" data-placement="bottom" data-content="Failed to upload. Only support no larger than {{ size_limit }} MB">
                   <label id="custom-file-label" class="custom-file-label" for="file">(Choose one PCP File.)</label>
                 </div>
-{#                <div class="input-group-append">#}
-{#                  {% if image %}#}
-{#                  <button title="Delete event image" class="btn btn-outline-danger delete-image rounded-right" type="button" id="inputGroupFileAddon04">Delete</button>#}
-{#                  {% else %}#}
-{#                  <button title="Delete event image" class="btn btn-outline-danger delete-image rounded-right" type="button" id="inputGroupFileAddon04" disabled>Delete</button>#}
-{#                  {% endif %}#}
-{#                  <input type="hidden" id="delete-image" name="delete-image" value = 0>#}
-{#                </div>#}
               </div>
             </div>
           </div>
@@ -207,6 +199,19 @@
             <div class="col-sm-9">
               <div class="input-group mb-3">
                 <div id="file-content"></div>
+              </div>
+            </div>
+            </div>
+
+
+          <div class="row">
+              <div class="col-12 col-sm-2" id="longDes">
+                <h5> PCP Movement</h5>
+              </div>
+
+            <div class="col-sm-9">
+              <div class="input-group mb-3">
+                <img src="/pcpmove.png" alt="my plot">
               </div>
             </div>
             </div>
@@ -370,7 +375,7 @@
         debugger
         {#var formElement = $('#myForm');#}
         $.ajax({
-            url: "{{ url_for('user_events.send_pcp_file', id=2) }}",
+            url: "{{ url_for('device.send_pcp_file', id=2) }}",
             type: 'POST',
             data: pcpFileName,
             success: function(data){

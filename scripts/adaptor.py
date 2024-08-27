@@ -5,6 +5,10 @@ import json
 import re
 
 
+# printer position string
+printer_start_pos = None
+printer_end_pos = None
+
 try:
     from polychemprint3.tools.ultimusExtruder import ultimusExtruder
     from polychemprint3.axes.lulzbotTaz6_BP import lulzbotTaz6_BP
@@ -12,27 +16,24 @@ try:
     tool_passed = tool.activate()
     lulzbot = lulzbotTaz6_BP()
     lulzbot_passed = lulzbot.activate()
-    lulzbot.move("G28\n")
+    printer_start_pos = lulzbot.move("G28\n")
+    printer_end_pos = printer_start_pos
 except:
     tool = None
     lulzbot = None
     tool_passed = False
     lulzbot_passed = False
 
+
 EXCHANGE_NAME = 'devices_manager'
-connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host='localhost'))
+# parameters = pika.URLParameters('amqp://devicesmanager:password@141.142.219.4/%2F')
+parameters = pika.URLParameters('amqp://guest:guest@localhost/%2F')
+connection = pika.BlockingConnection(parameters)
 channel = connection.channel()
 channel.exchange_declare(exchange=EXCHANGE_NAME, exchange_type='direct', durable=True)
 
 deviceIDs = {'lulzbot':0, 'tool':1}
 queue_names = []
-# for deviceTitle in deviceIDs.keys():
-#     result = channel.queue_declare(queue='')
-#     queue_name = result.method.queue
-#     queue_names.append(queue_name)
-#     channel.queue_bind(
-#         exchange='device_commands', queue=queue_name, routing_key=deviceTitle)
 
 
 def listen_device_status():
@@ -44,6 +45,14 @@ def listen_device_status():
         queue=queue_name, on_message_callback=on_request, auto_ack=True)
 
 
+def listen_device_activate_deactivate():
+    queue_name = "device_activate_deactivate_queue"
+    channel.queue_declare(queue=queue_name, durable=True)
+    channel.queue_bind(
+        exchange=EXCHANGE_NAME, queue=queue_name, routing_key='device_activate_deactivate')
+    channel.basic_consume(
+        queue=queue_name, on_message_callback=on_request, auto_ack=True)
+
 def listen_pcp_commands():
     queue_name = "pcp_file_commands_queue"
     channel.queue_declare(queue=queue_name, durable=True)
@@ -54,6 +63,8 @@ def listen_pcp_commands():
 
 
 def send_pcp_commands(message):
+    if tool is None or lulzbot is None:
+        return False
     pcp_commands = message['data'].splitlines()
     for cmd in pcp_commands:
         if len(cmd) <= 0:
@@ -89,6 +100,11 @@ def send_pcp_commands(message):
             elif op == "move":
                 print("lulzbot.move: " + params)
                 lulzbot.move(params)
+                # get current position of printer for this move
+                cur_pos = lulzbot.move("M114\n")
+                status = dict()
+                status["pos"] = cur_pos
+                send_message('printer_movement', json.dumps(status))
         elif name == "tool":
             if op == "setValue":
                 tool.setValue(params)
@@ -96,7 +112,7 @@ def send_pcp_commands(message):
                 tool.engage()
             elif op == "disengage":
                 tool.disengage()
-
+    return True
 
 def generate_command_status():
     return random.choice(['Executing', 'Finished', 'Queued'])
@@ -115,14 +131,36 @@ def get_devices_status():
 
 
 def on_request(ch, method, props, body):
+    status = None
     message = json.loads(body)
     type = message['type']
+    print("process: " + type)
     if type == 'device_status':
         status = json.dumps(get_devices_status())
         send_message('device_status_update', status)
     elif type == 'pcp_commands':
         send_pcp_commands(message)
         status = "OK"
+    elif type == 'activate':
+        if message['data'] == 'tool':
+            if tool is not None:
+                status = tool.activate()
+        elif message['data'] == 'lulzbot':
+            if lulzbot is not None:
+                status =lulzbot.activate()
+                #TODO: update printer_start_pos?
+        # TODO: update device status
+        # send_message('device_status_update', status)
+    elif type == 'deactivate':
+        if message['data'] == 'tool':
+            if tool is not None:
+                status = tool.deactivate()
+        elif message['data'] == 'lulzbot':
+            if lulzbot is not None:
+                status = lulzbot.deactivate()
+                # TODO: update printer_start_pos, set to None?
+        # TODO: update device status
+        # send_message('device_status_update', status)
 
 
 def send_message(routing_key, message):
@@ -150,8 +188,18 @@ def on_command_request(ch, method, props, body):
 
 
 channel.basic_qos(prefetch_count=1)
+
+status = json.dumps(get_devices_status())
+send_message('device_status_update', status)
+
+
+home_pos = dict()
+home_pos['start'] = 'X:0.00 Y:127.00 Z:145.00 E:0.00 Count X: 0 Y:10160 Z:116000'
+send_message('printer_movement', json.dumps(home_pos))
+
 listen_device_status()
 listen_pcp_commands()
+listen_device_activate_deactivate()
 
 print(" [x] Adaptor starting")
 

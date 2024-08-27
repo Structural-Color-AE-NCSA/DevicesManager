@@ -115,7 +115,7 @@ def login_db(username, password, error):
     # if error is None:
     #     session.clear()
     #     session['user_id'] = str(user['_id'])
-    return redirect(url_for("user_events.user_events"))
+    return redirect(url_for("device.devices"))
 
     # flash(error)
     # return False

@@ -163,13 +163,13 @@
                 <div class = "col-12 col-md-11" style="overflow: hidden; padding-top: 3px; padding-bottom: 3px">
                      <div class="form-check form-check-inline align-right">
 {#                          <label class="form-check-label" for="materialInline4">#}
-                            <a class="notification-button" role="button" onclick="deviceActivate({{ posts_dic[eventID][0]['_id'] }})">Active</a>
+                            <a class="notification-button" role="button" onclick="deviceActivate({{ posts_dic[eventID][0]['_id'] }})">Activate</a>
 {#                          </label>#}
                       </div>
 
                       <div class="form-check form-check-inline align-right">
 {#                          <label class="form-check-label" for="materialInline4">#}
-                            <a class="white-background-button" role="button" onclick="deviceDeactivate({{ posts_dic[eventID][0]['_id'] }})">Deactive</a>
+                            <a class="white-background-button" role="button" onclick="deviceDeactivate({{ posts_dic[eventID][0]['_id'] }})">Deactivate</a>
 {#                          </label>#}
                       </div>
                 </div>
@@ -192,11 +192,30 @@
   {% include 'events/select_status.html' %}
   <script src="..\static\js\user-events.js"></script>
   <script>
-        function deviceActivate(id) {
-            console.log("deviceActivate: " + id)
+        function deviceActivate(deviceID) {
+            debugger
+             $.ajax({
+                url: "{{ url_for('device.activate') }}",
+                dataType: 'json',
+                type: 'POST',
+                data: {
+                    id: deviceID,
+                }
+            }).always(function () {
+                location.reload(true);
+            });
         }
-        function deviceDeactivate(id) {
-            console.log("deviceDeactivate: " + id)
+        function deviceDeactivate(deviceID) {
+            $.ajax({
+                url: "{{ url_for('device.deactivate') }}",
+                dataType: 'json',
+                type: 'POST',
+                data: {
+                    id: deviceID,
+                }
+            }).always(function () {
+                location.reload(true);
+            });
         }
         function dropDownMenuShow(id, value) {
               document.getElementById(id).value = value

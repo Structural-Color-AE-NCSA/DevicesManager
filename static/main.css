@@ -241,6 +241,7 @@ a {
   display:flex;
   justify-content: center;
   align-items: center;
+  cursor: pointer;
 }
 .white-background-button:hover, .white-background-button:active {
   background-color: #e84a27;
@@ -263,6 +264,7 @@ a {
   display:flex;
   justify-content: center;
   align-items: center;
+  cursor: pointer;
 }
 
 .orange-background-button:hover {

@@ -13,7 +13,7 @@ from .auth import role_required
 from flask import jsonify
 from .utilities.user_utilities import *
 from .utilities.constants import *
-from .utilities.rabbitMQ.receiver import RpcDevicesReceiver
+from .utilities.rabbitMQ.client import DeviceComm
 from flask_paginate import Pagination, get_page_args
 from .config import Config
 from werkzeug.utils import secure_filename
@@ -30,7 +30,7 @@ __logger = logging.getLogger("user_events.py")
 
 userbp = Blueprint('user_events', __name__, url_prefix=Config.URL_PREFIX+'/user-events')
 
-rpcDeviceReceiver = RpcDevicesReceiver()
+# rpcDeviceReceiver = RpcDevicesReceiver()
 
 @userbp.route('/', methods=['GET', 'POST'])
 @role_required("user")
@@ -837,13 +837,4 @@ def sub_event(eventId):
         __logger.error("Redirect for eventId {} failed".format(eventId))
         abort(500)
 
-@userbp.route('/event/run_pcp_file', methods=['POST'])
-@role_required("user")
-def send_pcp_file():
-    for filename in request.form:
-        print(f'PCP File Name: {filename}')
-        path_to_pcp_file = os.path.join(os.getcwd(), 'pcp', filename)
-        with open(path_to_pcp_file, 'r') as file:
-            file_content = file.read()
-        rpcDeviceReceiver.send_pcp_file(file_content)
-    return jsonify([]), 200
+
