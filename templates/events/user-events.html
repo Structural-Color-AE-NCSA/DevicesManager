@@ -193,7 +193,6 @@
   <script src="..\static\js\user-events.js"></script>
   <script>
         function deviceActivate(deviceID) {
-            debugger
              $.ajax({
                 url: "{{ url_for('device.activate') }}",
                 dataType: 'json',

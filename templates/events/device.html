@@ -211,7 +211,7 @@
 
             <div class="col-sm-9">
               <div class="input-group mb-3">
-                <img src="/pcpmove.png" alt="my plot">
+                <img id="plot" src="{{url_for('device.pcp_plot')}}" alt="grid">
               </div>
             </div>
             </div>
@@ -364,16 +364,41 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     document.getElementById('file-content').textContent = e.target.result;
+                    fetch("{{ url_for('device.load_pcp_file') }}", {
+                        method: 'POST',
+                        body: JSON.stringify({"data": e.target.result})
+                    })
+                    .then(response => response.blob())
+                    .then(blob => {
+                        // Create an object URL for the image and set it as the src for the img element
+                        const url = URL.createObjectURL(blob);
+                        document.getElementById('plot').src = url;
+                        console.log("fetchPCPPlotData")
+                    });
                 };
+
+                debugger
                 reader.readAsText(file);
             } else {
                 alert('Please select a valid text file.');
             }
       });
 
+      function updatePlot() {
+            fetch("{{ url_for('device.pcp_plot') }}", {
+                method: 'GET'
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                // Create an object URL for the image and set it as the src for the img element
+                const url = URL.createObjectURL(blob);
+                document.getElementById('plot').src = url;
+                console.log("fetchPCPPlotData")
+            });
+        }
+
       $("#runpcpbutton").click(function() {
         debugger
-        {#var formElement = $('#myForm');#}
         $.ajax({
             url: "{{ url_for('device.send_pcp_file', id=2) }}",
             type: 'POST',
@@ -384,6 +409,13 @@
         });
         console.log("Run PCP File")
       });
+
+      setInterval(updatePlot, 1000);
+
+      window.onload = function() {
+        updatePlot(); // Initial fetch on page load
+      };
+
     </script>
 
 {#    {% if post.location %}#}

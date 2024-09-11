@@ -32,6 +32,8 @@ from .device import devicebp as device_bp
 from .scheduler import create_scheduler, drop_scheduler
 from .utilities import source_utilities
 
+from flask_cors import CORS
+
 
 logging.Formatter.converter = gmtime
 logging.basicConfig(level=logging.INFO, datefmt='%Y-%m-%dT%H:%M:%S',
@@ -47,6 +49,7 @@ def create_app(config_class=Config):
         prefix = None
         staticpath = '/static'
     app = Flask(__name__, static_url_path=staticpath)
+    # CORS(app)
     app.config.from_object(Config)
 
     __logger.info("Devices Manager starts.")

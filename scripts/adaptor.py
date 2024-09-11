@@ -63,14 +63,19 @@ def listen_pcp_commands():
 
 
 def send_pcp_commands(message):
-    if tool is None or lulzbot is None:
-        return False
+    # if tool is None or lulzbot is None:
+    #     return False
+    cell_id = message['cell_id']
     pcp_commands = message['data'].splitlines()
     for cmd in pcp_commands:
         if len(cmd) <= 0:
             continue
         print(cmd)
         cmd = cmd.replace("\\n", "\n")
+        if cmd == "Done":
+            print(f"Cell #{cell_id} PCP running is done")
+            send_message('printer_movement_done', json.dumps({'cell_id': cell_id}))
+            break
         tmp = cmd.split("(")
         command = tmp[0].split(".")
         name = command[0] # device
@@ -96,22 +101,27 @@ def send_pcp_commands(message):
             print('tool')
         if name == "axes":
             if op == "setPosMode":
-                lulzbot.setPosMode(params)
+                if tool and lulzbot:
+                    lulzbot.setPosMode(params)
             elif op == "move":
                 print("lulzbot.move: " + params)
-                lulzbot.move(params)
-                # get current position of printer for this move
-                cur_pos = lulzbot.move("M114\n")
-                status = dict()
-                status["pos"] = cur_pos
-                send_message('printer_movement', json.dumps(status))
+                if tool and lulzbot:
+                    lulzbot.move(params)
+                    # get current position of printer for this move
+                    cur_pos = lulzbot.move("M114\n")
+                    status = dict()
+                    status["pos"] = cur_pos
+                    send_message('printer_movement', json.dumps(status))
         elif name == "tool":
             if op == "setValue":
-                tool.setValue(params)
+                if tool and lulzbot:
+                    tool.setValue(params)
             elif op == "engage":
-                tool.engage()
+                if tool and lulzbot:
+                    tool.engage()
             elif op == "disengage":
-                tool.disengage()
+                if tool and lulzbot:
+                    tool.disengage()
     return True
 
 def generate_command_status():
@@ -193,9 +203,9 @@ status = json.dumps(get_devices_status())
 send_message('device_status_update', status)
 
 
-home_pos = dict()
-home_pos['start'] = 'X:0.00 Y:127.00 Z:145.00 E:0.00 Count X: 0 Y:10160 Z:116000'
-send_message('printer_movement', json.dumps(home_pos))
+# home_pos = dict()
+# home_pos['start'] = 'X:0.00 Y:127.00 Z:145.00 E:0.00 Count X: 0 Y:10160 Z:116000'
+# send_message('printer_movement', json.dumps(home_pos))
 
 listen_device_status()
 listen_pcp_commands()

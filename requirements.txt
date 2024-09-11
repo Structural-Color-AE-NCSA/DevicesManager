@@ -31,3 +31,5 @@ pika==1.3.2
 matplotlib==3.9.2
 ipython
 ffmpeg
+flask-socketio
+flask-cors

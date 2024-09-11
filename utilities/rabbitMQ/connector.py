@@ -36,6 +36,8 @@ class DeviceConnector(object):
         self.channel.basic_qos(prefetch_count=1)
         if self.queue_name is not None:
             self.channel.queue_declare(queue=self.queue_name, durable=True)
+            self.channel.queue_bind(
+                exchange=self.EXCHANGE_NAME, queue=self.queue_name, routing_key=self.routing_key)
         self.channel.exchange_declare(exchange=self.EXCHANGE_NAME, exchange_type='direct', durable=True)
 
     def consume(self):
