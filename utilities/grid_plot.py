@@ -105,6 +105,16 @@ class GridPlot(object):
         buf.seek(0)
         return buf
 
+    def get_top_left_corner_pos_by_cell_id(self, cell_id):
+        """
+        :param cell_id: starting from 0
+        :return: the absolute position of the top left corner of this cell id
+        """
+        rowth = cell_id//self.ncols
+        colth = cell_id - rowth*self.ncols
+        return self.cell_x_starting[0][colth], self.cell_y_starting[rowth][0]
+
+
     def set_starting_cell_id(self, cell_id):
         self.starting_cell_id = cell_id
 

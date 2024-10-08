@@ -41,6 +41,11 @@
       <div class="modal-body">
         {% if usage == "PCP" %}
         You are about to run this PCP file <b>{{title}}</b>
+        <div class="form-group">
+            <label for="title-name" class="col-form-label">Cell IDs:</label>
+            <input type="text" class="form-control text-input text-input-field" id="cell-ids"
+                   placeholder="Enter your Cell IDs to print several shapes...">
+        </div>
         {% else %}
         Are you sure you want to start downloading the approved calendars?
         {% endif %}

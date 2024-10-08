@@ -3,7 +3,7 @@ import pika
 import random
 import json
 import re
-
+import time
 
 # printer position string
 printer_start_pos = None
@@ -12,6 +12,7 @@ printer_end_pos = None
 try:
     from polychemprint3.tools.ultimusExtruder import ultimusExtruder
     from polychemprint3.axes.lulzbotTaz6_BP import lulzbotTaz6_BP
+
     tool = ultimusExtruder()
     tool_passed = tool.activate()
     lulzbot = lulzbotTaz6_BP()
@@ -24,15 +25,14 @@ except:
     tool_passed = False
     lulzbot_passed = False
 
-
 EXCHANGE_NAME = 'devices_manager'
-# parameters = pika.URLParameters('amqp://devicesmanager:password@141.142.219.4/%2F')
-parameters = pika.URLParameters('amqp://guest:guest@localhost/%2F')
+parameters = pika.URLParameters('amqp://devicesmanager:password@141.142.219.4/%2F')
+# parameters = pika.URLParameters('amqp://guest:guest@localhost/%2F')
 connection = pika.BlockingConnection(parameters)
 channel = connection.channel()
 channel.exchange_declare(exchange=EXCHANGE_NAME, exchange_type='direct', durable=True)
 
-deviceIDs = {'lulzbot':0, 'tool':1}
+deviceIDs = {'lulzbot': 0, 'tool': 1}
 queue_names = []
 
 
@@ -52,6 +52,7 @@ def listen_device_activate_deactivate():
         exchange=EXCHANGE_NAME, queue=queue_name, routing_key='device_activate_deactivate')
     channel.basic_consume(
         queue=queue_name, on_message_callback=on_request, auto_ack=True)
+
 
 def listen_pcp_commands():
     queue_name = "pcp_file_commands_queue"
@@ -78,10 +79,10 @@ def send_pcp_commands(message):
             break
         tmp = cmd.split("(")
         command = tmp[0].split(".")
-        name = command[0] # device
-        sub = cmd[1+len(name):]
-        op = None       # operation
-        params = None      # operation params
+        name = command[0]  # device
+        sub = cmd[1 + len(name):]
+        op = None  # operation
+        params = None  # operation params
         pattern = r'^(.*?)\('
         match = re.search(pattern, sub)
         if match:
@@ -112,6 +113,16 @@ def send_pcp_commands(message):
                     status = dict()
                     status["pos"] = cur_pos
                     send_message('printer_movement', json.dumps(status))
+            elif op == "startPoint":
+                match = re.search(r'X=([-]?[0-9.]+)', params)
+                abs_x = None
+                if match:
+                    abs_x = float(match.group(1))
+                abs_y = None
+                match = re.search(r'Y=([-]?[0-9.]+)', params)
+                if match:
+                    abs_y = float(match.group(1))
+                abs_position_move_printer(abs_x, abs_y)
         elif name == "tool":
             if op == "setValue":
                 if tool and lulzbot:
@@ -123,6 +134,7 @@ def send_pcp_commands(message):
                 if tool and lulzbot:
                     tool.disengage()
     return True
+
 
 def generate_command_status():
     return random.choice(['Executing', 'Finished', 'Queued'])
@@ -157,8 +169,8 @@ def on_request(ch, method, props, body):
                 status = tool.activate()
         elif message['data'] == 'lulzbot':
             if lulzbot is not None:
-                status =lulzbot.activate()
-                #TODO: update printer_start_pos?
+                status = lulzbot.activate()
+                # TODO: update printer_start_pos?
         # TODO: update device status
         # send_message('device_status_update', status)
     elif type == 'deactivate':
@@ -190,18 +202,80 @@ def on_command_request(ch, method, props, body):
     })
     ch.basic_publish(exchange='',
                      routing_key=props.reply_to,
-                     properties=pika.BasicProperties(correlation_id = \
+                     properties=pika.BasicProperties(correlation_id= \
                                                          props.correlation_id),
                      body=status)
     ch.basic_ack(delivery_tag=method.delivery_tag)
     print('sent response to:', props.reply_to)
 
 
+def abs_position_move_printer(x_pos=None, y_pos=None, z_pos=None):
+    """
+    abs pos of home X:-22 Y:287 Z:290
+    delta_x =
+    """
+    lulzbot.setPosMode("relative")
+    cur_pos = lulzbot.move("M114\n")
+    # cur_pos = 'X:0.00 Y:127.00 Z:145.00 E:0.00 Count X: 0 Y:10160 Z:116000'
+    cur_x_pos = ""
+    cur_y_pos = ""
+    # get X
+    match = re.search(r'X:([-]?[0-9.]+)', cur_pos)
+    is_x_delta = False
+    if match:
+        is_x_delta = True
+        cur_x_pos = float(match.group(1))
+    is_y_delta = False
+    match = re.search(r'Y:([-]?[0-9.]+)', cur_pos)
+    if match:
+        is_y_delta = True
+        cur_y_pos = float(match.group(1))
+    is_z_delta = False
+    match = re.search(r'Z:([-]?[0-9.]+)', cur_pos)
+    if match:
+        is_z_delta = True
+        cur_z_pos = float(match.group(1))
+
+    # "G1 X\n"
+    if x_pos:
+        if is_x_delta:
+            delta_x = x_pos - cur_x_pos
+            cmd = "G1"
+            cmd = cmd + " F2000 X%s\n" % str(delta_x)
+            lulzbot.move(cmd)
+    if y_pos:
+        if is_y_delta:
+            delta_y = y_pos - cur_y_pos
+            cmd = "G1"
+            cmd = cmd + " F2000 Y%s\n" % str(delta_y)
+            lulzbot.move(cmd)
+    if z_pos:
+        if is_z_delta:
+            delta_z = z_pos - cur_z_pos
+            cmd = "G1"
+            cmd = cmd + " F2000 Z%s\n" % str(delta_z)
+            lulzbot.move(cmd)
+
+
+def clean_nozzle():
+    abs_position_move_printer(z_pos=290)
+    abs_position_move_printer(x_pos=-22, y_pos=20)
+    abs_position_move_printer(z_pos=40)
+    lulzbot.move("M400\n")
+    time.sleep(5)
+    abs_position_move_printer(z_pos=290)
+
+
+# mimic the print and then clean nozzle and then print anther shape
+# abs_position_move_printer(100, 200, 200)
+# clean_nozzle()
+# abs_position_move_printer(150, 50, 100)
+
+
 channel.basic_qos(prefetch_count=1)
 
 status = json.dumps(get_devices_status())
 send_message('device_status_update', status)
-
 
 # home_pos = dict()
 # home_pos['start'] = 'X:0.00 Y:127.00 Z:145.00 E:0.00 Count X: 0 Y:10160 Z:116000'

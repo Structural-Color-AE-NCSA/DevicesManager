@@ -29,16 +29,29 @@ from .event import bp as event_bp
 from .home import bp as home_bp
 from .user_events import userbp as user_bp
 from .device import devicebp as device_bp
-from .scheduler import create_scheduler, drop_scheduler
-from .utilities import source_utilities
+from .devices_listing import devices_listing_bp as devices_listing_bp
+
 
 from flask_cors import CORS
+from flask_socketio import SocketIO
 
 
 logging.Formatter.converter = gmtime
 logging.basicConfig(level=logging.INFO, datefmt='%Y-%m-%dT%H:%M:%S',
                     format='%(asctime)-15s.%(msecs)03dZ %(levelname)-7s [%(threadName)-10s] : %(name)s - %(message)s')
 __logger = logging.getLogger("__init__.py")
+
+socketio = SocketIO()
+
+
+@socketio.on('connect')
+def test_connect():
+    print("socketio connect!")
+
+
+@socketio.on('test')
+def test_connect():
+    print("socketio received message test from javascript!")
 
 
 def create_app(config_class=Config):
@@ -49,7 +62,7 @@ def create_app(config_class=Config):
         prefix = None
         staticpath = '/static'
     app = Flask(__name__, static_url_path=staticpath)
-    # CORS(app)
+    CORS(app)
     app.config.from_object(Config)
 
     __logger.info("Devices Manager starts.")
@@ -64,16 +77,12 @@ def create_app(config_class=Config):
     app.register_blueprint(event_bp)
     app.register_blueprint(home_bp)
     app.register_blueprint(device_bp)
+    app.register_blueprint(devices_listing_bp)
 
-    app.scheduler = create_scheduler(app)
-    app.scheduler.start()
-    atexit.register(drop_scheduler, scheduler=app.scheduler)
-
-    with app.app_context():
-        source_utilities.load_calendar_into_db()
-        schedule_time = source_utilities.get_download_schedule_time()
-        if not schedule_time:
-            source_utilities.init_download_schedule_time("23:00")
+    socketio.init_app(app)
+    device.init_socketio(socketio)
+    socketio.run(app, allow_unsafe_werkzeug=True, logger=True, engineio_logger=True, cors_allowed_origins="*",
+                 host='0.0.0.0')
 
     @app.route('/')
     @check_login

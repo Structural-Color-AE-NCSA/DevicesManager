@@ -68,7 +68,7 @@
               </div>
           {% else %}
               <div class="media">
-                <a class="grey-background-button" href="{{ url_for('device.devices') }}" role="button">Back To All Devices</a>
+                <a class="grey-background-button" href="{{ url_for('devices_listing.devices') }}" role="button">Back To All Devices</a>
               </div>
           {% endif %}
       </div>
@@ -214,6 +214,11 @@
                 <img id="plot" src="{{url_for('device.pcp_plot')}}" alt="grid">
               </div>
             </div>
+            <div class="col-sm-9">
+              <div class="input-group mb-3">
+                <canvas id="cameraFrames"></canvas>
+              </div>
+            </div>
             </div>
 
 
@@ -352,37 +357,75 @@
   <!-- add js for local date format -->
   {% block scripts %}
     {{super()}}
+{#      <script src="https://cdn.jsdelivr.net/npm/blob-compare@latest"></script>#}
+      <script src="https://unpkg.com/blob-compare@latest"></script>
+      <script src="https://cdn.jsdelivr.net/gh/liqueurdetoile/blob-compare@latest/dist/index.min.js"></script>
+      <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
     <script>
+        var old_blob = null
+        var old_pcp_image_url = null
+        const canvas = document.getElementById('cameraFrames');
+        const context = canvas.getContext('2d');
+        // sending a connect request to the server.
+        {#var socket = io.connect('http://localhost:5000');#}
+        {#const socket = io.connect('http://' + document.domain + ':' + location.port);#}
+        var socket = io.connect();
+
         let pcpFileName = ""
-      const pcpFileNameDisplay = document.getElementById('custom-file-label');
-      document.getElementById('file').addEventListener('change', function(event) {
-            const file = event.target.files[0];
+        const pcpFileNameDisplay = document.getElementById('custom-file-label');
+        document.getElementById('file').addEventListener('change', function(event) {
+        const file = event.target.files[0];
 
-            if (file) {
-                pcpFileNameDisplay.textContent = `Selected file: ${file.name}`;
-                pcpFileName = file.name
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('file-content').textContent = e.target.result;
-                    fetch("{{ url_for('device.load_pcp_file') }}", {
-                        method: 'POST',
-                        body: JSON.stringify({"data": e.target.result})
-                    })
-                    .then(response => response.blob())
-                    .then(blob => {
-                        // Create an object URL for the image and set it as the src for the img element
-                        const url = URL.createObjectURL(blob);
-                        document.getElementById('plot').src = url;
-                        console.log("fetchPCPPlotData")
-                    });
-                };
+        socket.on('connect', function() {
+            socket.emit('test', {
+                   who: $(this).attr('id'),
+                   data: $(this).val()
+               });
+            console.log('Connected: ' + socket.connected);  // Should be true if successful
 
-                debugger
-                reader.readAsText(file);
-            } else {
-                alert('Please select a valid text file.');
+        });
+
+        socket.on('after connect', function(msg) {
+               console.log('After connect', msg);
+        });
+
+        socket.on("connect_error", () => {
+          socket.connect();
+        });
+
+        socket.on('camera_frame', function(data) {
+            const img = new Image();
+            img.src = 'data:image/png;base64,' + data.frame;
+
+            img.onload = function() {
+              context.drawImage(img, 0, 0, canvas.width, canvas.height);
             }
-      });
+        });
+
+        if (file) {
+            pcpFileNameDisplay.textContent = `Selected file: ${file.name}`;
+            pcpFileName = file.name
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('file-content').textContent = e.target.result;
+                fetch("{{ url_for('device.load_pcp_file') }}", {
+                    method: 'POST',
+                    body: JSON.stringify({"data": e.target.result})
+                })
+                .then(response => response.blob())
+                .then(blob => {
+                    // Create an object URL for the image and set it as the src for the img element
+                    const url = URL.createObjectURL(blob);
+                    document.getElementById('plot').src = url;
+                    console.log("fetchPCPPlotData")
+                });
+            };
+
+            reader.readAsText(file);
+        } else {
+            alert('Please select a valid text file.');
+        }
+        });
 
       function updatePlot() {
             fetch("{{ url_for('device.pcp_plot') }}", {
@@ -390,19 +433,32 @@
             })
             .then(response => response.blob())
             .then(blob => {
-                // Create an object URL for the image and set it as the src for the img element
-                const url = URL.createObjectURL(blob);
-                document.getElementById('plot').src = url;
-                console.log("fetchPCPPlotData")
+                if (null === old_blob) {
+                    old_blob = blob
+                }
+                blobCompare.default.isEqual(blob, old_blob).then((equal) =>{
+                    if(!equal) {
+                        if (old_pcp_image_url) {
+                            URL.revokeObjectURL(old_pcp_image_url)
+                        }
+                        const url = URL.createObjectURL(blob);
+                        old_pcp_image_url = url
+                        old_blob = blob
+                        document.getElementById('plot').src = url;
+                    }
+                });
             });
         }
 
       $("#runpcpbutton").click(function() {
-        debugger
+        console.log(document.getElementById('cell-ids').value)
         $.ajax({
             url: "{{ url_for('device.send_pcp_file', id=2) }}",
             type: 'POST',
-            data: pcpFileName,
+            data: {
+                pcpFileName: pcpFileName,
+                cell_ids: document.getElementById('cell-ids').value
+            },
             success: function(data){
                 console.log("success send pcp file")
             }
