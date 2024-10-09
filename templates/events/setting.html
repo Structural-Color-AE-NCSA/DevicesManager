@@ -1,0 +1,218 @@
+<!------------------------------------------------------------------------
+  Copyright 2020 Board of Trustees of the University of Illinois.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  ------------------------------------------------------------------------>
+
+{% extends 'base.html' %}
+
+{% from 'events/confirmation.html' import confirmation %}
+
+{% block title %}Setting{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb calendar-event-breadcrumb">
+    <li class="breadcrumb-item active" aria-current="page">Setting</li>
+  </ol>
+</nav>
+
+{{ confirmation("download") }}
+
+<div class="row">
+  <div class="col-2">
+    <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+      {% for key, value in sources.items() %}
+	    <a class="nav-link calendar-event-text" id="v-pills-school-tab" href="{{url_for('event.source', sourceId=key)}}" role="tab" aria-selected="false">{{value[0]}}</a>
+      {% endfor %}
+      <a class="nav-link active calendar-event-text calendar-event-button-active" id="v-pills-school-tab" data-toggle="pill" href="#" role="tab" aria-controls="v-pills-school" aria-selected="true">Setting</a>
+    </div>
+  </div>
+  <div class="col">
+    <div class="tab-content" id="v-pills-tabContent">
+      <div class="tab-pane fade show active" id="v-pills-school" role="tabpanel" aria-labelledby="v-pills-school-tab">
+        <form action="{{ url_for('event.setting') }}" method="POST">
+        <h2>Add New Calendars</h2>
+        <div class="contact-group dynamic-element">
+          <div class = "form-group row" >
+            <div class="col-sm-3">
+              <input class="form-control text-input" id="calendarID" name="calendarID[]" type="text"  pattern="[A-Za-z0-9]{1,20}" placeholder="Calendar ID" />
+            </div>
+            <div class="col-sm-3">
+              <input class="form-control text-input" id="calendarName" name="calendarName[]" type="text"  pattern="[A-Za-z0-9]{1,20}" placeholder="Calendar Name"/>
+            </div>
+            <div class="col-sm-3">
+              <span role="button" id="save-calendar" class="save-calendar notification-button">Save New Calendar</span>
+            </div>
+          </div>
+        </div>
+
+          <h2>Calendar approval status</h2>
+          <button type="button" class="orange-background-button" id="selectallbutton">Select all</button>
+          <button type="button" class="white-background-button" id="clearallbutton">Clear all</button>
+          <br>
+          <br>
+          {% for sourceid, sourceval in sources.items() %}
+            <h4>{{sourceval[0]}}</h4>
+            {% for item in sourceval[1] %}
+              {% for calid, calval in item.items() %}
+                <div class="form-check">
+                  {% if allstatus[calid] == "approved" %}
+                  <input class="form-check-input" type="checkbox" value="" id="check{{calid}}" name="{{calid}}" checked>
+                  {% else %}
+                  <input class="form-check-input" type="checkbox" value="" id="check{{calid}}" name="{{calid}}">
+                  {% endif %}
+                  <label class="form-check-label" for="check{{calid}}">
+<!--                 <a href="{{url_for('event.calendar', calendarId=calid)}}">
+                       {{calval}}
+                    </a>-->
+                     <a class="" href="{{ url_prefix }}{{ calid }}">
+                       {{calval}}
+                    </a>
+                </div>
+              {% endfor %}
+            {% endfor %}
+          {% endfor %}
+
+
+          <button type="submit" class="orange-background-button">Save</button>
+        </form>
+
+        <h2>Daily time configuration</h2>
+        <div>
+            <label for="scheduletime">Events from these calendars will be crawled, parsed, and published daily at the scheduled time displayed below. The default scheduled time is 11:00 PM (Central Time). You can set a different time below.</label>
+            <input type="time" id="scheduletime" name="scheduletime" value={{ schedule_time }} }} required>
+          <button type="button" class="btn btn-primary orange-background-button" id="schedulebutton">Schedule</button>
+        </div>
+
+        <div>
+          <span>Calendars will be updated daily. Update immediately</span>
+            <button type="button" class="btn btn-primary orange-background-button" data-toggle="modal" data-target="#confirmModal" id="defaultdownload">
+            Download
+            </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+    <script type="text/javascript">
+        $("#schedulebutton").click(function() {
+            let time = $("#scheduletime").val()
+            console.log("time:"+time)
+            let results = [];
+            let targets = $("input[type=checkbox]").each(function(index) {
+              if ($(this).prop('checked')) {
+                results.push($(this).attr('name'));
+              }
+            });
+            $.post("{{ url_for('event.schedule') }}",
+            {
+              "time": time,
+              "targets": JSON.stringify(results)
+            },
+            function(data) {
+              if (data == "success") {
+                alert("schedule success");
+              }
+            });
+        })
+        $("#selectallbutton").click(function() {
+          $("input[type=checkbox]").each(function(index) {
+            console.log(index)
+            $(this).prop('checked', true);
+          })
+        })
+        $("#clearallbutton").click(function() {
+          $("input[type=checkbox]").each(function(index) {
+            console.log(index)
+            $(this).prop('checked', false);
+          })
+        })
+
+    $("#download").on('click', function(e) {
+      // close modal
+      $('#confirmModal').modal('hide');
+
+      $('#defaultdownload').attr('disabled', true);
+      e.preventDefault();
+      let results = [];
+      let targets = $("input[type=checkbox]").each(function(index) {
+        if ($(this).prop('checked')) {
+          results.push($(this).attr('name'));
+        }
+      });
+      $.ajax({
+        url: "{{ url_for('event.download') }}",
+        dataType: "json",
+        contentType:"application/json; charset=utf-8",
+        type: "POST",
+        data: JSON.stringify(results),
+      }).done(function(msg) {
+        if (msg.status == 'OK') {
+          alert("Download Complete");
+        } else {
+          alert("Internal Error happened");
+        }
+
+      }).fail(function() {
+        alert("Internal Error happened");
+      }).always(function() {
+        $('#defaultdownload').attr('disabled', false);
+      })
+    });
+
+   $('#save-calendar').click(function(){
+     console.log("click save");
+     $("input[type=text]").each(function(index){
+       if(index%2 == 0){
+         id_result = $(this).val();
+       }else{
+         name_result = $(this).val();
+       }
+     });
+      console.log(id_result);
+      console.log(name_result);
+     $.post("{{ url_for('event.add_new_calendar') }}",
+     {
+       dataType: "json",
+       contentType:"application/json; charset=utf-8",
+       type: "POST",
+       data:{
+         "calendarID": id_result,
+         "calendarName": name_result
+       }
+     }
+     ,
+     function(data) {
+       if (data == "success") {
+         alert("New calendar adding succeed!");
+         location.reload();
+       }else if(data == "fail"){
+          alert("New calendar adding failed!");
+       }else{
+          alert("New calendar should have both ID and Name!");
+       }
+
+     }
+     );
+   });
+
+
+
+  </script>
+
+{% endblock %}

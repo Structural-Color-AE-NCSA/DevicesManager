@@ -1,0 +1,54 @@
+<!------------------------------------------------------------------------
+  Copyright 2020 Board of Trustees of the University of Illinois.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  ------------------------------------------------------------------------>
+
+{% extends 'base.html' %}
+
+{% block title %} Events Manager {% endblock %}
+{% block content %}
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+             {{ error }}
+        </div>
+    {% endif %}
+    <h1>Introduction</h1>
+    <p class="promo-body-text">
+        Events Manager is the administrative interface to events in the Rokwire Platform. Through this web application,
+        users can manage existing events coming from calendars and or create and manage user events.
+    </p>
+    <hr/>
+    <p class="small-body-text">
+        Main features of Events Manager are as follows:
+    </p>
+    <h3 class="user-events"><a href="{{ url_for('user_events.user_events') }}"> User Events </a></h3>
+    <ul class="small-body-text">
+        <li>View events (published and pending)</li>
+        <li>Manage events (create, view, edit, delete, and publish)</li>
+        <li>Send notifications</li>
+    </ul>
+    <h3 class="user-events"><a href="{{ url_for('event.source', sourceId=0) }}"> Calendar Events </a></h3>
+    <ul class="small-body-text">
+        <li>View event sources</li>
+        <li>View events (published and pending)</li>
+        <li>Manage events (publish, make pending, and delete)</li>
+        <li>Manage calendars (add and approve)</li>
+        <li>Schedule daily downloads</li>
+    </ul>
+    {% if gitinfo %}
+{#    <div class="navbar container fixed-bottom">#}
+{#        <div class="font-weight-light">{{ gitinfo }}</div>#}
+{#    </div>#}
+    {% endif %}
+{% endblock %}

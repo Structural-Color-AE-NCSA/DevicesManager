@@ -1,0 +1,877 @@
+<!------------------------------------------------------------------------
+  Copyright 2020 Board of Trustees of the University of Illinois.
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+      http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  ------------------------------------------------------------------------>
+
+{% extends 'base.html' %}
+
+{% from 'events/confirmation.html' import confirmation %}
+{% from 'events/notification.html' import notification %}
+
+{% block title %}
+  {{ post.title }}
+{% endblock %}
+
+{% block create_event %}
+  {% if g.user["access"] == "both" or g.user["access"] == "user" or g.user["access"] == "source" %}
+  <a class="orange-background-button" style="margin-left:20px" href="{{ url_for('user_events.add_new_event') }}" role="button">Create Event</a>
+  {% endif %}
+{% endblock %}
+
+{% block modals %}
+
+{% if post.eventStatus == "approved" %}
+{{ confirmation("disapproveEvent", post.title) }}
+{% elif not isUser %}
+{% if post.eventStatus == "published" %}
+ {{ confirmation("pending", post.title) }}
+{% endif %}
+{% else %}
+{{ confirmation("approveEvent", post.title, post.isSuperEvent) }}
+{% endif %}
+
+{% if post.eventStatus == "approved" %}
+{{ notification("notification", post.platformEventId, post.title) }}
+{% endif %}
+
+<!-- delete Confirmation form -->
+<div class="modal fade" id="DeleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">
+          Delete event
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        You are about to delete the following event <b>{{post.title}}</b> {% if post.isSuperEvent %} and its sub-events {% endif %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="white-background-button" data-dismiss="modal">Cancel</button>
+        <button type="button" class="orange-background-button" id="deletion-modal-btn-yes">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- pending Confirmation form -->
+<div class="modal fade" id="PendingModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">
+          Pending event
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        You are about to set the following event <b>{{post.title}}</b> to pending state.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="white-background-button" data-dismiss="modal">Cancel</button>
+        <button type="button" class="orange-background-button" id="pending-modal-btn-yes">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- publish Confirmation form -->
+<div class="modal fade" id="PublishModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">
+          Publish event
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        You are about to publish the following event <b>{{post.title}}</b>.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="white-background-button" data-dismiss="modal">Cancel</button>
+        <button type="button" class="orange-background-button" id="publish-modal-btn-yes">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+  <!-- filter and select operations -->
+  {% if isUser %}
+      <div>
+          {% if post.superEventID and post.superEventID != '' %}
+              <div class="media" style="float: left; margin-right: 10px">
+                <a class="grey-background-button" href="{{ url_for('user_events.user_events') }}" role="button">Back To All Events</a>
+              </div>
+              <div class="media">
+                <a class="grey-background-button" href="{{ url_for('user_events.user_an_event', id=post.superEventID) }}" role="button">Back To Super Event</a>
+              </div>
+          {% else %}
+              <div class="media">
+                <a class="grey-background-button" href="{{ url_for('user_events.user_events') }}" role="button">Back To All Events</a>
+              </div>
+          {% endif %}
+      </div>
+  {% else %}
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('event.source', sourceId=post['sourceId']) }}">{{sourceName}}</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('event.calendar', calendarId=post['calendarId']) }}">{{calendarName}}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{post['title']}}</li>
+    </ol>
+  </nav>
+  {% endif %}
+    <article class="media content-section">
+      <div class="media-body">
+        <h2><a class="article-title" href="{{ post.titleURL}}">{{ post.title }}</a></h2>
+        <hr class="divider"/>
+
+        <!-- Grid container to hold image at top-right -->
+        <div class="grid container"
+        style="display: grid;grid-auto-flow: column;grid-auto-rows: auto;grid-template-columns: [left] 66.67% [right] 33.33%;">
+          <div class="item1" style="grid-area: auto / left;">
+            {% if post.eventStatus%}
+            <div class="row">
+              <div class="col-12 col-sm-3">
+                <h5>Event Status </h5>
+              </div>
+              <p class="col-sm-9 small-body-text">
+                {% if post.eventStatus == "approved" %}
+                    <!-- temporily change to published -->
+                    {% if isUser %}
+                        <span class="badge badge-pill badge-publish small-body-text">Published </span>
+                    {% else %}
+                        <span class="badge badge-pill badge-pending small-body-text">Pending </span>
+                    {% endif %}
+                {% elif post.eventStatus == "disapproved"%}
+                  <span class="badge badge-pill badge-danger">{{ post.eventStatus }} </span>
+                {% elif post.eventStatus == "pending"%}
+                  <span class="badge badge-pill badge-pending">{{ post.eventStatus }} </span>
+                {% else %}
+                  <span class="badge badge-pill badge-publish">{{ post.eventStatus }} </span>
+                {% endif %}
+              </p>
+
+            </div>
+            {% endif %}
+          </div>
+
+
+          <div class="item3" style="grid-area: auto / left;">
+            <!-- event group -->
+              <div class="row">
+                <div class="col-12 col-sm-3">
+                  <h5>Group </h5>
+                </div>
+                <p class="col-sm-9 small-body-text">{{groupName}}</p>
+              </div>
+          </div>
+          <div style="grid-area: auto / left;">
+            <!-- event group -->
+              <div class="row">
+                <div class="col-12 col-sm-3">
+                  <h5>Created By </h5>
+                </div>
+                <p class="col-sm-9 small-body-text">{{post.createdBy}}</p>
+              </div>
+          </div>
+
+          <div class="item2" style="grid-area: auto / left;">
+            <!-- event category -->
+            {% if post.category %}
+              <div class="row">
+                <div class="col-12 col-sm-3">
+                  <h5>Category </h5>
+                </div>
+                <p class="col-sm-9 small-body-text">{{post.category}}</p>
+              </div>
+            {% endif %}
+
+            <!-- event subcategory -->
+            {% if post.subcategory %}
+              <div class="row">
+                <div class="col-12 col-sm-3">
+                  <h5>Sub Category </h5>
+                </div>
+                <p class="col-sm-9 small-body-text">{{post.subcategory}}</p>
+              </div>
+            {% endif %}
+          </div>
+          <div class="item5" style="grid-area: auto / left;">
+            <!-- All Day Event -->
+            {% if post.allDay %}
+              <div class="row">
+                <div class="col-12 col-sm-3">
+                  <h5>All Day Event</h5>
+                </div>
+                    <p class = "col-sm-9 small-body-text">Yes</p>
+              </div>
+            {% else %}
+              <div class="row">
+                <div class="col-12 col-sm-3">
+                  <h5>All Day Event</h5>
+                </div>
+                    <p class = "col-sm-9 small-body-text">No</p>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="item6" style="grid-area: auto / left;">
+            <!-- timezone -->
+            {% if post.timezone %}
+              <div class="row">
+                <div class="col-12 col-sm-3">
+                  <h5>Time Zone </h5>
+                </div>
+                <p class="col-sm-9 small-body-text">{{timezones[post.timezone]}}</p>
+              </div>
+            {% endif %}
+            <!-- startDate -->
+            {% if post.startDate%}
+              <div class="row">
+                <div class="col-12 col-sm-3">
+                  <h5>Start Date </h5>
+                </div>
+                <p class="col-sm-9 small-body-text" id="startDate">
+                  {{post.startDate}}
+                </p>
+              </div>
+            {% endif %}
+
+            <!-- endDate -->
+            {% if post.endDate%}
+              <div class="row">
+                <div class="col-12 col-sm-3">
+                  <h5>End Date </h5>
+                </div>
+                <p class="col-sm-8 small-body-text" id="endDate">
+                  {{ post.endDate}}
+                </p>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="item7" style="grid-row: 1 / span 6; display: flex; justify-content: flex-end; align-items: baseline;">
+            <!-- image -->
+            {% if post.image %}
+              <img src="{{ url_for('user_events.view_image', id=post['_id']) }}?t={{ timestamp }}" alt="event image" style="max-width: 423px; max-height: 160px;">
+            {% endif %}
+            {% if sourceImage %}
+              <img src="{{ url_for('event.download_image', id=post['_id']) }}" alt="event image" style="max-width: 423px; max-height: 160px;">
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="grid container"
+        style="display: grid; grid-auto-rows: auto; grid-template-columns: auto;">
+          <div class="item8">
+            <!-- event url -->
+            {% if post.titleURL%}
+            <div class="row">
+              <div class="col-12 col-sm-2">
+                <h5>Event URL </h5>
+              </div>
+              <a href="{{ post.titleURL}}" class="col-sm-9"><span class="s1">{{post.titleURL}}</span></a>
+            </div>
+            {% endif %}
+
+            <!-- registration URL -->
+            {% if post.registrationURL%}
+            <div class="row">
+              <div class="col-12 col-sm-2">
+                <h5>Registration URL</h5>
+              </div>
+              <a href="{{ post.registrationURL}}" class="col-sm-9 small-body-text"><span class="s1">{{post.registrationURL}}</span></a>
+            </div>
+            {% endif %}
+
+            <!-- event building block id -->
+            {% if post.platformEventId %}
+              <div class="row">
+                <div class="col-12 col-sm-2">
+                  <h5>Event ID </h5>
+                </div>
+                <p class="col-sm-9 small-body-text">{{post.platformEventId}}</p>
+              </div>
+            {% endif %}
+
+            <!-- target audience -->
+  <!--        {% if post.targetAudience %}-->
+  <!--          <div class="row">-->
+  <!--            <div class="col-12 col-sm-2">-->
+  <!--              <h5>Target Audience </h5>-->
+  <!--            </div>-->
+  <!--            <div class = "col-sm-9">-->
+  <!--            {%for i in range(post.targetAudience | length)%}-->
+  <!--              {%if i == (post.targetAudience | length) - 1 %}-->
+  <!--                <span>{{post.targetAudience[i]}}</span>-->
+  <!--              {%else %}-->
+  <!--                <span>{{post.targetAudience[i]}}, </span>-->
+  <!--              {% endif%}-->
+  <!--            {% endfor%}-->
+  <!--            </div>-->
+  <!--          </div>-->
+  <!--        {% endif %}-->
+
+          <div class="item4" style="grid-area: auto / left;">
+            <!-- Free Event -->
+            {% if post.isEventFree %}
+              <div class="row">
+                <div class="col-12 col-sm-2">
+                  <h5>Free Event</h5>
+                </div>
+                    <p class = "col-sm-9 small-body-text">Yes</p>
+              </div>
+            {% else %}
+              <div class="row">
+                <div class="col-12 col-sm-2">
+                  <h5>Free Event</h5>
+                </div>
+                    <p class = "col-sm-9 small-body-text">No</p>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="item5" style="grid-area: auto / left;">
+            <!-- Private Event -->
+            {% if post.isGroupPrivate %}
+              <div class="row">
+                <div class="col-12 col-sm-2">
+                  <h5>Private Event</h5>
+                </div>
+                    <p class = "col-sm-9 small-body-text">Yes</p>
+              </div>
+            {% else %}
+              <div class="row">
+                <div class="col-12 col-sm-2">
+                  <h5>Private Event</h5>
+                </div>
+                    <p class = "col-sm-9 small-body-text">No</p>
+              </div>
+            {% endif %}
+          </div>
+
+            <!-- cost -->
+            {% if post.cost%}
+              <div class="row">
+                <div class="col-12 col-sm-2">
+                  <h5>Cost Description</h5>
+                </div>
+                <p class="col-sm-9 small-body-text">{{ post.cost}}</p>
+              </div>
+            {% endif %}
+
+            <!-- contacts -->
+            {% if post.contacts%}
+              <div class="row">
+                <div class="col-12 col-sm-2">
+                  <h5>Contacts </h5>
+                </div>
+                <table class="table table-hover col-sm-8 small-body-text">
+                  <thead>
+                    <tr>
+                      <th scope="col-sm-2">First Name</th>
+                      <th scope="col-sm-2">Last Name</th>
+                      <th scope="col-sm-2">Email</th>
+                      <th scope="col-sm-2">Phone</th>
+                      <th scope="col-sm-2">Organization</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for contact in post.contacts %}
+                      <tr>
+                        <td>{{contact.firstName}}</td>
+                        <td>{{contact.lastName}}</td>
+                        <td><a href="mailto:{{contact.email}}">{{contact.email}}</a></td>
+                        <td>{{contact.phone}}</td>
+                        <td>{{contact.organization}}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% endif %}
+
+            <!-- tags -->
+            {% if post.tags%}
+              <div class="row">
+                <div class="col-12 col-sm-2">
+                  <h5>Tags </h5>
+                </div>
+                <div class = "col-sm-9 small-body-text">
+                  {%for i in range(post.tags | length)%}
+                    {%if i == (post.tags | length) - 1 %}
+                      <span>{{post.tags[i]}} </span>
+                    {%else %}
+                      <span>{{post.tags[i]}}, </span>
+                    {% endif%}
+                  {% endfor%}
+                </div>
+              </div>
+            {% endif %}
+
+            <!-- sponsor -->
+            {% if post.sponsor%}
+              <div class="row">
+                <div class="col-12 col-sm-2">
+                  <h5>Sponsor </h5>
+                </div>
+                <p class = "col-sm-9 small-body-text">{{post.sponsor}}</p>
+              </div>
+            {% endif %}
+
+            <!-- description: longDescription -->
+            {% if post.longDescription%}
+            <div class="row">
+              <div class="col-12 col-sm-2">
+                <h5>Description </h5>
+              </div>
+              <div class="col-12 col-sm-9 small-body-text" id="longDes">
+                {% autoescape false %}{{post.longDescription}}{% endautoescape %}
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Virtual Event -->
+              {% if post.isVirtual %}
+                <div class="row">
+                  <div class="col-12 col-sm-2">
+                    <h5>Virtual Event</h5>
+                  </div>
+                      <p class = "col-sm-9 small-body-text">Yes</p>
+                </div>
+              {% else %}
+                <div class="row">
+                  <div class="col-12 col-sm-2">
+                    <h5>Virtual Event</h5>
+                  </div>
+                      <p class = "col-sm-9 small-body-text">No</p>
+                </div>
+              {% endif %}
+
+              <!-- virtual event URL -->
+              {% if post.isVirtual == True %}
+                <div class="row">
+                  <div class="col-12 col-sm-2" id="longDes">
+                    <h5>Virtual Event URL</h5>
+                  </div>
+                  <p class="col-12 col-sm-9 small-body-text"><a href="{{post.virtualEventUrl}}">{{post.virtualEventUrl}}</a></p>
+                </div>
+              {% endif %}
+
+            <!-- In Person Event -->
+              {% if post.isInPerson %}
+                <div class="row">
+                  <div class="col-12 col-sm-2">
+                    <h5>In Person Event</h5>
+                  </div>
+                      <p class = "col-sm-9 small-body-text">Yes</p>
+                </div>
+              {% else %}
+                <div class="row">
+                  <div class="col-12 col-sm-2">
+                    <h5>In Person Event</h5>
+                  </div>
+                      <p class = "col-sm-9 small-body-text">No</p>
+                </div>
+              {% endif %}
+
+            <!-- location -->
+            {% if post.location %}
+              <!-- location.description -->
+              {% if post.location.description and (post.isInPerson) %}
+                <div class="row">
+                  <div class="col-12 col-sm-2" id="longDes">
+                    <h5>Location Address</h5>
+                  </div>
+                  <p class="col-12 col-sm-9 small-body-text">{{post.location.description}}</p>
+                </div>
+              {% endif %}
+
+              <!-- location.address -->
+              {% if post.location.latitude %}
+                <div class="row">
+                  <div class="col-12 col-sm-2">
+                    <h5>Latitude </h5>
+                  </div>
+                  <p class="col-12 col-sm-9 small-body-text"> {{post.location.latitude}}</p>
+                </div>
+              {% endif %}
+              {% if post.location.longitude %}
+                <div class="row">
+                  <div class="col-12 col-sm-2">
+                    <h5>Longitude </h5>
+                  </div>
+                  <p class="col-12 col-sm-9 small-body-text">{{post.location.longitude}}</p>
+                </div>
+              {% endif %}
+              <!-- google map API -->
+              <div class="row">
+                <div class="col-12 col-sm-9 offset-sm-2">
+                {% if post.location.latitude and post.location.longitude %}
+                  <div id="map" class="z-depth-1-half map-container" style="width: 720px"></div>
+                {% endif %}
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- displayOnlyWithSuperEvent -->
+              {% if not post.isSuperEvent %}
+                {% if post.displayOnlyWithSuperEvent %}
+                  <div class="row">
+                    <div class="col-12 col-sm-2">
+                      <h5>Display Only with Super Event</h5>
+                    </div>
+                        <p class = "col-sm-9 small-body-text">Yes</p>
+                  </div>
+                {% else %}
+                  <div class="row">
+                    <div class="col-12 col-sm-2">
+                      <h5>Display Only with Super Event</h5>
+                    </div>
+                        <p class = "col-sm-9 small-body-text">No</p>
+                  </div>
+                {% endif %}
+              {% endif %}
+
+            <!-- is super event? -->
+            {% if post.isSuperEvent %}
+              <div class="row">
+                <div class="col-12 col-sm-2">
+                  <h5>Is Super Event</h5>
+                </div>
+                    <p class = "col-sm-9 small-body-text">Yes</p>
+              </div>
+            {% else %}
+              <div class="row">
+                <div class="col-12 col-sm-2">
+                  <h5>Is Super Event</h5>
+                </div>
+                    <p class = "col-sm-9 small-body-text">No</p>
+              </div>
+            {% endif %}
+
+
+            <!-- sub event -->
+            {% if post.subEvents %}
+            <div class="row">
+              <div class="col-12 col-sm-2">
+                <h5>Sub-Events</h5>
+              </div>
+              <table class="table table-hover col-sm-9 small-body-text">
+                <thead>
+                  <tr>
+                    <th scope="col-sm-2">Sub-Event Title</th>
+                    <th scope="col-sm-2">Track</th>
+                    <th scope="col-sm-2">Is Featured?</th>
+                    <th scope="col-sm-2">Is Published?</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for subevent in post.subEvents %}
+                  <tr>
+                    <td>
+                     {% if subevent.id%}
+                      <a href ="{{ url_for('user_events.sub_event_platform', platformEventId=subevent.id) }}">{{subevent.name}}</a>
+                    {% else %}
+                      <a href ="{{ url_for('user_events.sub_event', eventId=subevent.eventId) }}">{{subevent.name}}</a>
+                    {% endif %}
+
+                    </td>
+                    <td>{{subevent.track}}</td>
+                    {% if subevent.isFeatured%}
+                      <td>Yes</td>
+                    {% else %}
+                      <td>No</td>
+                    {% endif %}
+                    {% if subevent.isPublished%}
+                      <td>Yes</td>
+                    {% else %}
+                      <td>No</td>
+                    {% endif %}
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+      </div class = "media-body">
+    </article>
+  <div class="row justify-content-center">
+    <div class="btn-toolbar justify-content-center" role="toolbar" aria-label="Toolbar with button groups">
+    {% if isUser %}
+      <div class="btn-group mr-2" role="group" aria-label="First group">
+
+        {% if post.eventStatus == "approved" %}
+        <!-- temporarily hide Disapprove button
+        <button type="button" class="btn btn-outline-danger" data-toggle="modal" data-target="#confirmModal">Disapprove</button>
+        -->
+        {% else %}
+        <!-- temporarily change Approve to Publish-->
+        <button type="button" class="white-background-button" data-toggle="modal" data-target="#confirmModal">Publish</button>
+        {% endif %}
+      </div>
+    {% endif %}
+      <div class="btn-group mr-2" role="group" aria-label="Second group">
+        {% if isUser %}
+        <a class="white-background-button" href="{{ url_for('user_events.user_an_event_edit', id=post['_id']) }}" role="button">Edit</a>
+        {% endif %}
+      </div>
+      {% if isUser %}
+          <div class="btn-group mr-2" role="group" aria-label="Third group">
+            <button class="orange-background-button"
+              data-toggle="modal" data-html="true" data-target="#DeleteModal">
+                Delete
+            </button>
+          </div>
+          {% if post.eventStatus == "approved" %}
+              <div class="btn-group mr-2" role="group" aria-label="Notification group">
+                <button type="button" class="notification-button" data-toggle="modal" data-target="#notificationModal" id="notificationbutton">Notification</button>
+              </div>
+          {% endif %}
+       {% else %}
+          {% if post.eventStatus == "published" %}
+              <div class="btn-group mr-2" role="group" aria-label="Third group">
+                <button type="button" class="white-background-button" data-toggle="modal" data-target="#PendingModal">Pending</button>
+              </div>
+              {%  else %}
+              <div class="btn-group mr-2" role="group" aria-label="First group">
+                <button type="button" class="white-background-button" data-toggle="modal" data-target="#PublishModal">Publish</button>
+              </div>
+          {% endif %}
+
+          <div class="btn-group mr-2" role="group" aria-label="Third group">
+
+            <button class="orange-background-button"
+              data-toggle="modal" data-html="true" data-target="#DeleteModal">
+                Delete
+            </button>
+          </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endblock %}
+
+
+  <!-- add js for local date format -->
+  {% block scripts %}
+    {{super()}}
+    <script>
+      {% if post.location %}
+        {% if post.location.latitude and post.location.longitude %}
+          function initMap() {
+            let loc = { lat: {{ post.location.latitude}}, lng: {{ post.location.longitude }}};
+            let map = new google.maps.Map(
+              document.getElementById("map"),
+              { zoom: 17, center: loc, mapTypeControl: false }
+            );
+            let marker = new google.maps.Marker({position: loc, map: map});
+          }
+        {% endif %}
+      {% endif %}
+
+      if(typeof(document.getElementById('startDate')) != 'undefined' && document.getElementById('startDate') != null) {
+          var date_html = document.getElementById('startDate').innerHTML.replace("T", " ");
+          var date_start = new Date(date_html);
+          {% if post.allDay %}
+            document.getElementById('startDate').innerHTML = date_start.toDateString();
+          {% else %}
+            document.getElementById('startDate').innerHTML = moment(date_start).format('M/D/YYYY, hh:mm A');
+          {% endif %}
+      }
+      if(typeof(document.getElementById('endDate')) != 'undefined' && document.getElementById('endDate') != null) {
+          var end_html = document.getElementById('endDate').innerHTML.replace("T", " ");
+          var date_end = new Date(end_html);
+          {% if post.allDay %}
+            document.getElementById('endDate').innerHTML = date_end.toDateString();
+          {% else %}
+            document.getElementById('endDate').innerHTML = moment(date_end).format('M/D/YYYY, hh:mm A');
+          {% endif %}
+      }
+
+      {% if isUser %}
+          $(document).on("click", "#notificationbutton", function () {
+            let url = "{{ url_for('user_events.get_devicetokens', id=post.platformEventId) }}";
+            $.ajax({
+                url: url,
+                type: 'GET',
+                async: false,
+                cache: false,
+                timeout: 30000,
+                error: function(){
+                return true;
+                },
+                success: function(data){
+                    var ndevices = data.ndevices;
+                    var deviceTokens = data.tokens;
+                    $(".modal-body #ndevices").val(ndevices);
+                    $(".modal-body #devicetokens").val(deviceTokens);
+                    document.getElementById("devicetokens").style.visibility = "none";
+                }
+            });
+          });
+
+          let notificationConfirm = function(callback) {
+            $("#notificationConfirmModal").modal('show');
+            $("#notification-modal-btn-yes").on("click", function () {
+                callback(true);
+                $("#notificationConfirmModal").modal('hide');
+            });
+            $("#notification-modal-btn-no").on("click", function(){
+                callback(false);
+                $("#notificationConfirmModal").modal('hide');
+            });
+          };
+
+          $("#notificationsend").click(function(e) {
+            e.preventDefault();
+            notificationConfirm(function(confirm){
+              if(confirm){
+                {% if isUser %}
+                let url = "{{ url_for('user_events.notification_event', id=post.platformEventId) }}"
+                {% else %}
+                let url = "{{ url_for('event.notification_event', id=post.platformEventId) }}"
+                {% endif %}
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: {
+                        title: document.getElementById('title-name').value,
+                        message: document.getElementById('message-text').value,
+                        tokens: document.getElementById('devicetokens').value
+                    },
+                    success: function(data){
+                        location.reload();
+                    }
+                });
+              }
+            });
+          });
+
+      {%  else %}
+          $(document).on("click", "#publish-modal-btn-yes", function () {
+            let url = "{{ url_for('event.approveEvent', id=post._id) }}";
+            $.ajax({
+                url: url,
+                type: 'GET',
+                async: false,
+                cache: false,
+                timeout: 30000,
+                error: function(){
+                return true;
+                },
+                success: function(data){
+                  if (data == "failed") {
+                    alert("failed on events published")
+                  }
+                  location.reload();
+                }
+            });
+          });
+
+
+          $(document).on("click", "#pending-modal-btn-yes", function () {
+              debugger
+            let url = "{{ url_for('event.disapproveEvent', id=post._id) }}";
+            $.ajax({
+                url: url,
+                type: 'GET',
+                async: false,
+                cache: false,
+                timeout: 30000,
+                error: function(){
+                return true;
+                },
+                success: function(data){
+                  if (data == "failed") {
+                    alert("failed on events published")
+                  }
+                  location.reload();
+                }
+            });
+          });
+      {% endif %}
+
+      $("#approvebutton").click(function() {
+        {% if isUser %}
+        let url = "{{ url_for('user_events.user_an_event_approve', id=post._id) }}"
+        {% else %}
+        let url = "{{ url_for('event.approveEvent', id=post._id) }}"
+        {% endif %}
+        $.post(url,
+        function(data) {
+          if (data == "failed") {
+            alert("failed on events approval")
+          }
+          location.reload();
+        });
+      });
+      $("#disapprovebutton").click(function() {
+        {% if isUser %}
+        let url = "{{ url_for('user_events.user_an_event_disapprove', id=post._id) }}"
+        {% else %}
+        let url = "{{ url_for('event.disapproveEvent', id=post._id) }}"
+        {% endif %}
+        $.post(url,
+        function(data) {
+          if (data == "success") {
+            location.reload();
+          }
+        });
+      });
+
+      $("#deletion-modal-btn-yes").click(function() {
+          {% if isUser %}
+            $.ajax({
+                url: "{{ url_for('user_events.userevent_delete', id=post._id) }}",
+                type: 'DELETE',
+                success: function(data){
+                    location.href = "{{ url_for('user_events.user_events') }}"
+                }
+            });
+          {% else %}
+            $.ajax({
+                url: "{{ url_for('event.event_delete', id=post._id) }}",
+                type: 'DELETE',
+                success: function(data){
+                    location.href = "{{ url_for('event.calendar', calendarId=post.calendarId) }}"
+                },
+                error: function(data) {
+                    alert("event failed to delete")
+                },
+            });
+          {% endif %}
+      });
+
+
+    </script>
+
+    {% if post.location %}
+      {% if post.location.latitude and post.location.longitude %}
+        <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ apiKey }}&callback=initMap"></script>
+      {% endif %}
+    {% endif %}
+
+
+  {% endblock %}
