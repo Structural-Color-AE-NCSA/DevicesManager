@@ -131,9 +131,25 @@
             <!-- event group -->
               <div class="row">
                 <div class="col-12 col-sm-3">
-                  <h5>Device Name </h5>
+                  <h5>Send Parameters to Printer </h5>
                 </div>
-                <p class="col-sm-9 small-body-text">{{post.createdBy}}</p>
+                <div class="col-12 col-sm-3">
+                    <label for="single_x_relative_pos">X= </label>
+                    <input type="text" id="x_relative_pos" name="x_relative_pos"><br><br>
+                    <label for="single_y_relative_pos">Y= </label>
+                    <input type="text" id="y_relative_pos" name="y_relative_pos"><br><br>
+                    <label for="single_z_relative_pos">Z= </label>
+                    <input type="text" id="z_relative_pos" name="z_relative_pos"><br><br>
+                    <label for="single_pressure">Pressure= </label>
+                    <input type="text" id="single_pressure" name="single_pressure"><br><br>
+                    <label for="single_print_speed">Print Speed= </label>
+                    <input type="text" id="single_print_speed" name="single_print_speed"><br><br>
+                    <label for="single_bed_temp">Bed Temperature= </label>
+                    <input type="text" id="single_bed_temp" name="single_bed_temp"><br><br>
+                    <button title="Send parameters to printer" class="btn btn-outline-success rounded-right"
+                            type="button" onclick="sendParameters2printer()">Send
+                    </button>
+                </div>
               </div>
           </div>
 
@@ -211,7 +227,7 @@
 
             <div class="col-sm-9">
               <div class="input-group mb-3">
-                <img id="plot" src="{{url_for('device.pcp_plot')}}" alt="grid">
+                <img id="plot" src="{{url_for('device.pcp_plot')}}" width="1024" height="640"  alt="no image shown">
               </div>
             </div>
             <div class="col-sm-9">
@@ -427,6 +443,27 @@
         }
         });
 
+        function sendParameters2printer() {
+            console.log(document.getElementById('x_relative_pos').value)
+            $.ajax({
+                url: "{{ url_for('device.send_printing_params', id=2) }}",
+                type: 'POST',
+                data: {
+                    x_relative_pos: document.getElementById('x_relative_pos').value,
+                    y_relative_pos: document.getElementById('y_relative_pos').value,
+                    z_relative_pos: document.getElementById('z_relative_pos').value,
+                    single_print_speed: document.getElementById('single_print_speed').value,
+                    single_pressure: document.getElementById('single_pressure').value,
+                    single_bed_temp: document.getElementById('single_bed_temp').value
+                },
+                success: function (data) {
+                    console.log("success send pcp file")
+                }
+            });
+
+            console.log("Run PCP File")
+        }
+
       function updatePlot() {
             fetch("{{ url_for('device.pcp_plot') }}", {
                 method: 'GET'
@@ -471,6 +508,11 @@
       window.onload = function() {
         updatePlot(); // Initial fetch on page load
       };
+
+    function hideImage() {
+        const imgElement = document.getElementById('plot');
+        imgElement.style.display = 'none'; // Hide the image if it fails to load
+    }
 
     </script>
 
