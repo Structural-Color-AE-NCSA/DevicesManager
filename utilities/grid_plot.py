@@ -1,5 +1,6 @@
 
 import matplotlib.pyplot as plt
+import os
 import io
 import random
 from config import Config
@@ -147,6 +148,8 @@ class GridPlot(object):
 
 
     def load_plot(self):
+        if not os.path.exists(f'./{self.pcpfig}.png'):
+            return None
         image = plt.imread(f'./{self.pcpfig}.png')
         buf = io.BytesIO()
         plt.imsave(buf, image, format='png')

@@ -48,6 +48,8 @@ class DeviceConnector(object):
 
     def send_message(self, routing_key, message):
         try:
+            if self.channel.is_closed:
+                self.connect()
             self.channel.basic_publish(
                 exchange=self.EXCHANGE_NAME, routing_key=routing_key, body=message)
         except (ConnectionClosed, ChannelClosed, ChannelWrongStateError) as error:

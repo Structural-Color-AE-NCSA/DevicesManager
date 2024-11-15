@@ -9,7 +9,7 @@ from flask import jsonify
 from .utilities.user_utilities import *
 from .utilities.rabbitMQ.cameraFrames import CameraFrames
 from .utilities.rabbitMQ.pcpFile import PCPFile
-
+from .utilities.rabbitMQ.printingParams import PrintingParams
 from .utilities.grid_plot import *
 
 from flask_paginate import Pagination, get_page_args
@@ -28,6 +28,7 @@ devicebp = Blueprint('device', __name__, url_prefix=Config.URL_PREFIX+'/device')
 
 
 pcp_file = PCPFile()
+printing_params = PrintingParams()
 # app = Flask(__name__)
 # socketio = SocketIO(app)
 # socketio.run(app, allow_unsafe_werkzeug=True, logger=True, engineio_logger=True, cors_allowed_origins="*")
@@ -126,6 +127,36 @@ def load_pcp_file():
         grid_plot.set_starting_cell_id(cell_id)
     return Response(buf, mimetype='image/png')
 
+@devicebp.route('/device/send_printing_params', methods=['POST'])
+def send_printing_params():
+    commands = dict()
+    x_relative_pos = request.form.get('x_relative_pos')
+    y_relative_pos = request.form.get('y_relative_pos')
+    z_relative_pos = request.form.get('z_relative_pos')
+    print_speed = request.form.get('single_print_speed')
+    pressure = request.form.get('single_pressure')
+    bed_temp = request.form.get('single_bed_temp')
+    pos = ""
+    if x_relative_pos:
+        pos = pos + "X" + str(x_relative_pos) + " "
+    if y_relative_pos:
+        pos = pos + "Y" + str(y_relative_pos) + " "
+    if z_relative_pos:
+        pos = pos + "Z" + str(z_relative_pos) + " "
+    if print_speed:
+        pos = pos + "F" + str(print_speed)
+    if pos:
+        commands['pos'] = "G1 " + pos + "\n"
+
+    if pressure:
+        commands['pressure'] = pressure
+
+    if bed_temp:
+        commands['bed_temp'] = "M140 S"+bed_temp + "\n"
+
+    printing_params.send_printing_params(commands)
+
+    return jsonify([]), 200
 
 @devicebp.route('/device/run_pcp_file', methods=['POST'])
 @role_required("user")
@@ -146,8 +177,9 @@ def send_pcp_file():
         for cell_id in cells:
             abs_x, abs_y = grid_plot.get_top_left_corner_pos_by_cell_id(int(cell_id))
             X="\"X="+str(abs_x)
-            Y = "Y="+str(abs_y)+"\""
-            start_point_pos = "axes.startPoint("+X+" " + Y+")"
+            Y = "Y="+str(abs_y)
+            Z = "Z=21.4"+"\""
+            start_point_pos = "axes.startPoint("+X+" " + Y+" " + Z+")"
             print(start_point_pos)
             pcp_commands = start_point_pos+"\r\n"+file_content + "Done\n"
             pcp_file.send_pcp_file(pcp_commands, int(cell_id))
@@ -204,7 +236,8 @@ def update_pcp_plot():
 @role_required("user")
 def start_campaign():
     post = None
-
+    if os.path.exists('pcpfig.png'):
+        os.remove('pcpfig.png')
     return render_template("events/device.html", post=post, eventTypeMap=eventTypeMap,
                            isUser=True, apiKey=current_app.config['GOOGLE_MAP_VIEW_KEY'],
                            timestamp=datetime.now().timestamp(),
