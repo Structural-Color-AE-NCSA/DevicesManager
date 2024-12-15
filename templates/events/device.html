@@ -391,14 +391,9 @@
                     console.log("fetchPCPPlotData")
 
                     const gridContainer = document.getElementById('grid-container');
-                    // Clear any existing grid
                     gridContainer.innerHTML = '';
-
-                    // Update grid styling based on rows and columns
-                    {#gridContainer.style.gridTemplateColumns = `repeat(${ncols}, ${shape_x}px)`;#}
-                    {#gridContainer.style.gridTemplateRows = `repeat(${nrows}, ${shape_y}px)`;#}
                     const relative_button_width = 800/ncols
-                    const relative_button_height = 700/nrows
+                    const relative_button_height = 900/nrows
                     gridContainer.style.gridTemplateColumns = `repeat(${ncols}, ${relative_button_width}px)`;
                     gridContainer.style.gridTemplateRows = `repeat(${nrows}, ${relative_button_height}px)`;
                     let row = 0;
@@ -410,14 +405,17 @@
 
                     for (let i = 0; i < nrows * ncols; i++) {
                         const cellButton = document.createElement('button');
+                        cellButton.addEventListener('mouseover', () => {
+                          console.log(cellButton.getAttribute('cellid') + ": color: " + cellButton.getAttribute('colors'))
+                        });
                         cellButton.disabled = true;
                         cellButton.innerText = `${(nrows-1-row)*ncols + col}`;
                         cellButton.classList.add('grid-button');
                         cellButton.style.fontSize = fontSize + 'px';
-                        {#cellButton.style.width = `${shape_x}px`;#}
-                        {#cellButton.style.height = `${shape_y}px`;#}
                         cellButton.style.width = `${relative_button_width}px`;
                         cellButton.style.height = `${relative_button_height}px`;
+                        cellButton.setAttribute('cellid', `${(nrows-1-row)*ncols + col}`);
+                        cellButton.setAttribute('colors', `None`);
                         gridContainer.appendChild(cellButton);
                         if(col == (ncols-1)) {
                             col = 0
