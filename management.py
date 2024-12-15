@@ -111,16 +111,16 @@ def add_new_account():
     lastname = request.form.get('data[firstname]')
     is_admin = request.form.get('data[is_admin]')
     is_active = request.form.get('data[is_active]')
-    if (is_admin == 'on'):
+    if (is_admin == 'true'):
         is_admin = True
     else:
         is_admin = False
-    if (is_active == 'on'):
+    if (is_active == 'true'):
         is_active = True
     else:
         is_active = False
 
-    if username == '':
+    if username == '' or email == '':
         __logger.error("should have both ID and Name!")
         return "invalid", 200
     new_account_doc = {"username" : username, "password": password, "email": email,
@@ -137,6 +137,25 @@ def add_new_account():
         __logger.info("successfully inserted new account "+ username)
         return "success", 200
 
+
+@bp.route('/update-account', methods=['POST'])
+@role_required("source")
+def update_account():
+    """update the status of is_admin or is_active"""
+    __logger.info(request.form)
+
+    username = json.loads(request.data.decode("utf-8")).get('username')
+
+    is_admin = json.loads(request.data.decode("utf-8")).get('is_admin')
+    is_active = json.loads(request.data.decode("utf-8")).get('is_active')
+
+    result = update_account_status(username, is_admin, is_active)
+
+    if result.modified_count is None:
+        __logger.error("Insert new account " + username +" failed")
+        return "fail", 400
+    else:
+        return "success", 200
 
 
 #### utility functions
@@ -160,3 +179,15 @@ def delete_account(username):
     if users:
         return delete_events_in_list(current_app.config['ACCOUNTS_COLLECTION'], [user.get('_id') for user in users])
     return None
+
+def update_account_status(username, is_admin, is_active):
+    users = find_all(current_app.config['ACCOUNTS_COLLECTION'], filter={"username": username})
+    user = users[0]
+    user['is_admin'] = is_admin
+    user['is_active'] = is_active
+    updateResult = None
+    if users:
+        updateResult = update_one(current_app.config['ACCOUNTS_COLLECTION'], condition={"_id": ObjectId(users[0].get('_id'))}, update={
+            "$set": user
+        })
+    return updateResult
