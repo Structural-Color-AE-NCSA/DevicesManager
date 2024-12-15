@@ -56,7 +56,7 @@
                       <h5 class="calendar-event-text">{{ value }}</h5>
                     </a>
               {% elif key == 'new campaign' %}
-                    <a href="{{url_for('event.calendar', calendarId=key)}}">
+                    <a href="{{url_for('device.start_campaign')}}">
                       <h5 class="calendar-event-text">{{ value }}</h5>
                     </a>
               {% elif key == 'devices' %}

@@ -14,20 +14,13 @@
 
 {{ confirmation("download") }}
 
-<div class="row">
-{#  <div class="col-2">#}
-{#    <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">#}
-{#      {% for key, value in sources.items() %}#}
-{#          {{ key }}#}
-{#	    <a class="nav-link calendar-event-text" id="v-pills-school-tab" href="{{url_for('management.home', title=key)}}" role="tab" aria-selected="false">{{value[0]}}</a>#}
-{#      {% endfor %}#}
-{#      <a class="nav-link active calendar-event-text calendar-event-button-active" id="v-pills-school-tab" data-toggle="pill" href="#" role="tab" aria-controls="v-pills-school" aria-selected="true">Setting</a>#}
-{#    </div>#}
-{#  </div>#}
+    <article class="media content-section">
+        <div class="row">
   <div class="col">
     <div class="tab-content" id="v-pills-tabContent">
       <div class="tab-pane fade show active" id="v-pills-school" role="tabpanel" aria-labelledby="v-pills-school-tab">
         <form action="{{ url_for('management.accounts') }}" method="POST">
+
         <h2>Add New Accounts</h2>
         <div class="contact-group dynamic-element">
           <div class = "form-group row" >
@@ -134,6 +127,7 @@
     </div>
   </div>
 </div>
+    </article>
 {% endblock %}
 
 {% block scripts %}

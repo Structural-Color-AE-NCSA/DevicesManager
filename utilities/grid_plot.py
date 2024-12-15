@@ -78,6 +78,10 @@ class GridPlot(object):
         self.starting_cell_id = -1
         self.grid_cells = GridCells()
 
+    def get_dimension(self, shape_x, shape_y):
+        nrows, ncols, _ = self.grid_cells.ExperimentalGrid(shape_x, shape_y)
+        return nrows, ncols
+
     def init_plot(self, x_range, y_range, shape_x, shape_y):
         self.nrows, self.ncols, _ = self.grid_cells.ExperimentalGrid(shape_x, shape_y)
 

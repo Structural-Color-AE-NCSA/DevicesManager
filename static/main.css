@@ -990,3 +990,23 @@ input[dropdown-readonly] {
 .accordion-item.active .accordion-header {
     background-color: #0056b3;
 }
+
+.grid-container {
+    display: grid;
+    gap: 1px; /* Optional: space between buttons */
+    justify-content: center;
+    align-items: center;
+}
+
+/* Grid button styling */
+.grid-button {
+    cursor: pointer;
+    border: 1px solid #ccc;
+    /*border-radius: 5px;*/
+    background-color: #f0f0f0;
+    transition: background-color 0.3s;
+}
+
+.grid-button:hover {
+    background-color: #ddd;
+}

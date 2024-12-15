@@ -120,12 +120,18 @@ def load_pcp_file():
     print("pcp shape height: " + str(y_max - y_min))
     shape_x = x_max-x_min
     shape_y = y_max - y_min
+
+    data = dict()
+    data['shape_x'] = shape_x
+    data['shape_y'] = shape_y
+    data['nrows'], data['ncols'] = grid_plot.get_dimension(shape_x, shape_y)
     buf = grid_plot.init_plot(282, 582, shape_x, shape_y)
 
     if is_abs_printing:
         cell_id = grid_plot.calculate_cell_id(x_start_pos, y_start_pos)
         grid_plot.set_starting_cell_id(cell_id)
-    return Response(buf, mimetype='image/png')
+    # return Response(buf, mimetype='image/png')
+    return jsonify(data), 200
 
 @devicebp.route('/device/send_printing_params', methods=['POST'])
 def send_printing_params():
