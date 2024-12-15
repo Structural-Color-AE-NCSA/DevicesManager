@@ -29,6 +29,7 @@ from .event import bp as event_bp
 from .home import bp as home_bp
 from .user_events import userbp as user_bp
 from .device import devicebp as device_bp
+from .management import  bp as management_bp
 from .devices_listing import devices_listing_bp as devices_listing_bp
 
 
@@ -76,6 +77,7 @@ def create_app(config_class=Config):
     app.register_blueprint(user_bp)
     app.register_blueprint(event_bp)
     app.register_blueprint(home_bp)
+    app.register_blueprint(management_bp)
     app.register_blueprint(device_bp)
     app.register_blueprint(devices_listing_bp)
 

@@ -9,6 +9,14 @@
   {% endif %}
 {% endblock %}
 {% block content %}
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{url_for('management.home', title="Hardware")}}">Hardware</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Devices</li>
+  </ol>
+</nav>
+
     <div>
     <div class="row justify-content-center" style="margin-right:300px">
     <div class="col form-check" style="visibility: hidden">

@@ -63,7 +63,20 @@
           <div ><span class="text-light text-nowrap">Hello, {{ g.user["username"] }}</span></div>
             <a role="button" class="login-logout-button white-background-button" href="{{ url_for('auth.logout') }}">Logout</a>
         {% else %}
-            <a role="button" class="login-logout-button white-background-button" href="{{ url_for('auth.login') }}">Login</a>
+{#            <a role="button" class="login-logout-button white-background-button" href="{{ url_for('auth.login') }}">Login</a>#}
+            <form method="POST" action="{{ url_for('auth.login') }}">
+                <div class="form-userlogin">
+                    <div>
+                        <span class="user-login-title">Name: </span>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div>
+                        <span class="user-login-title">Password: </span>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                </div>
+                <button type="submit" class="login-logout-button white-background-button" >Login</button>
+            </form>
         {% endif %}
 
         </div>

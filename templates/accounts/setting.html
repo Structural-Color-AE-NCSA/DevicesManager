@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+
+{% from 'events/confirmation.html' import confirmation %}
+
+{% block title %}Setting{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb calendar-event-breadcrumb">
+    <li class="breadcrumb-item"><a href="{{url_for('management.home', title="Accounts")}}">Accounts</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Setting</li>
+  </ol>
+</nav>
+
+{{ confirmation("download") }}
+
+<div class="row">
+{#  <div class="col-2">#}
+{#    <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">#}
+{#      {% for key, value in sources.items() %}#}
+{#          {{ key }}#}
+{#	    <a class="nav-link calendar-event-text" id="v-pills-school-tab" href="{{url_for('management.home', title=key)}}" role="tab" aria-selected="false">{{value[0]}}</a>#}
+{#      {% endfor %}#}
+{#      <a class="nav-link active calendar-event-text calendar-event-button-active" id="v-pills-school-tab" data-toggle="pill" href="#" role="tab" aria-controls="v-pills-school" aria-selected="true">Setting</a>#}
+{#    </div>#}
+{#  </div>#}
+  <div class="col">
+    <div class="tab-content" id="v-pills-tabContent">
+      <div class="tab-pane fade show active" id="v-pills-school" role="tabpanel" aria-labelledby="v-pills-school-tab">
+        <form action="{{ url_for('management.accounts') }}" method="POST">
+        <h2>Add New Accounts</h2>
+        <div class="contact-group dynamic-element">
+          <div class = "form-group row" >
+            <div class="col-sm-3 offset-sm-2">
+              <input class="form-control text-input" id="userid" name="userid" type="text"  placeholder="User ID" />
+            </div>
+            <div class="col-sm-3">
+              <input class="form-control text-input" id="password" name="password" type="text" placeholder="Password"/>
+            </div>
+          </div>
+
+          <div class = "form-group row" >
+            <div class="col-sm-3 offset-sm-2">
+              <input class="form-control text-input" id="firstname" name="firstname" type="text" placeholder="FirstName"/>
+            </div>
+            <div class="col-sm-3">
+              <input class="form-control text-input" id="lastname" name="lastname" type="text" placeholder="LastName"/>
+            </div>
+            <div class="col-sm-3">
+              <input class="form-control text-input" id="email" name="email" type="text" placeholder="Email"/>
+            </div>
+          </div>
+
+          <div class = "form-group row" >
+            <div class="col-sm-3 offset-sm-2">
+                <div class="custom-control custom-switch">
+                  <input type="checkbox" class="custom-control-input" id="useradmin-toggle-event">
+                  <label class="custom-control-label" for="useradmin-toggle-event">
+                    Set as Admin?
+                  </label>
+                </div>
+            </div>
+              <div class="col-sm-3">
+                <div class="custom-control custom-switch">
+                <input type="checkbox" class="custom-control-input" checked id="useraccount-toggle-event">
+                <label class="custom-control-label" for="useraccount-toggle-event">
+                    Account is Active?
+                </label>
+            </div>
+        </div>
+            <div class="col-sm-3">
+              <span role="button" id="save-account" class="save-account notification-button">Add New Account</span>
+            </div>
+          </div>
+        </div>
+
+        <h2>Account approval status</h2>
+    <div class="accordion-container">
+        {% for account in accounts %}
+            <div class="accordion-item">
+                <div class="accordion-header">
+                   <div class="col-sm-9">
+                        <h5 class="calendar-event-text">username: {{ account.username }} email: {{ account.email }}</h5>
+                   </div>
+
+                   <div class = "form-group row  offset-sm-2" >
+                    <div class="col-sm-9">
+                        <div class="custom-control custom-switch">
+                          <input type="checkbox" class="custom-control-input" id="useradmin-toggle-event-"+{{ account.email }}>
+                          <label class="custom-control-label" for="useradmin-toggle-event-"+{{ account.email }}>
+                            <Text class = "calendar-event-text">Set as Admin? </Text>
+                          </label>
+                        </div>
+
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" checked id="useraccount-toggle-event-"+{{ account.email }}>
+                            <label class="custom-control-label" for="useraccount-toggle-event-"+{{ account.email }}>
+                                <Text class = "calendar-event-text">Account is Active? </Text>
+                            </label>
+                            </div>
+                        </div>
+                        <div class="col-md-1">
+                            <span role="button" onclick="deleteAccount('{{ account.username }}')" class="delete btn btn-outline-dark btn-sm-1">Delete</span>
+                        </div>
+                   </div>
+                </div>
+            </div>
+        {% endfor %}
+
+    </div>
+            <button type="submit" class="orange-background-button">Save</button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+    <script type="text/javascript">
+
+   $('#save-account').click(function(){
+
+     $.post("{{ url_for('management.add_new_account') }}",
+     {
+       dataType: "json",
+       contentType:"application/json; charset=utf-8",
+       type: "POST",
+       data:{
+         "username": document.getElementById("userid").value,
+         "password": document.getElementById("password").value,
+         "firstname":document.getElementById("firstname").value,
+         "lastname":document.getElementById("lastname").value,
+         "email":document.getElementById("email").value,
+         "is_admin": document.getElementById("useradmin-toggle-event").value,
+         "is_active": document.getElementById("useraccount-toggle-event").value,
+       }
+     }
+     ,
+     function(data) {
+       if (data == "success") {
+         alert(document.getElementById("userid").value + ": New user account adding succeed!");
+         location.reload();
+       }else if(data == "fail"){
+          alert(document.getElementById("userid").value + ": New user account adding failed!");
+       }else{
+          alert("New user account should have username!");
+       }
+     }
+     );
+   });
+
+  $(function() {
+    $('#useradmin-toggle-event').change(function() {
+      console.log('Toggle: ' + $(this).prop('checked'))
+    })
+  })
+
+    function deleteAccount(username) {
+    console.log("delete " + username)
+        var params = {"username": username}
+        $.ajax({
+        url: "{{ url_for('management.account_delete') }}",
+        dataType: "json",
+        contentType:"application/json; charset=utf-8",
+        type: "POST",
+        data: JSON.stringify(params),
+        success: function(resultData){
+            alert(username + " account has been deleted");
+            location.reload();
+         },
+        error: function(xhr, status, error) {
+                    // Handle error
+                    console.log('Error:', error);
+                    $('#response').html('<p>Error: ' + error + '</p>');
+                }
+      });
+    }
+
+  </script>
+
+{% endblock %}

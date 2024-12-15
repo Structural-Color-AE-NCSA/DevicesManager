@@ -27,8 +27,8 @@ class Config(object):
     INTERNAL_HOST_URL = os.getenv('INTERNAL_HOST_URL', 'http://localhost:5000/')
     PRINT_BED_X_SIZE = int(os.getenv("PRINT_BED_X_SIZE", 282))
     PRINT_BED_Y_SIZE = int(os.getenv("PRINT_BED_X_SIZE", 582))
-    RABBITMQ_URI =  os.getenv('RABBITMQ_URI', 'amqp://devicesmanager:mypassword@141.142.219.4/%2F?heartbeat=600')
-    # RABBITMQ_URI = os.getenv('RABBITMQ_URI', 'amqp://guest:guest@localhost/%2F?heartbeat=600')
+    # RABBITMQ_URI =  os.getenv('RABBITMQ_URI', 'amqp://devicesmanager:password@141.142.216.87/%2F?heartbeat=600')
+    RABBITMQ_URI = os.getenv('RABBITMQ_URI', 'amqp://guest:guest@localhost/%2F?heartbeat=600')
     # MONGO_URL to setup connection with target mongoDB
     MONGO_URL = os.getenv('MONGO_URL', 'mongodb://localhost:27017')
     # MONGO_DATABASE refers to the mongoDB's database that we are about to access to
@@ -58,6 +58,16 @@ class Config(object):
     # EVENT_URL_* are here for formatting the webtools url that we crawl webtool events from
     EVENT_URL_PREFIX = os.getenv("EVENT_URL_PREFIX", 'https://xml.calendars.illinois.edu/eventXML15/')
     EVENT_URL_SUFFIX = os.getenv("EVENT_URL_SUFFIX", '.xml')
+
+    CAMPAIGNS_ITEMS = [{"existing campaigns": "Existing Campaigns"}, {"new campaign": "New Campaign"}]
+    SIDEBAR_MENU = {
+        'Campaigns': ('Campaigns', CAMPAIGNS_ITEMS),
+        'Hardware': ('Hardware', [{"devices": "Devices"}]),
+        'Accounts': ('Accounts', []),
+        # 'Settings': ('Settings', []),
+    }
+
+    ACCOUNTS_COLLECTION = os.getenv("ACCOUNTS_COLLECTION", 'users')
 
     # This a mapping between webtools calendars id to name
     INT2CAL = [{"6991": "Illinois App Master Calendar"}]

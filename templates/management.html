@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% from 'events/searchbox.html' import searchbox %}
+{% block header %}
+  <h1>{% block title %}Event Sources{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb calendar-event-breadcrumb">
+    <li class="breadcrumb-item active" aria-current="page">{{title}}</li>
+  </ol>
+</nav>
+
+<h1 class="text-center calendar-event-title">{{title}}</h1>
+
+{#<div class="container-fluid">#}
+{#  <div class="row m-3">#}
+{#    <div class="col"></div>#}
+{#    <div class="col-6 float-right">#}
+{#      {{ searchbox(eventTypeValues, "source", sourceId)}}#}
+{#    </div>#}
+{#  </div>#}
+{#</div>#}
+
+<div class="row">
+  <div class="col-2">
+    <div class="nav flex-column nav-pills calendar-event-listing-column" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+      {% for key, value in allsources.items() %}
+          {% if key == "Accounts" %}
+          {% elif key == "Settings" %}
+          {% else %}
+            <a class="nav-link calendar-event-text" id="v-pills-school-tab" href="{{url_for('management.home', title=key)}}" role="tab" aria-selected="false">{{value[0]}}</a>
+          {% endif %}
+      {% endfor %}
+    {% for key, value in allsources.items() %}
+    {% if key == "Accounts" %}
+      <a class="nav-link calendar-event-text" id="v-pills-school-tab" href="{{url_for('management.accounts')}}" role="tab" aria-selected="true">Accounts</a>
+    {% endif %}
+    {% endfor %}
+        {#      <a class="nav-link calendar-event-text" id="v-pills-school-tab" href="{{url_for('management.settings')}}" role="tab" aria-selected="true">Settings</a>#}
+{#          <a class="nav-link active calendar-event-text calendar-event-button-active" id="v-pills-school-tab" data-toggle="pill" href="#" role="tab" aria-controls="v-pills-school" aria-selected="true">Setting</a>#}
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="tab-content" id="v-pills-tabContent">
+      <div class="tab-pane fade show active" id="v-pills-school" role="tabpanel" aria-labelledby="v-pills-school-tab">
+
+        <div id = "accordion">
+          {% for item in calendars %}
+            {% for key, value in item.items() %}
+              <div class="calendar-event-card">
+                {% if key == 'existing campaigns' %}
+                    <a href="{{url_for("devices_listing.devices")}}">
+                      <h5 class="calendar-event-text">{{ value }}</h5>
+                    </a>
+              {% elif key == 'new campaign' %}
+                    <a href="{{url_for('event.calendar', calendarId=key)}}">
+                      <h5 class="calendar-event-text">{{ value }}</h5>
+                    </a>
+              {% elif key == 'devices' %}
+                    <a href="{{url_for("devices_listing.devices")}}">
+                      <h5 class="calendar-event-text">{{ value }}</h5>
+                    </a>
+              {% endif %}
+              </div>
+            {% endfor %}
+          {% endfor %}
+        </div>
+
+        {% if calendars|length == 0 %}
+            {% if title == "Accounts" %}
+                <div class="text-center">Admins manage user accounts by adding new user account, enable/disable existing user accounts.</div>
+            {% elif title == "Settings" %}
+                <div class="text-center">Admins can set/change environment settings for the Clowder, Adaptor components, the like the hostname, password.</div>
+            {% else %}
+                <div class="text-center">There are no campaign experiments under this source.</div>
+            {% endif %}
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

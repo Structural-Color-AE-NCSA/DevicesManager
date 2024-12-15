@@ -4,6 +4,13 @@ import random
 import json
 import re
 import time
+
+# from scripts import clowder
+# from ximea_camera import XimeaCamera
+#
+# ximean_cam = XimeaCamera()
+
+
 # printer position string
 printer_start_pos = None
 printer_end_pos = None
@@ -22,7 +29,7 @@ except:
     tool_passed = False
     lulzbot_passed = False
 EXCHANGE_NAME = 'devices_manager'
-# parameters = pika.URLParameters('amqp://devicesmanager:password@141.142.219.4/%2F')
+# parameters = pika.URLParameters('amqp://devicesmanager:password@141.142.216.87/%2F')
 parameters = pika.URLParameters('amqp://guest:guest@localhost/%2F')
 connection = pika.BlockingConnection(parameters)
 channel = connection.channel()
@@ -86,9 +93,15 @@ def send_pcp_commands(message):
         print(cmd)
         cmd = cmd.replace("\\n", "\n")
         if cmd == "Done":
+            lulzbot.move("M400\n")
+            time.sleep(5)
             print(f"Cell #{cell_id} PCP running is done")
             send_message('printer_movement_done', json.dumps({'cell_id': cell_id}))
-            # TODO: assume do cleanup after every pcp file
+            # ximea camera frame
+            filename = ximean_cam.take_frame()
+            # send to clowder
+            clowder.upload_a_file_to_dataset(filename)
+            # TODO: assume do cleanup after every pcp file print
             clean_nozzle()
             break
         tmp = cmd.split("(")
