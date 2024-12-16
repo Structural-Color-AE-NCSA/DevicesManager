@@ -18,14 +18,12 @@ import logging
 from time import gmtime
 from flask_socketio import SocketIO
 
-
 logging.Formatter.converter = gmtime
 logging.basicConfig(level=logging.INFO, datefmt='%Y-%m-%dT%H:%M:%S',
                     format='%(asctime)-15s.%(msecs)03dZ %(levelname)-7s [%(threadName)-10s] : %(name)s - %(message)s')
 __logger = logging.getLogger("device.py")
 
-devicebp = Blueprint('device', __name__, url_prefix=Config.URL_PREFIX+'/device')
-
+devicebp = Blueprint('device', __name__, url_prefix=Config.URL_PREFIX + '/device')
 
 pcp_file = PCPFile()
 printing_params = PrintingParams()
@@ -39,9 +37,12 @@ grid_plot = GridPlot()
 def init_socketio(socketio):
     camera_frames = CameraFrames(socketio)
 
+
 shape_x = 0
 shape_y = 0
 buf = None
+
+
 @devicebp.route('/device/init_pcp_file', methods=['POST'])
 @role_required("user")
 def load_pcp_file():
@@ -116,9 +117,9 @@ def load_pcp_file():
                 if match:
                     y_start_pos = int(match.group(1))
 
-    print("pcp shape width: " + str(x_max-x_min))
+    print("pcp shape width: " + str(x_max - x_min))
     print("pcp shape height: " + str(y_max - y_min))
-    shape_x = x_max-x_min
+    shape_x = x_max - x_min
     shape_y = y_max - y_min
 
     data = dict()
@@ -132,6 +133,7 @@ def load_pcp_file():
         grid_plot.set_starting_cell_id(cell_id)
     # return Response(buf, mimetype='image/png')
     return jsonify(data), 200
+
 
 @devicebp.route('/device/send_printing_params', methods=['POST'])
 def send_printing_params():
@@ -158,38 +160,58 @@ def send_printing_params():
         commands['pressure'] = pressure
 
     if bed_temp:
-        commands['bed_temp'] = "M140 S"+bed_temp + "\n"
+        commands['bed_temp'] = "M140 S" + bed_temp + "\n"
 
     printing_params.send_printing_params(commands)
 
     return jsonify([]), 200
 
+
 @devicebp.route('/device/run_pcp_file', methods=['POST'])
 @role_required("user")
 def send_pcp_file():
+    # TODO: create campaign db record
+
     filename = request.form.get('pcpFileName')
     cell_ids = request.form.get('cell_ids')
+    campaign_name = request.form.get('campaignName')
+
+    if filename == '' or cell_ids == '' or campaign_name == '':
+        return "fail", 400
+
+    new_campaign_doc = {"campaignName": campaign_name, "submitter": session['name'],
+                        "filename": filename, "cell_ids": cell_ids, "status": "running"}
+    insert_result = insert_one(current_app.config['CAMPAIGNS_COLLECTION'], document=new_campaign_doc)
+
+    if insert_result.inserted_id is None:
+        __logger.error("Insert new campaign " + campaign_name + " failed")
+        # return redirect(url_for('management.home', title='Campaigns'))
+        return "fail", 400
+
+    __logger.info("successfully inserted new campaign " + campaign_name)
+
+    campaign_id = str(insert_result.inserted_id)
+
     print(f'PCP File Name: {filename}')
     path_to_pcp_file = os.path.join(os.getcwd(), 'pcp', filename)
     file_content = ""
     with open(path_to_pcp_file, 'r') as file:
         file_content = file.read()
 
-    if len(cell_ids) == 0:# relative postions
+    if len(cell_ids) == 0:  # relative postions
         pcp_commands = file_content + "Done\n"
         pcp_file.send_pcp_file(pcp_commands, -1)
     else:
         cells = [item.strip() for item in cell_ids.split(',')]
         for cell_id in cells:
             abs_x, abs_y = grid_plot.get_top_left_corner_pos_by_cell_id(int(cell_id))
-            X="\"X="+str(abs_x)
-            Y = "Y="+str(abs_y)
-            Z = "Z=21.4"+"\""
-            start_point_pos = "axes.startPoint("+X+" " + Y+" " + Z+")"
+            X = "\"X=" + str(abs_x)
+            Y = "Y=" + str(abs_y)
+            Z = "Z=21.4" + "\""
+            start_point_pos = "axes.startPoint(" + X + " " + Y + " " + Z + ")"
             print(start_point_pos)
-            pcp_commands = start_point_pos+"\r\n"+file_content + "Done\n"
+            pcp_commands = start_point_pos + "\r\n" + file_content + "Done\n"
             pcp_file.send_pcp_file(pcp_commands, int(cell_id))
-
 
     # for filename in request.form:
     #     print(f'PCP File Name: {filename}')
@@ -199,25 +221,27 @@ def send_pcp_file():
     #     # add end line to notify pcp completion
     #     file_content = file_content + "Done\n"
     #     pcp_file.send_pcp_file(file_content, grid_plot.get_cell_id())
-        #fixme, mimic another the 6 runs
-        # time.sleep(1)
-        # pcp_file.send_pcp_file(file_content, 1+grid_plot.get_cell_id())
-        # time.sleep(1)
-        # pcp_file.send_pcp_file(file_content, 2+grid_plot.get_cell_id())
-        # time.sleep(1)
-        # pcp_file.send_pcp_file(file_content, 3+grid_plot.get_cell_id())
-        # time.sleep(1)
-        # pcp_file.send_pcp_file(file_content, 4+grid_plot.get_cell_id())
-        # time.sleep(1)
-        # pcp_file.send_pcp_file(file_content, 5+grid_plot.get_cell_id())
-        # time.sleep(1)
-        # pcp_file.send_pcp_file(file_content, 6+grid_plot.get_cell_id())
-    return jsonify([]), 200
+    # fixme, mimic another the 6 runs
+    # time.sleep(1)
+    # pcp_file.send_pcp_file(file_content, 1+grid_plot.get_cell_id())
+    # time.sleep(1)
+    # pcp_file.send_pcp_file(file_content, 2+grid_plot.get_cell_id())
+    # time.sleep(1)
+    # pcp_file.send_pcp_file(file_content, 3+grid_plot.get_cell_id())
+    # time.sleep(1)
+    # pcp_file.send_pcp_file(file_content, 4+grid_plot.get_cell_id())
+    # time.sleep(1)
+    # pcp_file.send_pcp_file(file_content, 5+grid_plot.get_cell_id())
+    # time.sleep(1)
+    # pcp_file.send_pcp_file(file_content, 6+grid_plot.get_cell_id())
+    return jsonify({"campaign_name": campaign_name, "campaign_id": campaign_id}), 200
+
 
 @devicebp.route('/pcp_plot')
 def pcp_plot():
     buf = grid_plot.load_plot()
     return Response(buf, mimetype='image/png')
+
 
 @devicebp.route('/update_pcp_plot', methods=['POST'])
 # @role_required("user")
@@ -238,9 +262,11 @@ def update_pcp_plot():
         return jsonify(["cell id not found"]), 500
 
 
-@devicebp.route('/campaign/new',  methods=['GET'])
+@devicebp.route('/campaign/new', methods=['GET'])
 @role_required("user")
 def start_campaign():
+    ##TODO: check if there is an existing ongoing campaign, db scan campaign status: running
+
     post = None
     if os.path.exists('pcpfig.png'):
         os.remove('pcpfig.png')
@@ -250,4 +276,18 @@ def start_campaign():
                            timezones=Config.TIMEZONES,
                            extensions=",".join("." + extension for extension in Config.ALLOWED_PCP_FILE_EXTENSIONS),
                            # groupName=groupName
-                            )
+                           )
+
+
+@devicebp.route('/stream')
+@role_required("user")
+def stream():
+    def generate():
+        # Here, you could fetch real-time data or generate data dynamically
+        count = 0
+        while True:
+            time.sleep(1)  # Simulate some delay
+            count += 1
+            yield f"data: Server Count is {count}\n\n"  # Format for SSE
+
+    return Response(generate(), content_type='text/event-stream')

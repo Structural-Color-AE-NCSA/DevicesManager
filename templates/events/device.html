@@ -78,7 +78,7 @@
                 <div class="col-12 col-sm-3">
                   <h5>Campaign Name </h5>
                 </div>
-                <p class="col-sm-9 small-body-text">My New Campaign at Timestamp</p>
+                <p id="campaign_name" class="col-sm-9 small-body-text">My New Campaign at Timestamp</p>
               </div>
           </div>
 
@@ -344,6 +344,15 @@
         document.getElementById('file').addEventListener('change', function(event) {
         const file = event.target.files[0];
 
+        var source = new EventSource('/stream');
+        source.onmessage = function (event) {
+             alert(event.data);
+        };
+
+        socket.on('message', function(data) {
+            console.log(data); // {data: "Hello from Flask!"}
+        });
+
         socket.on('connect', function() {
             socket.emit('test', {
                    who: $(this).attr('id'),
@@ -382,7 +391,6 @@
                 })
                 .then(response => response.text())
                 .then(body => {
-                    debugger
                     const data = JSON.parse(body)
                     const ncols = data.ncols;
                     const nrows = data.nrows;
@@ -478,26 +486,38 @@
 
       $("#runpcpbutton").click(function() {
         console.log(document.getElementById('cell-ids').value)
+        if (typeof document.getElementById('campaign-name').value == "undefined" || document.getElementById('campaign-name').value.value == '') {
+            return
+        }
+        if (typeof document.getElementById('cell-ids').value == "undefined" || document.getElementById('cell-ids').value.value == '') {
+            return
+        }
+        if(typeof pcpFileName == "undefined" || pcpFileName == '') {
+            return
+        }
         $.ajax({
             url: "{{ url_for('device.send_pcp_file', id=2) }}",
             type: 'POST',
             data: {
+                campaignName: document.getElementById('campaign-name').value,
                 pcpFileName: pcpFileName,
                 cell_ids: document.getElementById('cell-ids').value
             },
             success: function(data){
+                                    debugger
+                document.getElementById("campaign_name").innerHTML = data['campaign_name']
                 console.log("success send pcp file")
             }
         });
-        console.log("Run PCP File")
+        console.log("Run a campaign")
       });
-
+/*
       setInterval(updatePlot, 1000);
 
       window.onload = function() {
         updatePlot(); // Initial fetch on page load
       };
-
+*/
     function hideImage() {
         const imgElement = document.getElementById('plot');
         imgElement.style.display = 'none'; // Hide the image if it fails to load

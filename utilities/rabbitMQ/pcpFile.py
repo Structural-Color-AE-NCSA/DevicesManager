@@ -59,8 +59,9 @@ class PCPFile(object):
         if end_pos:
             print("to " + json.dumps(end_pos))
 
-    def send_pcp_file(self, commands, cell_id=-1):
+    def send_pcp_file(self, campaign_id, commands, cell_id=-1):
         metadata = dict()
+        metadata['campaign_id'] = campaign_id
         metadata['cell_id'] = cell_id
         metadata['type'] = 'pcp_commands'
         metadata['data'] = commands

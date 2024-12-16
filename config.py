@@ -66,7 +66,7 @@ class Config(object):
         'Accounts': ('Accounts', []),
         # 'Settings': ('Settings', []),
     }
-
+    CAMPAIGNS_COLLECTION =  os.getenv("CAMPAIGNS_COLLECTION", 'campaigns')
     ACCOUNTS_COLLECTION = os.getenv("ACCOUNTS_COLLECTION", 'users')
 
     # This a mapping between webtools calendars id to name

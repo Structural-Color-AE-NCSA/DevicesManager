@@ -48,6 +48,7 @@ socketio = SocketIO()
 @socketio.on('connect')
 def test_connect():
     print("socketio connect!")
+    socketio.emit('message', {'data': 'Hello from Flask!'})
 
 
 @socketio.on('test')

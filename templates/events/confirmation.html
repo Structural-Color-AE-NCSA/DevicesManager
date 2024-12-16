@@ -40,11 +40,14 @@
       </div>
       <div class="modal-body">
         {% if usage == "PCP" %}
-        You are about to run this PCP file <b>{{title}}</b>
+        You are about to run this Campaign <b>{{title}}</b>
         <div class="form-group">
-            <label for="title-name" class="col-form-label">Cell IDs:</label>
+            <label for="title-name" class="col-form-label">Campaign Name:</label>
+            <input type="text" class="form-control text-input text-input-field" id="campaign-name"
+                   placeholder="Enter campaign name..." required>
+            <label for="cell-ids" class="col-form-label">Cell IDs:</label>
             <input type="text" class="form-control text-input text-input-field" id="cell-ids"
-                   placeholder="Enter your Cell IDs to print several shapes...">
+                   placeholder="Enter your Cell IDs(e.g., 1,2,3)..." required>
         </div>
         {% else %}
         Are you sure you want to start downloading the approved calendars?
@@ -62,7 +65,7 @@
         {% endif %}
 
         {% if usage == "save" %}
-        onclick="document.getElementById('form').submit();"
+            onclick="document.getElementById('form').submit();"
         {% endif %}
         >OK</button>
       </div>
