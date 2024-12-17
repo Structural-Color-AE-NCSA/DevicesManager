@@ -329,7 +329,7 @@
 {#      <script src="https://cdn.jsdelivr.net/npm/blob-compare@latest"></script>#}
       <script src="https://unpkg.com/blob-compare@latest"></script>
       <script src="https://cdn.jsdelivr.net/gh/liqueurdetoile/blob-compare@latest/dist/index.min.js"></script>
-      <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
+{#      <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>#}
     <script>
         var old_blob = null
         var old_pcp_image_url = null
@@ -337,47 +337,54 @@
         // sending a connect request to the server.
         {#var socket = io.connect('http://localhost:5000');#}
         {#const socket = io.connect('http://' + document.domain + ':' + location.port);#}
-        var socket = io.connect();
+        {#var socket = io.connect();#}
 
         let pcpFileName = ""
         const pcpFileNameDisplay = document.getElementById('custom-file-label');
         document.getElementById('file').addEventListener('change', function(event) {
         const file = event.target.files[0];
-
-        var source = new EventSource('/stream');
+        debugger
+        var source = new EventSource('/devices-manager/device/stream');
         source.onmessage = function (event) {
-             alert(event.data);
+            {#console.log(event.data);#}
+            data = JSON.parse(event.data)
+            cell_id = data['cell_id']
+            color = data['color']
+            cell = document.querySelectorAll(`[cellid='${cell_id}']`)[0];
+            cell.style.background='#9ACD32'
+            cell.setAttribute('colors', cell.style.background);
+            cell.getElementsByTagName('span')[0].innerText = cell.style.background
         };
-
-        socket.on('message', function(data) {
-            console.log(data); // {data: "Hello from Flask!"}
-        });
-
-        socket.on('connect', function() {
-            socket.emit('test', {
-                   who: $(this).attr('id'),
-                   data: $(this).val()
-               });
-            console.log('Connected: ' + socket.connected);  // Should be true if successful
-
-        });
-
-        socket.on('after connect', function(msg) {
-               console.log('After connect', msg);
-        });
-
-        socket.on("connect_error", () => {
-          socket.connect();
-        });
-
-        socket.on('camera_frame', function(data) {
-            const img = new Image();
-            img.src = 'data:image/png;base64,' + data.frame;
-
-            img.onload = function() {
-              context.drawImage(img, 0, 0, canvas.width, canvas.height);
-            }
-        });
+        {##}
+        {#socket.on('message', function(data) {#}
+        {#    console.log(data); // {data: "Hello from Flask!"}#}
+        {#});#}
+        {##}
+        {#socket.on('connect', function() {#}
+        {#    socket.emit('test', {#}
+        {#           who: $(this).attr('id'),#}
+        {#           data: $(this).val()#}
+        {#       });#}
+        {#    console.log('Connected: ' + socket.connected);  // Should be true if successful#}
+        {##}
+        {#});#}
+        {##}
+        {#socket.on('after connect', function(msg) {#}
+        {#       console.log('After connect', msg);#}
+        {#});#}
+        {##}
+        {#socket.on("connect_error", () => {#}
+        {#  socket.connect();#}
+        {#});#}
+        {##}
+        {#socket.on('camera_frame', function(data) {#}
+        {#    const img = new Image();#}
+        {#    img.src = 'data:image/png;base64,' + data.frame;#}
+        {##}
+        {#    img.onload = function() {#}
+        {#      context.drawImage(img, 0, 0, canvas.width, canvas.height);#}
+        {#    }#}
+        {#});#}
 
         if (file) {
             pcpFileNameDisplay.textContent = `Selected file: ${file.name}`;
@@ -412,10 +419,8 @@
                     fontSize = Math.max(minFontSize, Math.min(maxFontSize, fontSize));
 
                     for (let i = 0; i < nrows * ncols; i++) {
-                        const cellButton = document.createElement('button');
-                        cellButton.addEventListener('mouseover', () => {
-                          console.log(cellButton.getAttribute('cellid') + ": color: " + cellButton.getAttribute('colors'))
-                        });
+                        const cellButton = document.createElement('text');
+
                         cellButton.disabled = true;
                         cellButton.innerText = `${(nrows-1-row)*ncols + col}`;
                         cellButton.classList.add('grid-button');
@@ -424,6 +429,41 @@
                         cellButton.style.height = `${relative_button_height}px`;
                         cellButton.setAttribute('cellid', `${(nrows-1-row)*ncols + col}`);
                         cellButton.setAttribute('colors', `None`);
+
+
+                        const tooltip = document.createElement('span');
+                        tooltip.innerText = '';
+                        tooltip.style.visibility = 'hidden';  // Hide the tooltip by default
+                        tooltip.style.position = 'relative';
+                        tooltip.style.bottom = '100%';  // Position above the button
+                        {#tooltip.style.left = '50%';#}
+                        {#tooltip.style.transform = 'translateX(-50%)';#}
+                        {#tooltip.style.backgroundColor = '#555';  // Tooltip background color#}
+                        tooltip.style.color = 'blue';
+                        {#tooltip.style.textAlign = 'left';#}
+                        tooltip.style.borderRadius = '5px';
+                        tooltip.style.padding = '5px';
+                        tooltip.style.width = '100%';
+                        tooltip.style.setProperty('white-space', 'nowrap');
+                        {#tooltip.style.opacity = '0';  // Make the tooltip fade in#}
+                        tooltip.style.transition = 'opacity 0.3s ease';  // Smooth fade transition
+
+                        // Append the tooltip to the button
+                        cellButton.appendChild(tooltip);
+                          cellButton.addEventListener('mouseover', () => {
+                          console.log(cellButton.getAttribute('cellid') + ": color: " + cellButton.getAttribute('colors'))
+                        });
+
+                        cellButton.addEventListener('mouseenter', () => {
+                         tooltip.style.visibility = 'visible';  // Show the tooltip
+                         tooltip.style.opacity = '1';  // Fade in
+                        });
+
+                        cellButton.addEventListener('mouseleave', () => {
+                          tooltip.style.visibility = 'hidden';
+                          tooltip.style.opacity = '0'; // Hide the tooltip with opacity
+                        });
+
                         gridContainer.appendChild(cellButton);
                         if(col == (ncols-1)) {
                             col = 0
@@ -504,7 +544,6 @@
                 cell_ids: document.getElementById('cell-ids').value
             },
             success: function(data){
-                                    debugger
                 document.getElementById("campaign_name").innerHTML = data['campaign_name']
                 console.log("success send pcp file")
             }

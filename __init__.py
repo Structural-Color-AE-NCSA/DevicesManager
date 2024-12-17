@@ -42,18 +42,18 @@ logging.basicConfig(level=logging.INFO, datefmt='%Y-%m-%dT%H:%M:%S',
                     format='%(asctime)-15s.%(msecs)03dZ %(levelname)-7s [%(threadName)-10s] : %(name)s - %(message)s')
 __logger = logging.getLogger("__init__.py")
 
-socketio = SocketIO()
-
-
-@socketio.on('connect')
-def test_connect():
-    print("socketio connect!")
-    socketio.emit('message', {'data': 'Hello from Flask!'})
-
-
-@socketio.on('test')
-def test_connect():
-    print("socketio received message test from javascript!")
+# socketio = SocketIO()
+#
+#
+# @socketio.on('connect')
+# def test_connect():
+#     print("socketio connect!")
+#     socketio.emit('message', {'data': 'Hello from Flask!'})
+#
+#
+# @socketio.on('test')
+# def test_connect():
+#     print("socketio received message test from javascript!")
 
 
 def create_app(config_class=Config):
@@ -82,10 +82,10 @@ def create_app(config_class=Config):
     app.register_blueprint(device_bp)
     app.register_blueprint(devices_listing_bp)
 
-    socketio.init_app(app)
-    device.init_socketio(socketio)
-    socketio.run(app, allow_unsafe_werkzeug=True, logger=True, engineio_logger=True, cors_allowed_origins="*",
-                 host='0.0.0.0')
+    # socketio.init_app(app)
+    # device.init_socketio(socketio)
+    # socketio.run(app, allow_unsafe_werkzeug=True, logger=True, engineio_logger=True, cors_allowed_origins="*",
+    #              host='0.0.0.0')
 
     @app.route('/')
     @check_login

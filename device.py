@@ -279,15 +279,62 @@ def start_campaign():
                            )
 
 
+@devicebp.route('/campaign/all', methods=['GET'])
+@role_required("user")
+def get_all_campaigns():
+    if 'from' in session:
+        start = session['from']
+        end = session['to']
+    else:
+        start = ""
+        end = ""
+    groups = ["test"]
+    # groups, _ = get_admin_groups()
+
+    if 'select_status' in session:
+        select_status = session['select_status']
+    else:
+        select_status = ['connected']
+        session['select_status'] = select_status
+    try:
+        page, per_page, offset = get_page_args(page_parameter='page', per_page_parameter='per_page')
+    except ValueError:
+        page = 1
+
+    if 'per_page' in session:
+        per_page = session['per_page']
+    else:
+        per_page = Config.PER_PAGE
+        session['per_page'] = per_page
+    offset = (page - 1) * per_page
+
+    response = find_all(current_app.config['CAMPAIGNS_COLLECTION'])
+    if page <= 0 or offset >= len(response):
+        offset = 0
+        page = 1
+
+    posts_dic, total = get_all_device_status_pagination(offset, per_page, response)
+    total_devices_count = total
+    pagination = Pagination(page=page, per_page=per_page, total=total, css_framework='bootstrap4')
+
+    return render_template("campaigns/existing-campaings.html", posts_dic = posts_dic,
+                            select_status=select_status, page=page,
+                            per_page=per_page, pagination_links=pagination.links,
+                            isUser=True, start=start, end=end, page_config=Config.EVENTS_PER_PAGE,
+                            groups=groups,
+                            selected_group=session.get('group'))
+
 @devicebp.route('/stream')
 @role_required("user")
 def stream():
     def generate():
-        # Here, you could fetch real-time data or generate data dynamically
-        count = 0
+        from random import randrange
         while True:
             time.sleep(1)  # Simulate some delay
-            count += 1
-            yield f"data: Server Count is {count}\n\n"  # Format for SSE
+            data = dict()
+            data['cell_id'] = randrange(400)
+            data['color'] = 'red'
+            # yield jsonify(data) + "\n\n"  # Format for SSE
+            yield f"data:" + json.dumps(data) +"\n\n"  # Format for SSE
 
     return Response(generate(), content_type='text/event-stream')

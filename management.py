@@ -158,7 +158,8 @@ def update_account():
         return "success", 200
 
 
-#### utility functions
+# utility functions
+
 def get_all_user_accounts():
     users = find_all(current_app.config['ACCOUNTS_COLLECTION'], filter={})
     result = {}

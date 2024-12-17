@@ -52,7 +52,7 @@
             {% for key, value in item.items() %}
               <div class="calendar-event-card">
                 {% if key == 'existing campaigns' %}
-                    <a href="{{url_for("devices_listing.devices")}}">
+                    <a href="{{url_for("device.get_all_campaigns")}}">
                       <h5 class="calendar-event-text">{{ value }}</h5>
                     </a>
               {% elif key == 'new campaign' %}
