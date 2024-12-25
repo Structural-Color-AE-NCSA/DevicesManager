@@ -108,7 +108,7 @@ def add_new_account():
     password = request.form.get('data[password]')
     email = request.form.get('data[email]')
     firstname = request.form.get('data[firstname]')
-    lastname = request.form.get('data[firstname]')
+    lastname = request.form.get('data[lastname]')
     is_admin = request.form.get('data[is_admin]')
     is_active = request.form.get('data[is_active]')
     if (is_admin == 'true'):

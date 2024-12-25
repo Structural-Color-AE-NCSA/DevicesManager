@@ -265,7 +265,16 @@ def update_pcp_plot():
 @devicebp.route('/campaign/new', methods=['GET'])
 @role_required("user")
 def start_campaign():
-    ##TODO: check if there is an existing ongoing campaign, db scan campaign status: running
+    running_campaign = find_all(current_app.config['CAMPAIGNS_COLLECTION'], filter={"status": "running"})
+    if (len(running_campaign) > 0):
+        title = 'Campaigns'
+        allsources = current_app.config['SIDEBAR_MENU']
+        calendars = current_app.config['SIDEBAR_MENU'][title][1]
+        flash("Another campaign has been running!")
+        return render_template('management.html',
+                               allsources=allsources, sourceId=0,
+                               title=title, calendars=calendars, total=0,
+                               eventTypeValues=eventTypeValues, isUser=False)
 
     post = None
     if os.path.exists('pcpfig.png'):
