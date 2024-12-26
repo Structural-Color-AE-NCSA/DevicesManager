@@ -271,10 +271,11 @@ def start_campaign():
         allsources = current_app.config['SIDEBAR_MENU']
         calendars = current_app.config['SIDEBAR_MENU'][title][1]
         flash("Another campaign has been running!")
-        return render_template('management.html',
-                               allsources=allsources, sourceId=0,
-                               title=title, calendars=calendars, total=0,
-                               eventTypeValues=eventTypeValues, isUser=False)
+        # return redirect('management.html',
+        #                        allsources=allsources, sourceId=0,
+        #                        title=title, calendars=calendars, total=0,
+        #                        eventTypeValues=eventTypeValues, isUser=False)
+        return redirect(url_for('management.home', title='Campaigns'))
 
     post = None
     if os.path.exists('pcpfig.png'):
