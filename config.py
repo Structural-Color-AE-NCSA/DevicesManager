@@ -59,6 +59,15 @@ class Config(object):
     EVENT_URL_PREFIX = os.getenv("EVENT_URL_PREFIX", 'https://xml.calendars.illinois.edu/eventXML15/')
     EVENT_URL_SUFFIX = os.getenv("EVENT_URL_SUFFIX", '.xml')
 
+    SUPER_ADMIN = os.getenv("SUPER_ADMIN", {
+    "username" : "bing",
+    "email" : "bing@illinois.edu",
+    "firstname" : "bing",
+    "lastname" : "zhang",
+    "is_admin" : True,
+    "is_active" : True,
+    "is_super" : True})
+
     CAMPAIGNS_ITEMS = [{"existing campaigns": "Existing Campaigns"}, {"new campaign": "New Campaign"}]
     SIDEBAR_MENU = {
         'Campaigns': ('Campaigns', CAMPAIGNS_ITEMS),

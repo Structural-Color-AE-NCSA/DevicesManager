@@ -344,9 +344,8 @@
         document.getElementById('file').addEventListener('change', function(event) {
         const file = event.target.files[0];
         debugger
-        var source = new EventSource('/devices-manager/device/stream');
+        var source = new EventSource("{{ url_for('device.stream') }}")
         source.onmessage = function (event) {
-            {#console.log(event.data);#}
             data = JSON.parse(event.data)
             cell_id = data['cell_id']
             color = data['color']
@@ -355,36 +354,6 @@
             cell.setAttribute('colors', cell.style.background);
             cell.getElementsByTagName('span')[0].innerText = cell.style.background
         };
-        {##}
-        {#socket.on('message', function(data) {#}
-        {#    console.log(data); // {data: "Hello from Flask!"}#}
-        {#});#}
-        {##}
-        {#socket.on('connect', function() {#}
-        {#    socket.emit('test', {#}
-        {#           who: $(this).attr('id'),#}
-        {#           data: $(this).val()#}
-        {#       });#}
-        {#    console.log('Connected: ' + socket.connected);  // Should be true if successful#}
-        {##}
-        {#});#}
-        {##}
-        {#socket.on('after connect', function(msg) {#}
-        {#       console.log('After connect', msg);#}
-        {#});#}
-        {##}
-        {#socket.on("connect_error", () => {#}
-        {#  socket.connect();#}
-        {#});#}
-        {##}
-        {#socket.on('camera_frame', function(data) {#}
-        {#    const img = new Image();#}
-        {#    img.src = 'data:image/png;base64,' + data.frame;#}
-        {##}
-        {#    img.onload = function() {#}
-        {#      context.drawImage(img, 0, 0, canvas.width, canvas.height);#}
-        {#    }#}
-        {#});#}
 
         if (file) {
             pcpFileNameDisplay.textContent = `Selected file: ${file.name}`;
@@ -494,11 +463,9 @@
                     single_bed_temp: document.getElementById('single_bed_temp').value
                 },
                 success: function (data) {
-                    console.log("success send pcp file")
+                    console.log("success send params to printer")
                 }
             });
-
-            console.log("Run PCP File")
         }
 
       function updatePlot() {

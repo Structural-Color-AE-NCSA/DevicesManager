@@ -3,6 +3,8 @@ from flask import Flask, Response, render_template, url_for, flash, redirect, Bl
     send_from_directory, abort
 
 import time
+
+from utilities.messenger import Messenger, gen_fake_message
 from .auth import role_required
 
 from flask import jsonify
@@ -16,7 +18,6 @@ from flask_paginate import Pagination, get_page_args
 from .config import Config
 import logging
 from time import gmtime
-from flask_socketio import SocketIO
 
 logging.Formatter.converter = gmtime
 logging.basicConfig(level=logging.INFO, datefmt='%Y-%m-%dT%H:%M:%S',
@@ -27,15 +28,7 @@ devicebp = Blueprint('device', __name__, url_prefix=Config.URL_PREFIX + '/device
 
 pcp_file = PCPFile()
 printing_params = PrintingParams()
-# app = Flask(__name__)
-# socketio = SocketIO(app)
-# socketio.run(app, allow_unsafe_werkzeug=True, logger=True, engineio_logger=True, cors_allowed_origins="*")
-# camera_frames = CameraFrames(SOCKET_IO)
 grid_plot = GridPlot()
-
-
-def init_socketio(socketio):
-    camera_frames = CameraFrames(socketio)
 
 
 shape_x = 0
@@ -178,9 +171,14 @@ def send_pcp_file():
 
     if filename == '' or cell_ids == '' or campaign_name == '':
         return "fail", 400
-
+    print(f'PCP File Name: {filename}')
+    path_to_pcp_file = os.path.join(os.getcwd(), 'pcp', filename)
+    file_content = ""
+    with open(path_to_pcp_file, 'r') as file:
+        file_content = file.read()
+    # save campaign to db
     new_campaign_doc = {"campaignName": campaign_name, "submitter": session['name'],
-                        "filename": filename, "cell_ids": cell_ids, "status": "running"}
+                        "filename": filename, "cell_ids": cell_ids, "status": "running", "filepath": path_to_pcp_file}
     insert_result = insert_one(current_app.config['CAMPAIGNS_COLLECTION'], document=new_campaign_doc)
 
     if insert_result.inserted_id is None:
@@ -191,12 +189,6 @@ def send_pcp_file():
     __logger.info("successfully inserted new campaign " + campaign_name)
 
     campaign_id = str(insert_result.inserted_id)
-
-    print(f'PCP File Name: {filename}')
-    path_to_pcp_file = os.path.join(os.getcwd(), 'pcp', filename)
-    file_content = ""
-    with open(path_to_pcp_file, 'r') as file:
-        file_content = file.read()
 
     if len(cell_ids) == 0:  # relative postions
         pcp_commands = file_content + "Done\n"
@@ -289,62 +281,31 @@ def start_campaign():
                            )
 
 
-@devicebp.route('/campaign/all', methods=['GET'])
-@role_required("user")
-def get_all_campaigns():
-    if 'from' in session:
-        start = session['from']
-        end = session['to']
-    else:
-        start = ""
-        end = ""
-    groups = ["test"]
-    # groups, _ = get_admin_groups()
-
-    if 'select_status' in session:
-        select_status = session['select_status']
-    else:
-        select_status = ['connected']
-        session['select_status'] = select_status
-    try:
-        page, per_page, offset = get_page_args(page_parameter='page', per_page_parameter='per_page')
-    except ValueError:
-        page = 1
-
-    if 'per_page' in session:
-        per_page = session['per_page']
-    else:
-        per_page = Config.PER_PAGE
-        session['per_page'] = per_page
-    offset = (page - 1) * per_page
-
-    response = find_all(current_app.config['CAMPAIGNS_COLLECTION'])
-    if page <= 0 or offset >= len(response):
-        offset = 0
-        page = 1
-
-    posts_dic, total = get_all_device_status_pagination(offset, per_page, response)
-    total_devices_count = total
-    pagination = Pagination(page=page, per_page=per_page, total=total, css_framework='bootstrap4')
-
-    return render_template("campaigns/existing-campaings.html", posts_dic = posts_dic,
-                            select_status=select_status, page=page,
-                            per_page=per_page, pagination_links=pagination.links,
-                            isUser=True, start=start, end=end, page_config=Config.EVENTS_PER_PAGE,
-                            groups=groups,
-                            selected_group=session.get('group'))
-
 @devicebp.route('/stream')
 @role_required("user")
 def stream():
+    from random import randrange
+    stream_id = randrange(10)
     def generate():
-        from random import randrange
-        while True:
-            time.sleep(1)  # Simulate some delay
-            data = dict()
-            data['cell_id'] = randrange(400)
-            data['color'] = 'red'
-            # yield jsonify(data) + "\n\n"  # Format for SSE
-            yield f"data:" + json.dumps(data) +"\n\n"  # Format for SSE
+
+        messenger = Messenger("test")
+        gen_fake_message(messenger)
+        try:
+            while True:
+                # time.sleep(1)  # Simulate some delay
+
+                generator = messenger.get_message()
+                for data in generator:
+                    # print("Processing:", item)
+
+                    # data = dict()
+                    # data['cell_id'] = randrange(400)
+                    # data['color'] = 'red'
+                    # print("stream " + str(stream_id) + " " + str(data))
+                    # yield jsonify(data) + "\n\n"  # Format for SSE
+                    # yield f"data:" + json.dumps(data) +"\n\n"  # Format for SSE
+                    yield f"data:" + data + "\n\n"  # Format for SSE
+        finally:
+            print("stream " + str(stream_id) +" CLOSED!")
 
     return Response(generate(), content_type='text/event-stream')

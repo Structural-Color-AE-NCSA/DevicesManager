@@ -31,18 +31,23 @@ class PCPFile(object):
     def pcp_movement_done_process(self, ch, method, properties, body):
         cell_id = json.loads(body.decode('utf-8')).get('cell_id')
         payload = json.dumps({'cell_id': cell_id})
-
+        #campaign_id to get campaign record from db
         # Sending a POST request
+        #TODO: store the cell id and color info to db
+        #TODO: update frontend
+        #TODO: check if campaign is done then update the campaign status to done in db
+        #TODO: if campaign is done, then terminiate the live cell color update.
+
         #TODO: use session token
-        url = Config.INTERNAL_HOST_URL+"devices-manager/device/update_pcp_plot"
-        payload = json.dumps({'cell_id': cell_id})
-        headers = {'Content-Type': 'application/json'}
-        response = requests.post(url, data=payload, headers=headers)
-        if response.status_code == 200:
-            print("Request was successful!")
-            # print("Response JSON:", response.json())
-        else:
-            print(f"Failed with status code: {response.status_code}")
+        # url = Config.INTERNAL_HOST_URL+"devices-manager/device/update_pcp_plot"
+        # payload = json.dumps({'cell_id': cell_id})
+        # headers = {'Content-Type': 'application/json'}
+        # response = requests.post(url, data=payload, headers=headers)
+        # if response.status_code == 200:
+        #     print("Request was successful!")
+        #     # print("Response JSON:", response.json())
+        # else:
+        #     print(f"Failed with status code: {response.status_code}")
 
     def on_message(self, ch, method, properties, body):
         # print(f" [x] {method.routing_key}:{body}")

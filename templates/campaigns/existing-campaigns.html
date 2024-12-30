@@ -112,12 +112,6 @@
             <button id="time-range-reset" type="button" class="grey-background-button" style="margin-bottom: 3px" onclick="document.getElementById('from').value='';document.getElementById('to').value=''">Reset</button>
         </div>
 
-{#      <select title="Events Per Page" id="per_page" class="form-control w-auto">#}
-{#          {% for key in page_config %}#}
-{#              <option value = "{{key}}"{% if per_page == key %}selected{% endif %}>{{key}}</option>#}
-{#          {% endfor %}#}
-{#      </select>#}
-
       <div class="perpage-create-menu eventsmanager-perpage-dropdown-menu">
         <input type="text" id="per_page" name="per_page" value='{{ per_page }}' class="form-control dropdown-menu-inputfield" placeholder="Choose events per page" readonly>
           <div class="dropdown-line"></div>
@@ -131,16 +125,6 @@
 
       <span title="Events Per Page" style="margin-top: 5px">Events Per Page</span>
       </div>
-    <!-- comment out search GUI
-      <form class="form-inline" id ="searchform" action="{{ url_for('user_events.user_events')}}" method="post">
-        <div>
-          <button type="submit" class="btn btn-outline-primary mb-2">Search</button>
-        </div>
-        <div class="form-group mx-sm-2 mb-2">
-          <input type="text" class="form-control" name = "searchInput" placeholder="Search Events..." aria-label="Search">
-        </div>
-      </form>
-      -->
     </div>
 
 
@@ -152,36 +136,14 @@
             <div class="card">
               <div class="card-header" role="tab", id = "head">
                 <div class = "col-12 col-md-11" style="overflow: hidden; padding-top: 3px; padding-bottom: 3px">
-                  <a href="{{ url_for('device.start_campaign') }}" class="btn btn-default ml-auto float-left" >
+                  <a href="{{ url_for('campaign.campaign', id=eventID) }}" class="btn btn-default ml-auto float-left" >
                       {% if posts_dic[eventID][0].title|length > 76 %}
                       <h5 class="mb-0" align="left" style="width: 680px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ posts_dic[eventID][0].campaignName }}</h5>
                       {% else %}
                       <h5 class="mb-0" align="left" style="overflow:hidden; white-space:nowrap">{{ posts_dic[eventID][0].campaignName }}</h5>
                       {% endif %}
                   </a>
-{#                  <div>#}
-{#                      {% if posts_dic[eventID][0].isConnected %}#}
-{#                          <div class="badge badge-pill badge-primary small-body-text connected-badge super-event-badge-text">Connected</div>#}
-{#                      {% else %}#}
-{#                          <div class="badge badge-pill badge-primary small-body-text disconnected-badge super-event-badge-text">Disconnected</div>#}
-{#                      {% endif %}#}
-{#                  </div>#}
                 </div>
-
-{#                <div class = "col-12 col-md-11" style="overflow: hidden; padding-top: 3px; padding-bottom: 3px">#}
-{#                     <div class="form-check form-check-inline align-right">#}
-{#                          <label class="form-check-label" for="materialInline4">#}
-{#                            <a class="notification-button" role="button" onclick="deviceActivate({{ posts_dic[eventID][0]['_id'] }})">Activate</a>#}
-{#                          </label>#}
-{#                      </div>#}
-{##}
-{#                      <div class="form-check form-check-inline align-right">#}
-{#                          <label class="form-check-label" for="materialInline4">#}
-{#                            <a class="white-background-button" role="button" onclick="deviceDeactivate({{ posts_dic[eventID][0]['_id'] }})">Deactivate</a>#}
-{#                          </label>#}
-{#                      </div>#}
-{#                </div>#}
-                
               </div>
           </div>
         {% endfor%}
