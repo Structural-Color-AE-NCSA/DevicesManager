@@ -343,17 +343,6 @@
         const pcpFileNameDisplay = document.getElementById('custom-file-label');
         document.getElementById('file').addEventListener('change', function(event) {
         const file = event.target.files[0];
-        debugger
-        var source = new EventSource("{{ url_for('device.stream') }}")
-        source.onmessage = function (event) {
-            data = JSON.parse(event.data)
-            cell_id = data['cell_id']
-            color = data['color']
-            cell = document.querySelectorAll(`[cellid='${cell_id}']`)[0];
-            cell.style.background='#9ACD32'
-            cell.setAttribute('colors', cell.style.background);
-            cell.getElementsByTagName('span')[0].innerText = cell.style.background
-        };
 
         if (file) {
             pcpFileNameDisplay.textContent = `Selected file: ${file.name}`;
@@ -513,6 +502,21 @@
             success: function(data){
                 document.getElementById("campaign_name").innerHTML = data['campaign_name']
                 console.log("success send pcp file")
+                campaign_id = data['campaign_id']
+                debugger
+                var sourceUrl = "{{ url_for('device.stream', _external=True) }}?campaign_id="+campaign_id;
+
+                var source = new EventSource(sourceUrl)
+                source.onmessage = function (event) {
+                    data = JSON.parse(event.data)
+                    cell_id = data['cell_id']
+                    color = data['color']
+                    cell = document.querySelectorAll(`[cellid='${cell_id}']`)[0];
+                    cell.style.background='#9ACD32'
+                    cell.setAttribute('colors', cell.style.background);
+                    cell.getElementsByTagName('span')[0].innerText = cell.style.background
+                };
+
             }
         });
         console.log("Run a campaign")

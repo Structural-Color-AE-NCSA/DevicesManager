@@ -85,3 +85,34 @@ def campaign(id):
     return render_template("campaigns/campaign.html", post=campaign, pcp_file_contents = pcp_file_contents,
                            isUser=True
                            )
+
+
+@campaigns_bp.route('/campaign/<campaign_id>/update_cell_color', methods=['POST'])
+# @role_required("user")
+def update_cell_color(campaign_id):
+    data = json.loads(request.data)
+    cell_id = data.get('cell_id')
+    cell_color = data.get('cell_color')
+    update_cell = {"cell_id": cell_id, "cell_color": cell_color}
+    campaign = find_one(current_app.config['CAMPAIGNS_COLLECTION'], condition={'_id': ObjectId(campaign_id)})
+    cells = campaign.get('cells')
+    if cells is None:
+        cells = list()
+    existing_cell = False
+    for cell in cells:
+        if cell.get('cell_id') == update_cell.get('cell_id'):
+            cell['cell_color'] = update_cell.get('cell_color')
+            existing_cell = True
+    if not existing_cell:
+        cells.append(update_cell)
+    # save to db
+    result = find_one_and_update(current_app.config['CAMPAIGNS_COLLECTION'], condition={"_id": ObjectId(campaign_id)},
+                                 update={
+                                     "$set": {"cells": cells}
+                                 })
+
+    # update front grid cells
+    messenger = Messenger(campaign_id)
+    messenger.send_message(json.dumps(update_cell))
+    response = "success update cell " + str(cell_id) + " color done"
+    return jsonify([response]), 200

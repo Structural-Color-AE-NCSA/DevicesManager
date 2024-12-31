@@ -31,7 +31,7 @@ from .user_events import userbp as user_bp
 from .device import devicebp as device_bp
 from .management import  bp as management_bp
 from .devices_listing import devices_listing_bp as devices_listing_bp
-from .campaigns import campaigns_bp as campaigns_bp
+from .campaign import campaigns_bp as campaigns_bp
 from flask_cors import CORS
 
 

@@ -285,17 +285,18 @@ def start_campaign():
 @role_required("user")
 def stream():
     from random import randrange
-    stream_id = randrange(10)
+    campaign_id = request.args.get('campaign_id')
+    stream_id = campaign_id
     def generate():
-
-        messenger = Messenger("test")
-        gen_fake_message(messenger)
+        messenger = Messenger(campaign_id)
+        # gen_fake_message(messenger)
         try:
             while True:
                 # time.sleep(1)  # Simulate some delay
 
                 generator = messenger.get_message()
                 for data in generator:
+                    print(f"data:" + data)
                     # print("Processing:", item)
 
                     # data = dict()

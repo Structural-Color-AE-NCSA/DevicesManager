@@ -50,13 +50,15 @@ def gen_fake_message(messenger):
     producer_thread.start()
 
 
-def gen_data(obj):
+def gen_data(obj, cell_id = None, cell_color = None):
     from random import randrange
     print("start to generate messages")
     while True:
         data = dict()
-        data['cell_id'] = randrange(400)
-        data['color'] = 'red'
+        if cell_id is None:
+            data['cell_id'] = randrange(400)
+        if cell_color is None:
+            data['color'] = 'red'
         # print("send " + json.dumps(data))
         obj.send_message(json.dumps(data))
         time.sleep(2)
