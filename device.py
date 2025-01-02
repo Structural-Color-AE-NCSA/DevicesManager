@@ -168,6 +168,8 @@ def send_pcp_file():
     filename = request.form.get('pcpFileName')
     cell_ids = request.form.get('cell_ids')
     campaign_name = request.form.get('campaignName')
+    grid_ncols = int(request.form.get('grid_ncols'))
+    grid_nrows = int(request.form.get('grid_nrows'))
 
     if filename == '' or cell_ids == '' or campaign_name == '':
         return "fail", 400
@@ -178,6 +180,7 @@ def send_pcp_file():
         file_content = file.read()
     # save campaign to db
     new_campaign_doc = {"campaignName": campaign_name, "submitter": session['name'],
+                        "grid_ncols": grid_ncols, "grid_nrows": grid_nrows,
                         "filename": filename, "cell_ids": cell_ids, "status": "running", "filepath": path_to_pcp_file}
     insert_result = insert_one(current_app.config['CAMPAIGNS_COLLECTION'], document=new_campaign_doc)
 

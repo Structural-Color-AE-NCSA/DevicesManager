@@ -162,30 +162,6 @@
   {% include 'events/select_status.html' %}
   <script src="..\static\js\user-events.js"></script>
   <script>
-        function deviceActivate(deviceID) {
-             $.ajax({
-                url: "{{ url_for('devices_listing.activate') }}",
-                dataType: 'json',
-                type: 'POST',
-                data: {
-                    id: deviceID,
-                }
-            }).always(function () {
-                location.reload(true);
-            });
-        }
-        function deviceDeactivate(deviceID) {
-            $.ajax({
-                url: "{{ url_for('devices_listing.deactivate') }}",
-                dataType: 'json',
-                type: 'POST',
-                data: {
-                    id: deviceID,
-                }
-            }).always(function () {
-                location.reload(true);
-            });
-        }
         function dropDownMenuShow(id, value) {
               document.getElementById(id).value = value
           }

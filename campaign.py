@@ -1,7 +1,7 @@
 import traceback
 from flask import Flask, Response, render_template, url_for, flash, redirect, Blueprint, request, session, current_app, \
     send_from_directory, abort
-
+from bson.json_util import dumps, loads
 import time
 
 from utilities.messenger import Messenger, gen_fake_message
@@ -77,12 +77,14 @@ def get_all_campaigns():
 @role_required("user")
 def campaign(id):
     campaign = find_one(current_app.config['CAMPAIGNS_COLLECTION'], condition={'_id': ObjectId(id)})
+    grids = {'grid_ncols': campaign.get('grid_ncols'), 'grid_nrows': campaign.get('grid_nrows')}
     pcp_file_contents = None
     if 'filepath' in campaign:
         with open(campaign['filepath'], 'r') as file:
             # Read the entire contents of the file
             pcp_file_contents = file.read()
-    return render_template("campaigns/campaign.html", post=campaign, pcp_file_contents = pcp_file_contents,
+    return render_template("campaigns/campaign.html", post=campaign, campaign_id = id, grids = grids,
+                           cells = json.loads(dumps(campaign['cells'])), pcp_file_contents = pcp_file_contents,
                            isUser=True
                            )
 

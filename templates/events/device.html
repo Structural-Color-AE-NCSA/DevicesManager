@@ -362,6 +362,8 @@
                     const shape_x = data.shape_x;
                     const shape_y = data.shape_y;
                     console.log("fetchPCPPlotData")
+                    document.getElementById('file-content').setAttribute('ncols', ncols)
+                    document.getElementById('file-content').setAttribute('nrows', nrows)
 
                     const gridContainer = document.getElementById('grid-container');
                     gridContainer.innerHTML = '';
@@ -497,15 +499,19 @@
             data: {
                 campaignName: document.getElementById('campaign-name').value,
                 pcpFileName: pcpFileName,
-                cell_ids: document.getElementById('cell-ids').value
+                cell_ids: document.getElementById('cell-ids').value,
+                grid_ncols: document.getElementById('file-content').getAttribute('ncols'),
+                grid_nrows: document.getElementById('file-content').getAttribute('nrows')
             },
-            success: function(data){
+            success: function(data) {
                 document.getElementById("campaign_name").innerHTML = data['campaign_name']
                 console.log("success send pcp file")
                 campaign_id = data['campaign_id']
+                let baseUrl = "{{ url_for('campaign.campaign', id='') }}";
+                let redirect_url = baseUrl + campaign_id;
+                window.location.href = redirect_url;
                 debugger
                 var sourceUrl = "{{ url_for('device.stream', _external=True) }}?campaign_id="+campaign_id;
-
                 var source = new EventSource(sourceUrl)
                 source.onmessage = function (event) {
                     data = JSON.parse(event.data)

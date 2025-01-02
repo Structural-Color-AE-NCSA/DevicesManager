@@ -67,6 +67,13 @@
                 </div>
                 <p id="campaign_name" class="col-sm-9 small-body-text">{{post.campaignName}}</p>
               </div>
+
+              <div class="row">
+                <div class="col-12 col-sm-3">
+                  <h5>Status </h5>
+                </div>
+                <p id="campaign_name" class="col-sm-9 small-body-text">{{post.status}}</p>
+              </div>
           </div>
 
         </div>
@@ -118,7 +125,7 @@
 
           <div class="row">
               <div class="col-12 col-sm-2" id="longDes">
-                <h5> Plots</h5>
+                <h5> Colorization </h5>
               </div>
               <div id="grid-container" class="grid-container"></div>
             </div>
@@ -173,10 +180,33 @@
   <!-- add js for local date format -->
   {% block scripts %}
     {{super()}}
+      <script src="..\static\js\campaign-grid.js"></script>
       <script src="https://unpkg.com/blob-compare@latest"></script>
       <script src="https://cdn.jsdelivr.net/gh/liqueurdetoile/blob-compare@latest/dist/index.min.js"></script>
     <script>
-
+        debugger
+        const gridContainer = document.getElementById('grid-container');
+        let campaign = {{ grids | tojson }}
+        const campaign_id = "{{ campaign_id }}"
+        const cells = {{ cells | tojson }}
+        render_grid(gridContainer, campaign.grid_nrows, campaign.grid_ncols)
+        for (const cell of cells) {
+          color_cell(cell['cell_id'], cell['color'])
+        }
+        if("{{ post.status }}" === "running") {
+            const sourceUrl = "{{ url_for('device.stream', _external=True) }}?campaign_id=" + campaign_id;
+            const source = new EventSource(sourceUrl)
+            source.onmessage = function (event) {
+                data = JSON.parse(event.data)
+                cell_id = data['cell_id']
+                color = data['color']
+                color_cell(cell_id, color)
+                {#cell = document.querySelectorAll(`[cellid='${cell_id}']`)[0];#}
+                {#cell.style.background = '#9ACD32'#}
+                {#cell.setAttribute('colors', cell.style.background);#}
+                {#cell.getElementsByTagName('span')[0].innerText = cell.style.background#}
+            };
+        }
 
     </script>
 
