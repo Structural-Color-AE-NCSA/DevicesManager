@@ -30,7 +30,8 @@ class PCPFile(object):
 
     def pcp_movement_done_process(self, ch, method, properties, body):
         cell_id = json.loads(body.decode('utf-8')).get('cell_id')
-        payload = json.dumps({'cell_id': cell_id})
+        campaign_id = json.loads(body.decode('utf-8')).get('campaign_id')
+        payload = json.dumps({'cell_id': cell_id, 'campaign_id': campaign_id})
         #campaign_id to get campaign record from db
         # Sending a POST request
         #TODO: store the cell id and color info to db

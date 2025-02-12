@@ -84,7 +84,7 @@ def campaign(id):
             # Read the entire contents of the file
             pcp_file_contents = file.read()
     return render_template("campaigns/campaign.html", post=campaign, campaign_id = id, grids = grids,
-                           cells = json.loads(dumps(campaign['cells'])), pcp_file_contents = pcp_file_contents,
+                           cells = json.loads(dumps(campaign.get('cells'))), pcp_file_contents = pcp_file_contents,
                            isUser=True
                            )
 
@@ -94,8 +94,14 @@ def campaign(id):
 def update_cell_color(campaign_id):
     data = json.loads(request.data)
     cell_id = data.get('cell_id')
+    bed_temp = data.get('BedTemp')
+    pressure = data.get('Pressure')
+    print_speed = data.get('PrintSpeed')
+    z_height = data.get('ZHeight')
     cell_color = data.get('cell_color')
-    update_cell = {"cell_id": cell_id, "cell_color": cell_color}
+    update_cell = {"cell_id": cell_id, "cell_color": cell_color,
+                   "bed_temp": bed_temp, "pressure": pressure,
+                   "print_speed": print_speed, "z_height": z_height}
     campaign = find_one(current_app.config['CAMPAIGNS_COLLECTION'], condition={'_id': ObjectId(campaign_id)})
     cells = campaign.get('cells')
     if cells is None:

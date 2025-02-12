@@ -193,6 +193,7 @@
         for (const cell of cells) {
           color_cell(cell['cell_id'], cell['color'])
         }
+
         if("{{ post.status }}" === "running") {
             const sourceUrl = "{{ url_for('device.stream', _external=True) }}?campaign_id=" + campaign_id;
             const source = new EventSource(sourceUrl)
@@ -206,6 +207,18 @@
                 {#cell.setAttribute('colors', cell.style.background);#}
                 {#cell.getElementsByTagName('span')[0].innerText = cell.style.background#}
             };
+            source.onclose = function() {
+              console.log("Connection closed");
+            };
+        }
+
+        if (window.performance) {
+          console.info("window.performance works fine on this browser");
+        }
+        console.info(performance.navigation.type);
+        if (performance.navigation.type == performance.navigation.TYPE_RELOAD) {
+          {#reload page#}
+
         }
 
     </script>

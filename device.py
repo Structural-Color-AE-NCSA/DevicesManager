@@ -206,7 +206,7 @@ def send_pcp_file():
             start_point_pos = "axes.startPoint(" + X + " " + Y + " " + Z + ")"
             print(start_point_pos)
             pcp_commands = start_point_pos + "\r\n" + file_content + "Done\n"
-            pcp_file.send_pcp_file(pcp_commands, int(cell_id))
+            pcp_file.send_pcp_file(campaign_id, pcp_commands, int(cell_id))
 
     # for filename in request.form:
     #     print(f'PCP File Name: {filename}')
@@ -287,28 +287,20 @@ def start_campaign():
 @devicebp.route('/stream')
 @role_required("user")
 def stream():
-    from random import randrange
     campaign_id = request.args.get('campaign_id')
     stream_id = campaign_id
+    print("stream " + str(stream_id) + " open")
     def generate():
         messenger = Messenger(campaign_id)
         # gen_fake_message(messenger)
         try:
             while True:
-                # time.sleep(1)  # Simulate some delay
-
                 generator = messenger.get_message()
                 for data in generator:
                     print(f"data:" + data)
-                    # print("Processing:", item)
-
-                    # data = dict()
-                    # data['cell_id'] = randrange(400)
-                    # data['color'] = 'red'
-                    # print("stream " + str(stream_id) + " " + str(data))
-                    # yield jsonify(data) + "\n\n"  # Format for SSE
-                    # yield f"data:" + json.dumps(data) +"\n\n"  # Format for SSE
                     yield f"data:" + data + "\n\n"  # Format for SSE
+        except GeneratorExit:
+            print("Client disconnected, cleaning up resources.")
         finally:
             print("stream " + str(stream_id) +" CLOSED!")
 

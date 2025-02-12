@@ -6,8 +6,8 @@ class GridCells:
     RawBd_x = 282;  # mm of space in x-direction
 
     # ---------------Define area of bed to be printed on.
-    EdgeSpace_y = 5;  # mm of space from edge in both sides in y-direction
-    EdgeSpace_x = 5;  # mm of space from edge in both sides in x-direction
+    EdgeSpace_y = 10;  # mm of space from edge in both sides in y-direction
+    EdgeSpace_x = 10;  # mm of space from edge in both sides in x-direction
 
     PrintBd_y = RawBd_y - (2 * EdgeSpace_y);  # Subtract edge spacing from Raw area
     PrintBd_x = RawBd_x - (2 * EdgeSpace_x);  # Subtract edge spacing from Raw area
@@ -20,7 +20,7 @@ class GridCells:
     # =============================================================================
     # ---------------------CREATE GRID THAT HOLDS ACTUAL POSITIONS-----------------
     # =============================================================================
-    Z = 2;  # in mm
+    Z = 0;  # in mm
     # Z movement will need to be defined by G-Code somehow
     xPos = 0;
     yPos = 0;
