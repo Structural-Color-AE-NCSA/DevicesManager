@@ -1,0 +1,6 @@
+volumes:
+  clowder-data:
+    driver_opts:
+      type: none
+      device: /Users/bing/fit/fitclowder/D/clowder/data
+      o: bind
