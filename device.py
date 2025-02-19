@@ -225,7 +225,7 @@ def send_pcp_file():
         #     pcp_commands = start_point_pos + "\r\n" + file_content + "Done\n"
         #     pcp_file.send_pcp_file(campaign_id, pcp_commands, int(cell_id), bed_temp, print_speed, pressure)
 
-        cell_id = 0
+        cell_id = 50
         abs_x, abs_y = grid_plot.get_top_left_corner_pos_by_cell_id(int(cell_id))
         X = "\"X=" + str(abs_x)
         Y = "Y=" + str(abs_y)

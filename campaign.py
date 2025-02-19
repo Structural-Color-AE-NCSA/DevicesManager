@@ -127,7 +127,7 @@ def update_cell_color(campaign_id):
     file_content = ""
     with open(path_to_pcp_file, 'r') as file:
         file_content = file.read()
-    if int(next_cell_id) == 3:
+    if int(next_cell_id) >= 3:
         print("campaign {} is done".format(campaign_id))
         find_one_and_update(current_app.config['CAMPAIGNS_COLLECTION'],
                                      condition={"_id": ObjectId(campaign_id)},
