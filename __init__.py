@@ -32,7 +32,7 @@ from .device import devicebp as device_bp
 from .management import  bp as management_bp
 from .devices_listing import devices_listing_bp as devices_listing_bp
 from .campaign import campaigns_bp as campaigns_bp
-from flask_cors import CORS
+# from flask_cors import CORS
 
 
 logging.Formatter.converter = gmtime
@@ -49,7 +49,7 @@ def create_app(config_class=Config):
         prefix = None
         staticpath = '/static'
     app = Flask(__name__, static_url_path=staticpath)
-    CORS(app)
+    # CORS(app)
     app.config.from_object(Config)
 
     __logger.info("Manager starts.")

@@ -16,7 +16,7 @@ requests==2.24.0
 oic==1.2.1
 Flask==3.0.3
 pymongo[tls,srv]==3.10.0
-googlemaps==3.0.2
+#googlemaps==3.0.2
 flask_paginate
 boto3==1.9.188
 Pillow==9.3.0

@@ -54,12 +54,15 @@ def load_pcp_file():
     y_max = 0
     x = 0
     y = 0
+    file_content = file_content.replace(")\n", ")\r\n")
     pcp_commands = file_content.split("\r\n")
     for cmd in pcp_commands:
         if len(cmd) <= 0:
             continue
         print(cmd)
         cmd = cmd.replace("\\n", "\n")
+        if cmd.startswith("#"):
+            continue
         tmp = cmd.split("(")
         command = tmp[0].split(".")
         name = command[0]  # device
@@ -163,13 +166,23 @@ def send_printing_params():
 @devicebp.route('/device/run_pcp_file', methods=['POST'])
 @role_required("user")
 def send_pcp_file():
-    # TODO: create campaign db record
-
     filename = request.form.get('pcpFileName')
     cell_ids = request.form.get('cell_ids')
     campaign_name = request.form.get('campaignName')
     grid_ncols = int(request.form.get('grid_ncols'))
     grid_nrows = int(request.form.get('grid_nrows'))
+    bed_temp = None
+    if request.form.get('bed_temp'):
+        bed_temp = float(request.form.get('bed_temp'))
+    pressure = None
+    if request.form.get('pressure'):
+        pressure = float(request.form.get('pressure'))
+    print_speed = None
+    if request.form.get('print_speed'):
+        print_speed = float(request.form.get('print_speed'))
+    z_abs_height = None
+    if request.form.get('z_abs_height'):
+        z_abs_height = float(request.form.get('z_abs_height'))
 
     if filename == '' or cell_ids == '' or campaign_name == '':
         return "fail", 400
@@ -181,6 +194,8 @@ def send_pcp_file():
     # save campaign to db
     new_campaign_doc = {"campaignName": campaign_name, "submitter": session['name'],
                         "grid_ncols": grid_ncols, "grid_nrows": grid_nrows,
+                        "bed_temp": bed_temp, "pressure": pressure,
+                        "print_speed": print_speed, "z_abs_height": z_abs_height,
                         "filename": filename, "cell_ids": cell_ids, "status": "running", "filepath": path_to_pcp_file}
     insert_result = insert_one(current_app.config['CAMPAIGNS_COLLECTION'], document=new_campaign_doc)
 
@@ -197,17 +212,30 @@ def send_pcp_file():
         pcp_commands = file_content + "Done\n"
         pcp_file.send_pcp_file(pcp_commands, -1)
     else:
-        cells = [item.strip() for item in cell_ids.split(',')]
-        for cell_id in cells:
-            abs_x, abs_y = grid_plot.get_top_left_corner_pos_by_cell_id(int(cell_id))
-            X = "\"X=" + str(abs_x)
-            Y = "Y=" + str(abs_y)
-            Z = "Z=21.4" + "\""
-            start_point_pos = "axes.startPoint(" + X + " " + Y + " " + Z + ")"
-            print(start_point_pos)
-            pcp_commands = start_point_pos + "\r\n" + file_content + "Done\n"
-            pcp_file.send_pcp_file(campaign_id, pcp_commands, int(cell_id))
+        # cells = [item.strip() for item in cell_ids.split(',')]
+        # for cell_id in cells:
+        #     abs_x, abs_y = grid_plot.get_top_left_corner_pos_by_cell_id(int(cell_id))
+        #     X = "\"X=" + str(abs_x)
+        #     Y = "Y=" + str(abs_y)
+        #     Z = "Z=21.4" + "\""
+        #     if z_abs_height:
+        #         Z = "Z="+str(z_abs_height) + "\""
+        #     start_point_pos = "axes.startPoint(" + X + " " + Y + " " + Z + ")"
+        #     print(start_point_pos)
+        #     pcp_commands = start_point_pos + "\r\n" + file_content + "Done\n"
+        #     pcp_file.send_pcp_file(campaign_id, pcp_commands, int(cell_id), bed_temp, print_speed, pressure)
 
+        cell_id = 0
+        abs_x, abs_y = grid_plot.get_top_left_corner_pos_by_cell_id(int(cell_id))
+        X = "\"X=" + str(abs_x)
+        Y = "Y=" + str(abs_y)
+        Z = "Z=21.4" + "\""
+        if z_abs_height:
+            Z = "Z="+str(z_abs_height) + "\""
+        start_point_pos = "axes.startPoint(" + X + " " + Y + " " + Z + ")"
+        print(start_point_pos)
+        pcp_commands = start_point_pos + "\r\n" + file_content + "Done\n"
+        pcp_file.send_pcp_file(campaign_id, pcp_commands, int(cell_id), bed_temp, print_speed, pressure)
     # for filename in request.form:
     #     print(f'PCP File Name: {filename}')
     #     path_to_pcp_file = os.path.join(os.getcwd(), 'pcp', filename)
@@ -230,7 +258,6 @@ def send_pcp_file():
     # time.sleep(1)
     # pcp_file.send_pcp_file(file_content, 6+grid_plot.get_cell_id())
     return jsonify({"campaign_name": campaign_name, "campaign_id": campaign_id}), 200
-
 
 @devicebp.route('/pcp_plot')
 def pcp_plot():

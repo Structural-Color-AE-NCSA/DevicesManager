@@ -25,7 +25,7 @@ from flask import current_app
 from .constants import *
 from . import event_time_conversion
 import xml.etree.ElementTree as ET
-import googlemaps
+# import googlemaps
 import requests
 import traceback
 import logging

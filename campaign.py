@@ -20,6 +20,8 @@ import logging
 from time import gmtime
 from flask_socketio import SocketIO
 
+from .device import pcp_file, grid_plot
+
 logging.Formatter.converter = gmtime
 logging.basicConfig(level=logging.INFO, datefmt='%Y-%m-%dT%H:%M:%S',
                     format='%(asctime)-15s.%(msecs)03dZ %(levelname)-7s [%(threadName)-10s] : %(name)s - %(message)s')
@@ -118,6 +120,31 @@ def update_cell_color(campaign_id):
                                  update={
                                      "$set": {"cells": cells}
                                  })
+
+    #TODO: increase the cell id and the runt he next experiment
+    next_cell_id = 1 + cell_id
+    path_to_pcp_file = os.path.join(os.getcwd(), 'pcp', campaign['filepath'])
+    file_content = ""
+    with open(path_to_pcp_file, 'r') as file:
+        file_content = file.read()
+    if int(next_cell_id) == 3:
+        print("campaign {} is done".format(campaign_id))
+        find_one_and_update(current_app.config['CAMPAIGNS_COLLECTION'],
+                                     condition={"_id": ObjectId(campaign_id)},
+                                     update={
+                                         "$set": {"status": "done"}
+                                     })
+    else:
+        abs_x, abs_y = grid_plot.get_top_left_corner_pos_by_cell_id(int(next_cell_id))
+        X = "\"X=" + str(abs_x)
+        Y = "Y=" + str(abs_y)
+        Z = "Z=21.4" + "\""
+        if z_height:
+            Z = "Z="+str(z_height) + "\""
+        start_point_pos = "axes.startPoint(" + X + " " + Y + " " + Z + ")"
+        print(start_point_pos)
+        pcp_commands = start_point_pos + "\r\n" + file_content + "Done\n"
+        pcp_file.send_pcp_file(campaign_id, pcp_commands, int(cell_id), bed_temp, print_speed, pressure)
 
     # update front grid cells
     messenger = Messenger(campaign_id)

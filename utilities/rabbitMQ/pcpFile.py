@@ -65,12 +65,18 @@ class PCPFile(object):
         if end_pos:
             print("to " + json.dumps(end_pos))
 
-    def send_pcp_file(self, campaign_id, commands, cell_id=-1):
+    def send_pcp_file(self, campaign_id, commands, cell_id=-1,  bed_temp = None, print_speed = None, pressure = None):
         metadata = dict()
         metadata['campaign_id'] = campaign_id
         metadata['cell_id'] = cell_id
         metadata['type'] = 'pcp_commands'
         metadata['data'] = commands
+        if bed_temp:
+            metadata['bed_temp'] = bed_temp
+        if print_speed:
+            metadata['print_speed'] = print_speed
+        if pressure:
+            metadata['pressure'] = pressure
         json_string = json.dumps(metadata)
         self.status_request.send_message('pcp_file', json_string)
         return True
