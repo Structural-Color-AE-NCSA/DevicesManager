@@ -144,7 +144,7 @@ def update_cell_color(campaign_id):
         start_point_pos = "axes.startPoint(" + X + " " + Y + " " + Z + ")"
         print(start_point_pos)
         pcp_commands = start_point_pos + "\r\n" + file_content + "Done\n"
-        pcp_file.send_pcp_file(campaign_id, pcp_commands, int(cell_id), bed_temp, print_speed, pressure)
+        pcp_file.send_pcp_file(campaign_id, pcp_commands, int(next_cell_id), bed_temp, print_speed, pressure)
 
     # update front grid cells
     messenger = Messenger(campaign_id)

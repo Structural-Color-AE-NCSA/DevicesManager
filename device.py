@@ -167,7 +167,7 @@ def send_printing_params():
 @role_required("user")
 def send_pcp_file():
     filename = request.form.get('pcpFileName')
-    cell_ids = request.form.get('cell_ids')
+    starting_cell_id = request.form.get('starting_cell_id')
     campaign_name = request.form.get('campaignName')
     grid_ncols = int(request.form.get('grid_ncols'))
     grid_nrows = int(request.form.get('grid_nrows'))
@@ -184,7 +184,7 @@ def send_pcp_file():
     if request.form.get('z_abs_height'):
         z_abs_height = float(request.form.get('z_abs_height'))
 
-    if filename == '' or cell_ids == '' or campaign_name == '':
+    if filename == '' or campaign_name == '':
         return "fail", 400
     print(f'PCP File Name: {filename}')
     path_to_pcp_file = os.path.join(os.getcwd(), 'pcp', filename)
@@ -196,7 +196,7 @@ def send_pcp_file():
                         "grid_ncols": grid_ncols, "grid_nrows": grid_nrows,
                         "bed_temp": bed_temp, "pressure": pressure,
                         "print_speed": print_speed, "z_abs_height": z_abs_height,
-                        "filename": filename, "cell_ids": cell_ids, "status": "running", "filepath": path_to_pcp_file}
+                        "filename": filename, "starting_cell_id": starting_cell_id, "status": "running", "filepath": path_to_pcp_file}
     insert_result = insert_one(current_app.config['CAMPAIGNS_COLLECTION'], document=new_campaign_doc)
 
     if insert_result.inserted_id is None:
@@ -208,7 +208,7 @@ def send_pcp_file():
 
     campaign_id = str(insert_result.inserted_id)
 
-    if len(cell_ids) == 0:  # relative postions
+    if starting_cell_id == '':  # relative postions
         pcp_commands = file_content + "Done\n"
         pcp_file.send_pcp_file(pcp_commands, -1)
     else:
@@ -225,7 +225,7 @@ def send_pcp_file():
         #     pcp_commands = start_point_pos + "\r\n" + file_content + "Done\n"
         #     pcp_file.send_pcp_file(campaign_id, pcp_commands, int(cell_id), bed_temp, print_speed, pressure)
 
-        cell_id = 50
+        cell_id = int(starting_cell_id)
         abs_x, abs_y = grid_plot.get_top_left_corner_pos_by_cell_id(int(cell_id))
         X = "\"X=" + str(abs_x)
         Y = "Y=" + str(abs_y)

@@ -483,11 +483,8 @@
         }
 
       $("#runpcpbutton").click(function() {
-        console.log(document.getElementById('cell-ids').value)
+        console.log(document.getElementById('starting_cell_id').value)
         if (typeof document.getElementById('campaign-name').value == "undefined" || document.getElementById('campaign-name').value.value == '') {
-            return
-        }
-        if (typeof document.getElementById('cell-ids').value == "undefined" || document.getElementById('cell-ids').value.value == '') {
             return
         }
         if(typeof pcpFileName == "undefined" || pcpFileName == '') {
@@ -499,7 +496,7 @@
             data: {
                 campaignName: document.getElementById('campaign-name').value,
                 pcpFileName: pcpFileName,
-                cell_ids: document.getElementById('cell-ids').value,
+                starting_cell_id: document.getElementById('starting_cell_id').value,
                 grid_ncols: document.getElementById('file-content').getAttribute('ncols'),
                 grid_nrows: document.getElementById('file-content').getAttribute('nrows'),
                 z_abs_height: document.getElementById('z_abs_height').value,
