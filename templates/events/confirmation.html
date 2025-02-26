@@ -48,6 +48,22 @@
             <label for="starting-cell-id" class="col-form-label">Starting Cell ID:</label>
             <input type="text" class="form-control text-input text-input-field" id="starting_cell_id"
                    placeholder="The campaign starting cell id (e.g., 5)" required>
+            <label for="max-loops" class="col-form-label">The Maximum Loops:</label>
+            <input type="text" value="50" class="form-control text-input text-input-field" id="max_loops"
+                   placeholder="The default is 50" required>
+            <hr>
+            <label for="convergence criteria" class="col-form-label">HSV Color Convergence Criteria:</label>
+            <div class="form-group">
+                <label for="hue" class="col-form-label">Hue:</label>
+                <input type="text" style="width: 50%;" class="form-control text-input text-input-field" id="hue"
+                   placeholder="Hue target value">
+                <label for="saturation" class="col-form-label">Saturation:</label>
+                <input type="text" style="width: 50%;" class="form-control text-input text-input-field" id="saturation"
+                   placeholder="Saturation target value">
+                <label for="value" class="col-form-label">Value:</label>
+                <input type="text" style="width: 50%;" class="form-control text-input text-input-field" id="value"
+                   placeholder="Value target value">
+            </div>
         </div>
         {% else %}
         Are you sure you want to start downloading the approved calendars?

@@ -3,7 +3,7 @@ from flask import Flask, Response, render_template, url_for, flash, redirect, Bl
     send_from_directory, abort
 from bson.json_util import dumps, loads
 import time
-
+import math
 from utilities.messenger import Messenger, gen_fake_message
 from .auth import role_required
 
@@ -121,13 +121,27 @@ def update_cell_color(campaign_id):
                                      "$set": {"cells": cells}
                                  })
 
-    #TODO: increase the cell id and the runt he next experiment
     next_cell_id = 1 + cell_id
     path_to_pcp_file = os.path.join(os.getcwd(), 'pcp', campaign['filepath'])
     file_content = ""
     with open(path_to_pcp_file, 'r') as file:
         file_content = file.read()
-    if int(next_cell_id) >= 3:
+
+    hue = campaign.get('hue')
+    saturation = campaign.get('saturation')
+    value = campaign.get('value')
+    h_mu = cell_color.get('h_mu')
+
+    if hue and h_mu:
+        if math.fabs(hue - float(h_mu)) < 0.5:
+            print("campaign {} is done".format(campaign_id))
+            find_one_and_update(current_app.config['CAMPAIGNS_COLLECTION'],
+                                condition={"_id": ObjectId(campaign_id)},
+                                update={
+                                    "$set": {"status": "done"}
+                                })
+
+    elif int(next_cell_id) >= campaign.get('max_loops'):
         print("campaign {} is done".format(campaign_id))
         find_one_and_update(current_app.config['CAMPAIGNS_COLLECTION'],
                                      condition={"_id": ObjectId(campaign_id)},

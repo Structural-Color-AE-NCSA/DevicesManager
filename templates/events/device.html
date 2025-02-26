@@ -503,6 +503,10 @@
                 bed_temp: document.getElementById('single_bed_temp').value,
                 pressure: document.getElementById('single_pressure').value,
                 print_speed: document.getElementById('single_print_speed').value,
+                max_loops: document.getElementById('max_loops').value,
+                hue: document.getElementById('hue').value,
+                saturation: document.getElementById('saturation').value,
+                value: document.getElementById('value').value,
             },
             success: function(data) {
                 document.getElementById("campaign_name").innerHTML = data['campaign_name']

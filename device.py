@@ -171,6 +171,18 @@ def send_pcp_file():
     campaign_name = request.form.get('campaignName')
     grid_ncols = int(request.form.get('grid_ncols'))
     grid_nrows = int(request.form.get('grid_nrows'))
+    max_loops = int(request.form.get('max_loops'))
+
+    hue = None
+    if request.form.get('hue'):
+        hue = float(request.form.get('hue'))
+    saturation = None
+    if request.form.get('saturation'):
+        saturation = float(request.form.get('saturation'))
+    value = None
+    if request.form.get('value'):
+        value = float(request.form.get('value'))
+
     bed_temp = None
     if request.form.get('bed_temp'):
         bed_temp = float(request.form.get('bed_temp'))
@@ -196,6 +208,8 @@ def send_pcp_file():
                         "grid_ncols": grid_ncols, "grid_nrows": grid_nrows,
                         "bed_temp": bed_temp, "pressure": pressure,
                         "print_speed": print_speed, "z_abs_height": z_abs_height,
+                        "max_loops": max_loops, "hue": hue, "saturation": saturation,
+                        "value": value,
                         "filename": filename, "starting_cell_id": starting_cell_id, "status": "running", "filepath": path_to_pcp_file}
     insert_result = insert_one(current_app.config['CAMPAIGNS_COLLECTION'], document=new_campaign_doc)
 
