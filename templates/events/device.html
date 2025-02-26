@@ -409,20 +409,23 @@
                         tooltip.style.transition = 'opacity 0.3s ease';  // Smooth fade transition
 
                         // Append the tooltip to the button
-                        cellButton.appendChild(tooltip);
-                          cellButton.addEventListener('mouseover', () => {
-                          console.log(cellButton.getAttribute('cellid') + ": color: " + cellButton.getAttribute('colors'))
+                        {#cellButton.appendChild(tooltip);#}
+                        cellButton.addEventListener('click', () => {
+                            console.log(cellButton.getAttribute('cellid') + ": color: " + cellButton.getAttribute('colors'))
                         });
-
-                        cellButton.addEventListener('mouseenter', () => {
-                         tooltip.style.visibility = 'visible';  // Show the tooltip
-                         tooltip.style.opacity = '1';  // Fade in
-                        });
-
-                        cellButton.addEventListener('mouseleave', () => {
-                          tooltip.style.visibility = 'hidden';
-                          tooltip.style.opacity = '0'; // Hide the tooltip with opacity
-                        });
+                        {#cellButton.addEventListener('mouseover', () => {#}
+                        {#  console.log(cellButton.getAttribute('cellid') + ": color: " + cellButton.getAttribute('colors'))#}
+                        {#});#}
+                        {##}
+                        {#cellButton.addEventListener('mouseenter', () => {#}
+                        {# tooltip.style.visibility = 'visible';  // Show the tooltip#}
+                        {# tooltip.style.opacity = '1';  // Fade in#}
+                        {#});#}
+                        {##}
+                        {#cellButton.addEventListener('mouseleave', () => {#}
+                        {#  tooltip.style.visibility = 'hidden';#}
+                        {#  tooltip.style.opacity = '0'; // Hide the tooltip with opacity#}
+                        {#});#}
 
                         gridContainer.appendChild(cellButton);
                         if(col == (ncols-1)) {

@@ -90,6 +90,14 @@ def campaign(id):
                            isUser=True
                            )
 
+@campaigns_bp.route('/campaign/<campaign_id>/<cell_id>', methods=['GET'])
+# @role_required("user")
+def get_campaign_cell_info(campaign_id, cell_id):
+    campaign = find_one(current_app.config['CAMPAIGNS_COLLECTION'], condition={'_id': ObjectId(campaign_id)})
+    for cell in campaign.get('cells'):
+        if cell.get('cell_id') == int(cell_id):
+            return jsonify([cell]), 200
+    return jsonify([]), 404
 
 @campaigns_bp.route('/campaign/<campaign_id>/update_cell_color', methods=['POST'])
 # @role_required("user")
@@ -100,8 +108,9 @@ def update_cell_color(campaign_id):
     pressure = data.get('Pressure')
     print_speed = data.get('PrintSpeed')
     z_height = data.get('ZHeight')
+    file_id = data.get('file_id')
     cell_color = data.get('cell_color')
-    update_cell = {"cell_id": cell_id, "cell_color": cell_color,
+    update_cell = {"cell_id": cell_id, "file_id": file_id, "cell_color": cell_color,
                    "bed_temp": bed_temp, "pressure": pressure,
                    "print_speed": print_speed, "z_height": z_height}
     campaign = find_one(current_app.config['CAMPAIGNS_COLLECTION'], condition={'_id': ObjectId(campaign_id)})

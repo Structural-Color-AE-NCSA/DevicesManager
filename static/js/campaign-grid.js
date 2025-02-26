@@ -1,4 +1,4 @@
-function render_grid(gridContainer, nrows, ncols) {
+function render_grid(gridContainer, nrows, ncols, campaign_id) {
     gridContainer.innerHTML = '';
     const relative_button_width = 800/ncols
     const relative_button_height = 900/nrows
@@ -43,22 +43,37 @@ function render_grid(gridContainer, nrows, ncols) {
         tooltip.style.setProperty('white-space', 'nowrap');
 
         tooltip.style.transition = 'opacity 0.3s ease';  // Smooth fade transition
+        cellButton.addEventListener('click', () => {
+            const cellid = cellButton.getAttribute('cellid')
+            const colors = cellButton.getAttribute('colors')
+            if (cellid !== undefined) {
+                $.ajax({
+                    url: campaign_id + "/" + cellid,
+                    dataType: "json",
+                    type: "GET",
+                    success: function (data) {
+                        file_id = data[0].file_id
+                        window.open('http://localhost:8000/files/' + file_id, '_blank').focus();
+                    }
+                });
+            }
+        });
 
         // Append the tooltip to the button
-        cellButton.appendChild(tooltip);
-          cellButton.addEventListener('mouseover', () => {
-          console.log(cellButton.getAttribute('cellid') + ": color: " + cellButton.getAttribute('colors'))
-        });
-
-        cellButton.addEventListener('mouseenter', () => {
-         tooltip.style.visibility = 'visible';  // Show the tooltip
-         tooltip.style.opacity = '1';  // Fade in
-        });
-
-        cellButton.addEventListener('mouseleave', () => {
-          tooltip.style.visibility = 'hidden';
-          tooltip.style.opacity = '0'; // Hide the tooltip with opacity
-        });
+        // cellButton.appendChild(tooltip);
+        //   cellButton.addEventListener('mouseover', () => {
+        //   console.log(cellButton.getAttribute('cellid') + ": color: " + cellButton.getAttribute('colors'))
+        // });
+        //
+        // cellButton.addEventListener('mouseenter', () => {
+        //  tooltip.style.visibility = 'visible';  // Show the tooltip
+        //  tooltip.style.opacity = '1';  // Fade in
+        // });
+        //
+        // cellButton.addEventListener('mouseleave', () => {
+        //   tooltip.style.visibility = 'hidden';
+        //   tooltip.style.opacity = '0'; // Hide the tooltip with opacity
+        // });
 
         gridContainer.appendChild(cellButton);
         if(col == (ncols-1)) {

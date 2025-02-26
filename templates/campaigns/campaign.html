@@ -189,7 +189,7 @@
         let campaign = {{ grids | tojson }}
         const campaign_id = "{{ campaign_id }}"
         const cells = {{ cells | tojson }}
-        render_grid(gridContainer, campaign.grid_nrows, campaign.grid_ncols)
+        render_grid(gridContainer, campaign.grid_nrows, campaign.grid_ncols, campaign_id)
         for (const cell of cells) {
           color_cell(cell['cell_id'], cell['color'])
         }
