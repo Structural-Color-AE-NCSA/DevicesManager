@@ -90,5 +90,5 @@ function color_cell(cell_id, color) {
     cell = document.querySelectorAll(`[cellid='${cell_id}']`)[0];
     cell.style.background = '#9ACD32'
     cell.setAttribute('colors', cell.style.background);
-    cell.getElementsByTagName('span')[0].innerText = cell.style.background
+    // cell.getElementsByTagName('span')[0].innerText = cell.style.background
 }

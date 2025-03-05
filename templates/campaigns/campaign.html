@@ -191,7 +191,7 @@
         const cells = {{ cells | tojson }}
         render_grid(gridContainer, campaign.grid_nrows, campaign.grid_ncols, campaign_id)
         for (const cell of cells) {
-          color_cell(cell['cell_id'], cell['color'])
+          color_cell(cell['cell_id'], cell['cell_color'])
         }
 
         if("{{ post.status }}" === "running") {
