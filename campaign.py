@@ -151,7 +151,7 @@ def update_cell_color(campaign_id):
                                 })
             is_continue = False
     if is_continue:
-        if int(next_cell_id) >= campaign.get('max_loops'):
+        if len(cells) >= campaign.get('max_loops'):
             print("campaign {} is done".format(campaign_id))
             find_one_and_update(current_app.config['CAMPAIGNS_COLLECTION'],
                                          condition={"_id": ObjectId(campaign_id)},
@@ -160,16 +160,19 @@ def update_cell_color(campaign_id):
                                          })
             is_continue = False
         else:
-            abs_x, abs_y = grid_plot.get_top_left_corner_pos_by_cell_id(int(next_cell_id))
-            X = "\"X=" + str(abs_x)
-            Y = "Y=" + str(abs_y)
-            Z = "Z=21.4" + "\""
-            if z_height:
-                Z = "Z="+str(z_height) + "\""
-            start_point_pos = "axes.startPoint(" + X + " " + Y + " " + Z + ")"
-            print(start_point_pos)
-            pcp_commands = start_point_pos + "\r\n" + file_content + "Done\n"
-            pcp_file.send_pcp_file(campaign_id, pcp_commands, int(next_cell_id), bed_temp, print_speed, pressure)
+            try:
+                abs_x, abs_y = grid_plot.get_top_left_corner_pos_by_cell_id(int(next_cell_id))
+                X = "\"X=" + str(abs_x)
+                Y = "Y=" + str(abs_y)
+                Z = "Z=21.4" + "\""
+                if z_height:
+                    Z = "Z="+str(z_height) + "\""
+                start_point_pos = "axes.startPoint(" + X + " " + Y + " " + Z + ")"
+                print(start_point_pos)
+                pcp_commands = start_point_pos + "\r\n" + file_content + "Done\n"
+                pcp_file.send_pcp_file(campaign_id, pcp_commands, int(next_cell_id), bed_temp, print_speed, pressure)
+            except Exception as e:
+                pass
 
     # update front grid cells
     messenger = Messenger(campaign_id)

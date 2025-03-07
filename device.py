@@ -334,6 +334,7 @@ def stream():
     def generate():
         messenger = Messenger(campaign_id)
         # gen_fake_message(messenger)
+        generator = None
         try:
             while True:
                 generator = messenger.get_message()
@@ -341,8 +342,10 @@ def stream():
                     print(f"data:" + data)
                     yield f"data:" + data + "\n\n"  # Format for SSE
         except GeneratorExit:
+            traceback.print_exc()
             print("Client disconnected, cleaning up resources.")
         finally:
+            generator.close()
             print("stream " + str(stream_id) +" CLOSED!")
 
     return Response(generate(), content_type='text/event-stream')
