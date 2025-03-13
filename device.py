@@ -4,6 +4,7 @@ from flask import Flask, Response, render_template, url_for, flash, redirect, Bl
 
 import time
 
+from scripts.replace_placeholders import replace_placeholders_content
 from utilities.messenger import Messenger, gen_fake_message
 from .auth import role_required
 
@@ -248,6 +249,9 @@ def send_pcp_file():
             Z = "Z="+str(z_abs_height) + "\""
         start_point_pos = "axes.startPoint(" + X + " " + Y + " " + Z + ")"
         print(start_point_pos)
+
+        # replace parameters
+        file_content = replace_placeholders_content(file_content, bed_temp, pressure, print_speed, z_abs_height)
         pcp_commands = start_point_pos + "\r\n" + file_content + "Done\n"
         pcp_file.send_pcp_file(campaign_id, pcp_commands, int(cell_id), bed_temp, print_speed, pressure)
     # for filename in request.form:

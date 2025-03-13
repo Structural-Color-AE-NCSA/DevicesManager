@@ -6,18 +6,23 @@ def replace_placeholders(input_file, output_file, BedTemp, Pressure, PrintSpeed,
     # Open the input file and read the content
     with open(input_file, 'r') as file:
         content = file.read()
-
-    # Replace placeholders with the actual values
-    content = content.replace(f"R(BedTemp)", "R"+str(BedTemp))  # Replace R(BedTemp)
-    content = content.replace(f"F(PrintSpeed)", "F"+str(PrintSpeed))  # Replace F(PrintSpeed)
-    content = content.replace(f"P(PRESSURE)", str(Pressure))  # Replace P(Pressure)
-    content = content.replace(f"Z(Delta_Height)", "Z"+str(Z_delta_height))  # Replace P(Pressure)
-
-
+    content = replace_placeholders_content(content, BedTemp, Pressure, PrintSpeed, Z_delta_height)
     # Write the modified content to the output file
     with open(output_file, 'w') as file:
         file.write(content)
     print(f"Replacements complete. The output file has been saved as '{output_file}'.")
+
+def replace_placeholders_content(content, BedTemp, Pressure, PrintSpeed, Z_delta_height):
+    # Replace placeholders with the actual values
+    if BedTemp:
+        content = content.replace(f"R(BedTemp)", "R"+str(BedTemp))  # Replace R(BedTemp)
+    if PrintSpeed:
+        content = content.replace(f"F(PrintSpeed)", "F"+str(PrintSpeed))  # Replace F(PrintSpeed)
+    if Pressure:
+        content = content.replace(f"P(PRESSURE)", str(Pressure))  # Replace P(Pressure)
+    if Z_delta_height:
+        content = content.replace(f"Z(Delta_Height)", "Z"+str(Z_delta_height))
+    return content
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="demo color updates")
