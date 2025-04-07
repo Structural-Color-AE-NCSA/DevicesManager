@@ -4,8 +4,8 @@ from flask import Flask, Response, render_template, url_for, flash, redirect, Bl
 
 import time
 
-from scripts.replace_placeholders import replace_placeholders_content
-from utilities.messenger import Messenger, gen_fake_message
+from .scripts.replace_placeholders import replace_placeholders_content
+from .utilities.messenger import Messenger, gen_fake_message
 from .auth import role_required
 
 from flask import jsonify
@@ -200,7 +200,7 @@ def send_pcp_file():
     if filename == '' or campaign_name == '':
         return "fail", 400
     print(f'PCP File Name: {filename}')
-    path_to_pcp_file = os.path.join(os.getcwd(), 'pcp', filename)
+    path_to_pcp_file = os.path.join(os.getcwd(), 'DevicesManager/pcp', filename)
     file_content = ""
     with open(path_to_pcp_file, 'r') as file:
         file_content = file.read()

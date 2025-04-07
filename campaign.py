@@ -5,8 +5,8 @@ from bson.json_util import dumps, loads
 import time
 import math
 
-from scripts.replace_placeholders import replace_placeholders_content
-from utilities.messenger import Messenger, gen_fake_message
+from .scripts.replace_placeholders import replace_placeholders_content
+from .utilities.messenger import Messenger, gen_fake_message
 from .auth import role_required
 
 from flask import jsonify

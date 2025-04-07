@@ -1,15 +1,16 @@
-
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import os
 import io
 import random
-from config import Config
+from ..config import Config
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
-from utilities.grid_cells import GridCells
+from ..utilities.grid_cells import GridCells
 
+mpl.use('Agg')
 
 class GridPlot(object):
 

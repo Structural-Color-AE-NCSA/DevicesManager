@@ -78,6 +78,7 @@ class PCPFile(object):
         if pressure:
             metadata['pressure'] = pressure
         json_string = json.dumps(metadata)
+        print("send pcp file:" + json_string)
         self.status_request.send_message('pcp_file', json_string)
         return True
 
