@@ -111,11 +111,14 @@ def update_cell_color(campaign_id):
     print_speed = data.get('PrintSpeed')
     z_height = data.get('ZHeight')
     file_id = data.get('file_id')
+    rank_run = data.get('rank_run')
     cell_color = data.get('cell_color')
-    update_cell = {"cell_id": cell_id, "file_id": file_id, "cell_color": cell_color,
+    update_cell = {"cell_id": cell_id, "file_id": file_id, "rank_run": rank_run,
+                   "cell_color": cell_color,
                    "bed_temp": bed_temp, "pressure": pressure,
                    "print_speed": print_speed, "z_height": z_height}
     campaign = find_one(current_app.config['CAMPAIGNS_COLLECTION'], condition={'_id': ObjectId(campaign_id)})
+    number_prints_trigger_prediction = int(campaign.get('number_prints_trigger_prediction'))
     cells = campaign.get('cells')
     if cells is None:
         cells = list()
@@ -163,6 +166,15 @@ def update_cell_color(campaign_id):
             is_continue = False
         else:
             try:
+                accum_h_mu = 0.0
+                if (rank_run +1)%number_prints_trigger_prediction == 0:
+                    bed_temp = campaign.get('bed_temp')
+                    pressure = campaign.get('pressure')
+                    print_speed = campaign.get('print_speed')
+
+                    for cell in cells:
+                        accum_h_mu += cell.cell_color.get('h_mu')
+
                 abs_x, abs_y = grid_plot.get_top_left_corner_pos_by_cell_id(int(next_cell_id))
                 X = "\"X=" + str(abs_x)
                 Y = "Y=" + str(abs_y)
@@ -174,7 +186,9 @@ def update_cell_color(campaign_id):
                 # replace parameters
                 file_content = replace_placeholders_content(file_content, bed_temp, pressure, print_speed, z_height)
                 pcp_commands = start_point_pos + "\r\n" + file_content + "Done\n"
-                pcp_file.send_pcp_file(campaign_id, pcp_commands, int(next_cell_id), bed_temp, print_speed, pressure)
+                pcp_file.send_pcp_file(campaign_id, pcp_commands, int(next_cell_id),
+                                       number_prints_trigger_prediction, rank_run+1, accum_h_mu,
+                                       bed_temp, print_speed, pressure)
             except Exception as e:
                 pass
 
