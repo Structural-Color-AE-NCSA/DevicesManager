@@ -20,8 +20,8 @@ def replace_placeholders_content(content, BedTemp, Pressure, PrintSpeed, Z_delta
         content = content.replace(f"F(PrintSpeed)", "F"+str(PrintSpeed))  # Replace F(PrintSpeed)
     if Pressure:
         content = content.replace(f"P(PRESSURE)", str(Pressure))  # Replace P(Pressure)
-    # if Z_delta_height:
-    #     content = content.replace(f"Z(Delta_Height)", "Z"+str(Z_delta_height))
+    if Z_delta_height:
+        content = content.replace(f"Z(Delta_Height)", "Z"+str(Z_delta_height))
     return content
 
 if __name__ == "__main__":
