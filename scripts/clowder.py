@@ -22,7 +22,7 @@ SPACE_ID = '67aa4fbbe4b019057bb4aaa1'
 client = pyclowder.datasets.ClowderClient(host=CLOWDER_URL, key=CLOWDER_KEY)
 
 
-def upload_a_file_to_dataset(filepath, dataset_id, clowder_upload_folder_id, campaign_id, cell_id):
+def upload_a_file_to_dataset(filepath, dataset_id, clowder_upload_folder_id, campaign_id, cell_id, number_prints_trigger_prediction = 1, rank_run = 0, accum_h_mu=0.0):
     url = '%s/api/uploadToDataset/%s?key=%s&folder_id=%s' % (
     CLOWDER_URL, dataset_id, CLOWDER_KEY, clowder_upload_folder_id)
     if os.path.exists(filepath):
@@ -40,6 +40,9 @@ def upload_a_file_to_dataset(filepath, dataset_id, clowder_upload_folder_id, cam
                 metadata['image_analysis'] = 'true'
                 metadata['campaign_id'] = campaign_id
                 metadata['cell_id'] = cell_id
+                metadata['number_prints_trigger_prediction'] = number_prints_trigger_prediction
+                metadata['rank_run'] = rank_run
+                metadata['accum_h_mu'] = accum_h_mu
                 try:
                     client.post('/files/' + uploaded_fileid['id'] + '/metadata', content=metadata)
                 except Exception as e:
@@ -102,6 +105,11 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--folder_name", required=True, help="folder name")
     parser.add_argument("-p", "--campaign_id", required=True, help="campaign id")
     parser.add_argument("-c", "--cell_id", required=True, help="cell id")
+    parser.add_argument("-a", "--accum_h_mu", required=True, help="accum_h_mu")
+    parser.add_argument("-n", "--number_prints_trigger_prediction", required=True,
+                             help="number_prints_trigger_prediction")
+    parser.add_argument("-r", "--rank_run", required=True, help="rank_run")
+
     args = parser.parse_args()
 
 
@@ -109,4 +117,9 @@ if __name__ == "__main__":
     folder_id = get_or_create_folders(dataset_id, args.folder_name)
     campaign_id = args.campaign_id
     cell_id = args.cell_id
-    upload_a_file_to_dataset('Green_Sanghyun.jpg', dataset_id, folder_id, campaign_id, cell_id)
+
+    number_prints_trigger_prediction = args.number_prints_trigger_prediction
+    rank_run = args.rank_run
+    accum_h_mu = args.accum_h_mu
+
+    upload_a_file_to_dataset('Green_Sanghyun.jpg', dataset_id, folder_id, campaign_id, cell_id, number_prints_trigger_prediction, rank_run, accum_h_mu)

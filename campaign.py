@@ -167,13 +167,19 @@ def update_cell_color(campaign_id):
         else:
             try:
                 accum_h_mu = 0.0
-                if (rank_run +1)%number_prints_trigger_prediction == 0:
+                if (rank_run +1)%number_prints_trigger_prediction != 0:
                     bed_temp = campaign.get('bed_temp')
                     pressure = campaign.get('pressure')
                     print_speed = campaign.get('print_speed')
+                    z_height = campaign.get('z_abs_height')
 
                     for cell in cells:
-                        accum_h_mu += cell.cell_color.get('h_mu')
+                        accum_h_mu += cell['cell_color'].get('h_mu')
+                else:
+                    find_one_and_update(current_app.config['CAMPAIGNS_COLLECTION'],
+                                        condition = {"_id": ObjectId(campaign_id)},
+                                        update = {"$set": {"bed_temp": bed_temp, "pressure": pressure,
+                                                           "print_speed": print_speed, "z_abs_height": z_height}})
 
                 abs_x, abs_y = grid_plot.get_top_left_corner_pos_by_cell_id(int(next_cell_id))
                 X = "\"X=" + str(abs_x)
