@@ -67,7 +67,8 @@ class PCPFile(object):
 
     def send_pcp_file(self, campaign_id, commands, cell_id=-1,  number_prints_trigger_prediction = 1, rank_run = 0,
                       accum_h_mu=0.0,
-                      bed_temp = None, print_speed = None, pressure = None):
+                      bed_temp = None, print_speed = None, pressure = None,
+                      predict_ranges = None):
         metadata = dict()
         metadata['campaign_id'] = campaign_id
         metadata['cell_id'] = cell_id
@@ -76,6 +77,7 @@ class PCPFile(object):
         metadata['accum_h_mu'] = accum_h_mu
         metadata['number_prints_trigger_prediction'] = number_prints_trigger_prediction
         metadata['data'] = commands
+        metadata['predict_ranges'] = predict_ranges
         if bed_temp:
             metadata['bed_temp'] = bed_temp
         if print_speed:

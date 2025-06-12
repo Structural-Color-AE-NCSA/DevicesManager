@@ -511,6 +511,14 @@
                 hue: document.getElementById('hue').value,
                 saturation: document.getElementById('saturation').value,
                 value: document.getElementById('value').value,
+                min_bed_temp: document.getElementById('min_bed_temp').value,
+                max_bed_temp: document.getElementById('max_bed_temp').value,
+                min_pressure: document.getElementById('min_pressure').value,
+                max_pressure: document.getElementById('max_pressure').value,
+                min_speed: document.getElementById('min_speed').value,
+                max_speed: document.getElementById('max_speed').value,
+                min_zheight: document.getElementById('min_zheight').value,
+                max_zheight: document.getElementById('max_zheight').value,
             },
             success: function(data) {
                 document.getElementById("campaign_name").innerHTML = data['campaign_name']

@@ -112,13 +112,15 @@ def update_cell_color(campaign_id):
     z_height = data.get('ZHeight')
     file_id = data.get('file_id')
     rank_run = data.get('rank_run')
+    printability_score = data.get('printability_score')
     cell_color = data.get('cell_color')
-    update_cell = {"cell_id": cell_id, "file_id": file_id, "rank_run": rank_run,
+    update_cell = {"cell_id": cell_id, "file_id": file_id, "rank_run": rank_run, "printability_score": printability_score,
                    "cell_color": cell_color,
                    "bed_temp": bed_temp, "pressure": pressure,
                    "print_speed": print_speed, "z_height": z_height}
     campaign = find_one(current_app.config['CAMPAIGNS_COLLECTION'], condition={'_id': ObjectId(campaign_id)})
     number_prints_trigger_prediction = int(campaign.get('number_prints_trigger_prediction'))
+    predict_ranges = campaign.get('predict_ranges')
     cells = campaign.get('cells')
     if cells is None:
         cells = list()
@@ -194,7 +196,8 @@ def update_cell_color(campaign_id):
                 pcp_commands = start_point_pos + "\r\n" + file_content + "Done\n"
                 pcp_file.send_pcp_file(campaign_id, pcp_commands, int(next_cell_id),
                                        number_prints_trigger_prediction, rank_run+1, accum_h_mu,
-                                       bed_temp, print_speed, pressure)
+                                       bed_temp, print_speed, pressure,
+                                       predict_ranges)
             except Exception as e:
                 pass
 

@@ -54,6 +54,52 @@
             <label for="number_prints_trigger_prediction" class="col-form-label">The Number of Prints to Trigger Prediction :</label>
             <input type="text" value="3" class="form-control text-input text-input-field" id="number_prints_trigger_prediction"
                    placeholder="The default is 3" required>
+        <hr>
+            <label for="prediction variable ranges" class="col-form-label">Prediction Variables Ranges:</label>
+
+            <div class="two-col">
+                <div class="col1">
+                    <label for="min_bed_temp">Min Bed Temp:</label>
+                    <input type="text" class="text-input-field" id="min_bed_temp" name="min_bed_temp" value="25.0" type="text">
+                </div>
+                <div class="col2">
+                    <label for="max_bed_temp">Max Bed Temp:</label>
+                    <input type="text" class="text-input-field" id="max_bed_temp" name="max_bed_temp" value="45.0"  type="text">
+                </div>
+            </div>
+
+            <div class="two-col" >
+                <div class="col1">
+                    <label for="min_pressure">Min Pressure:</label>
+                    <input type="text" class="text-input-field"  id="min_pressure" name="min_pressure" value="20.0" type="text">
+                </div>
+                <div class="col2">
+                    <label for="max_pressure">Max Pressure:</label>
+                    <input type="text" class="text-input-field"  id="max_pressure" name="max_pressure" value="35.0" type="text">
+                </div>
+            </div>
+
+            <div class="two-col">
+                <div class="col1">
+                    <label for="min_speed">Min Speed:</label>
+                    <input type="text" class="text-input-field"  id="min_speed" name="min_speed" value="30.0" type="text">
+                </div>
+                <div class="col2">
+                    <label for="max_speed">Max Speed:</label>
+                    <input type="text" class="text-input-field"  id="max_speed" name="max_speed" value="1000.0" type="text">
+                </div>
+            </div>
+
+            <div class="two-col">
+                <div class="col1">
+                    <label for="min_zheight">Min Z-Height:</label>
+                    <input type="text" class="text-input-field"  id="min_zheight" name="min_zheight" value="0.01" type="text">
+                </div>
+                <div class="col2">
+                    <label for="max_zheight">Max Z-Height:</label>
+                    <input type="text" class="text-input-field"  id="max_zheight" name="max_zheight" value="5.0" type="text">
+                </div>
+            </div>
             <hr>
             <label for="convergence criteria" class="col-form-label">HSV Color Convergence Criteria:</label>
             <div class="form-group">
