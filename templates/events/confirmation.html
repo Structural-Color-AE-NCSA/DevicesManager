@@ -40,11 +40,79 @@
       </div>
       <div class="modal-body">
         {% if usage == "PCP" %}
-        You are about to run this PCP file <b>{{title}}</b>
+        You are about to run this Campaign <b>{{title}}</b>
         <div class="form-group">
-            <label for="title-name" class="col-form-label">Cell IDs:</label>
-            <input type="text" class="form-control text-input text-input-field" id="cell-ids"
-                   placeholder="Enter your Cell IDs to print several shapes...">
+            <label for="title-name" class="col-form-label">Campaign Name:</label>
+            <input type="text" class="form-control text-input text-input-field" id="campaign-name"
+                   placeholder="Enter campaign name..." required>
+            <label for="starting-cell-id" class="col-form-label">Starting Cell ID:</label>
+            <input type="text" class="form-control text-input text-input-field" id="starting_cell_id"
+                   placeholder="The campaign starting cell id (e.g., 5)" required>
+            <label for="max-loops" class="col-form-label">The Maximum Loops:</label>
+            <input type="text" value="50" class="form-control text-input text-input-field" id="max_loops"
+                   placeholder="The default is 50" required>
+            <label for="number_prints_trigger_prediction" class="col-form-label">The Number of Prints to Trigger Prediction :</label>
+            <input type="text" value="3" class="form-control text-input text-input-field" id="number_prints_trigger_prediction"
+                   placeholder="The default is 3" required>
+        <hr>
+            <label for="prediction variable ranges" class="col-form-label">Prediction Variables Ranges:</label>
+
+            <div class="two-col">
+                <div class="col1">
+                    <label for="min_bed_temp">Min Bed Temp:</label>
+                    <input type="text" class="text-input-field" id="min_bed_temp" name="min_bed_temp" value="25.0" type="text">
+                </div>
+                <div class="col2">
+                    <label for="max_bed_temp">Max Bed Temp:</label>
+                    <input type="text" class="text-input-field" id="max_bed_temp" name="max_bed_temp" value="45.0"  type="text">
+                </div>
+            </div>
+
+            <div class="two-col" >
+                <div class="col1">
+                    <label for="min_pressure">Min Pressure:</label>
+                    <input type="text" class="text-input-field"  id="min_pressure" name="min_pressure" value="20.0" type="text">
+                </div>
+                <div class="col2">
+                    <label for="max_pressure">Max Pressure:</label>
+                    <input type="text" class="text-input-field"  id="max_pressure" name="max_pressure" value="35.0" type="text">
+                </div>
+            </div>
+
+            <div class="two-col">
+                <div class="col1">
+                    <label for="min_speed">Min Speed:</label>
+                    <input type="text" class="text-input-field"  id="min_speed" name="min_speed" value="30.0" type="text">
+                </div>
+                <div class="col2">
+                    <label for="max_speed">Max Speed:</label>
+                    <input type="text" class="text-input-field"  id="max_speed" name="max_speed" value="1000.0" type="text">
+                </div>
+            </div>
+
+            <div class="two-col">
+                <div class="col1">
+                    <label for="min_zheight">Min Z-Height:</label>
+                    <input type="text" class="text-input-field"  id="min_zheight" name="min_zheight" value="0.01" type="text">
+                </div>
+                <div class="col2">
+                    <label for="max_zheight">Max Z-Height:</label>
+                    <input type="text" class="text-input-field"  id="max_zheight" name="max_zheight" value="5.0" type="text">
+                </div>
+            </div>
+            <hr>
+            <label for="convergence criteria" class="col-form-label">HSV Color Convergence Criteria:</label>
+            <div class="form-group">
+                <label for="hue" class="col-form-label">Hue:</label>
+                <input type="text" style="width: 50%;" class="form-control text-input text-input-field" id="hue"
+                   placeholder="Hue target value">
+                <label for="saturation" class="col-form-label">Saturation:</label>
+                <input type="text" style="width: 50%;" class="form-control text-input text-input-field" id="saturation"
+                   placeholder="Saturation target value">
+                <label for="value" class="col-form-label">Value:</label>
+                <input type="text" style="width: 50%;" class="form-control text-input text-input-field" id="value"
+                   placeholder="Value target value">
+            </div>
         </div>
         {% else %}
         Are you sure you want to start downloading the approved calendars?
@@ -62,7 +130,7 @@
         {% endif %}
 
         {% if usage == "save" %}
-        onclick="document.getElementById('form').submit();"
+            onclick="document.getElementById('form').submit();"
         {% endif %}
         >OK</button>
       </div>

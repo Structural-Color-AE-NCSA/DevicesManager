@@ -1,17 +1,3 @@
-#  Copyright 2020 Board of Trustees of the University of Illinois.
-#
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-
 import pymongo
 import traceback
 from pymongo.errors import PyMongoError, ServerSelectionTimeoutError
@@ -60,10 +46,11 @@ def init_db(app):
     # Set up Mongo client for text indexing
     global client
     client = MongoClient(Config.MONGO_URL)
-    db = client.get_database('rokwire')
-    events = db['eventsmanager_events']
-    events.create_index([("title", pymongo.TEXT)])
-
+    db = client.get_database(Config.MONGO_DATABASE)
+    with app.app_context():
+        super_admin = find_one(current_app.config['ACCOUNTS_COLLECTION'], condition={'username': current_app.config['SUPER_ADMIN'].get('username')})
+        if len(super_admin) == 0:
+            insert_one(current_app.config['ACCOUNTS_COLLECTION'], document=current_app.config['SUPER_ADMIN'])
 
 ######################################################################
 ### Basic DB query and insert functions

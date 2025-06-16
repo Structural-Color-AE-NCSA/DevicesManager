@@ -1,0 +1,6 @@
+volumes:
+  clowder-data:
+    driver_opts:
+      type: none
+      device: /Users/polyprintlab/clowder/data
+      o: bind

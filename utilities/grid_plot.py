@@ -1,15 +1,16 @@
-
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import os
 import io
 import random
-from config import Config
+from ..config import Config
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
-from utilities.grid_cells import GridCells
+from ..utilities.grid_cells import GridCells
 
+mpl.use('Agg')
 
 class GridPlot(object):
 
@@ -77,6 +78,10 @@ class GridPlot(object):
         self.name = name
         self.starting_cell_id = -1
         self.grid_cells = GridCells()
+
+    def get_dimension(self, shape_x, shape_y):
+        nrows, ncols, _ = self.grid_cells.ExperimentalGrid(shape_x, shape_y)
+        return nrows, ncols
 
     def init_plot(self, x_range, y_range, shape_x, shape_y):
         self.nrows, self.ncols, _ = self.grid_cells.ExperimentalGrid(shape_x, shape_y)

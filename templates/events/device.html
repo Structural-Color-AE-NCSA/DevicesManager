@@ -55,32 +55,14 @@
 {% endblock %}
 
 {% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb calendar-event-breadcrumb">
+    <li class="breadcrumb-item"><a href="{{url_for('management.home', title="Campaigns")}}">Campaigns</a></li>
+    <li class="breadcrumb-item active" aria-current="page">New Campaign</li>
+  </ol>
+</nav>
 
-  <!-- filter and select operations -->
-  {% if isUser %}
-      <div>
-          {% if post.superEventID and post.superEventID != '' %}
-              <div class="media" style="float: left; margin-right: 10px">
-                <a class="grey-background-button" href="{{ url_for('user_events.user_events') }}" role="button">Back To All Events</a>
-              </div>
-              <div class="media">
-                <a class="grey-background-button" href="{{ url_for('user_events.user_an_event', id=post.superEventID) }}" role="button">Back To Super Event</a>
-              </div>
-          {% else %}
-              <div class="media">
-                <a class="grey-background-button" href="{{ url_for('devices_listing.devices') }}" role="button">Back To All Devices</a>
-              </div>
-          {% endif %}
-      </div>
-  {% else %}
-  <nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{{ url_for('event.source', sourceId=post['sourceId']) }}">{{sourceName}}</a></li>
-      <li class="breadcrumb-item"><a href="{{ url_for('event.calendar', calendarId=post['calendarId']) }}">{{calendarName}}</a></li>
-      <li class="breadcrumb-item active" aria-current="page">{{post['title']}}</li>
-    </ol>
-  </nav>
-  {% endif %}
+
      <form id="myForm">
     <article class="media content-section">
       <div class="media-body">
@@ -90,92 +72,62 @@
         <!-- Grid container to hold image at top-right -->
         <div class="grid container"
         style="display: grid;grid-auto-flow: column;grid-auto-rows: auto;grid-template-columns: [left] 66.67% [right] 33.33%;">
-          <div class="item1" style="grid-area: auto / left;">
-            {% if post.eventStatus%}
-            <div class="row">
-              <div class="col-12 col-sm-3">
-                <h5>Event Status </h5>
-              </div>
-              <p class="col-sm-9 small-body-text">
-                {% if post.eventStatus == "approved" %}
-                    <!-- temporily change to published -->
-                    {% if isUser %}
-                        <span class="badge badge-pill badge-publish small-body-text">Published </span>
-                    {% else %}
-                        <span class="badge badge-pill badge-pending small-body-text">Pending </span>
-                    {% endif %}
-                {% elif post.eventStatus == "disapproved"%}
-                  <span class="badge badge-pill badge-danger">{{ post.eventStatus }} </span>
-                {% elif post.eventStatus == "pending"%}
-                  <span class="badge badge-pill badge-pending">{{ post.eventStatus }} </span>
-                {% else %}
-                  <span class="badge badge-pill badge-publish">{{ post.eventStatus }} </span>
-                {% endif %}
-              </p>
-
-            </div>
-            {% endif %}
-          </div>
-
 
           <div class="item3" style="grid-area: auto / left;">
-            <!-- event group -->
               <div class="row">
                 <div class="col-12 col-sm-3">
-                  <h5>Group </h5>
+                  <h5>Campaign Name </h5>
                 </div>
-                <p class="col-sm-9 small-body-text">{{groupName}}</p>
+                <p id="campaign_name" class="col-sm-9 small-body-text">My New Campaign at Timestamp</p>
               </div>
-          </div>
-          <div style="grid-area: auto / left;">
-            <!-- event group -->
-              <div class="row">
-                <div class="col-12 col-sm-3">
-                  <h5>Send Parameters to Printer </h5>
-                </div>
-                <div class="col-12 col-sm-3">
-                    <label for="single_x_relative_pos">X= </label>
-                    <input type="text" id="x_relative_pos" name="x_relative_pos"><br><br>
-                    <label for="single_y_relative_pos">Y= </label>
-                    <input type="text" id="y_relative_pos" name="y_relative_pos"><br><br>
-                    <label for="single_z_relative_pos">Z= </label>
-                    <input type="text" id="z_relative_pos" name="z_relative_pos"><br><br>
-                    <label for="single_pressure">Pressure= </label>
-                    <input type="text" id="single_pressure" name="single_pressure"><br><br>
-                    <label for="single_print_speed">Print Speed= </label>
-                    <input type="text" id="single_print_speed" name="single_print_speed"><br><br>
-                    <label for="single_bed_temp">Bed Temperature= </label>
-                    <input type="text" id="single_bed_temp" name="single_bed_temp"><br><br>
-                    <button title="Send parameters to printer" class="btn btn-outline-success rounded-right"
-                            type="button" onclick="sendParameters2printer()">Send
-                    </button>
-                </div>
-              </div>
-          </div>
-
-          <div class="item2" style="grid-area: auto / left;">
-            <!-- event category -->
-            {% if post.category %}
-              <div class="row">
-                <div class="col-12 col-sm-3">
-                  <h5>Category </h5>
-                </div>
-                <p class="col-sm-9 small-body-text">{{post.category}}</p>
-              </div>
-            {% endif %}
-
-            <!-- event subcategory -->
-            {% if post.subcategory %}
-              <div class="row">
-                <div class="col-12 col-sm-3">
-                  <h5>Sub Category </h5>
-                </div>
-                <p class="col-sm-9 small-body-text">{{post.subcategory}}</p>
-              </div>
-            {% endif %}
           </div>
 
         </div>
+
+          <div class="grid container"
+        style="display: grid;grid-auto-flow: column;grid-auto-rows: auto;grid-template-columns: [left] 66.67% [right] 33.33%;">
+              <div class="item3" style="grid-area: auto / left;">
+                <div class="row">
+                <div class="col-12 col-sm-3">
+                  <h5>Direct Parameters </h5>
+                </div>
+                <div class="contact-group dynamic-element">
+                  <div class = "form-group row" >
+{#                    <div class="col-sm-3 offset-sm-3">#}
+{#                        <input class="form-control text-input" type="text" id="x_relative_pos" placeholder="set x relative pos" name="x_relative_pos">#}
+{#                    </div>#}
+{#                    <div class="col-sm-3">#}
+{#                      <input class="form-control text-input" type="text" id="y_relative_pos" placeholder="set y relative pos" name="y_relative_pos">#}
+{#                    </div>#}
+                    <div class="col-sm-3 ">
+                      <input class="form-control text-input" style="width:150px;" type="text" id="z_abs_height" placeholder="set z height abs pos" name="z_abs_height">
+                    </div>
+                    <div class="col-sm-3 offset-sm-3">
+                        <input class="form-control text-input" style="width:150px;" type="text" id="single_pressure" placeholder="set print pressure" name="single_pressure">
+                    </div>
+                  </div>
+
+                  <div class = "form-group row" >
+
+                    <div class="col-sm-3">
+                      <input class="form-control text-input" style="width:150px;" type="text" id="single_print_speed" placeholder="set print speed" name="single_print_speed">
+                    </div>
+                    <div class="col-sm-3 offset-sm-3">
+                      <input class="form-control text-input" style="width:150px;" type="text" id="single_bed_temp" placeholder="set bed temperature" name="single_bed_temp">
+                    </div>
+                  </div>
+
+<!--                    <div class = "form-group row" >-->
+<!--                        <div class="col-sm-3 offset-sm-3">-->
+<!--                            <span role="button" onclick="sendParameters2printer()" id="sendparams2printer" class="save-account notification-button">Send</span>-->
+<!--                        </div>-->
+<!--                    </div>-->
+
+                </div>
+
+              </div>
+              </div>
+          </div>
 
         <div class="grid container"
         style="display: grid; grid-auto-rows: auto; grid-template-columns: auto;">
@@ -186,7 +138,6 @@
             </div>
             <div class="col-sm-9">
               <div class="input-group mb-3">
-
                 <div class="custom-file">
                   <input type="file" accept={{extensions}} class="custom-file-input" name = "file" id="file" data-toggle="popover" data-trigger="manual" data-placement="bottom" data-content="Failed to upload. Only support no larger than {{ size_limit }} MB">
                   <label id="custom-file-label" class="custom-file-label" for="file">(Choose one PCP File.)</label>
@@ -222,19 +173,21 @@
 
           <div class="row">
               <div class="col-12 col-sm-2" id="longDes">
-                <h5> PCP Movement</h5>
+                <h5> Colorization</h5>
               </div>
 
-            <div class="col-sm-9">
-              <div class="input-group mb-3">
-                <img id="plot" src="{{url_for('device.pcp_plot')}}" width="1024" height="640"  alt="no image shown">
-              </div>
-            </div>
-            <div class="col-sm-9">
-              <div class="input-group mb-3">
-                <canvas id="cameraFrames"></canvas>
-              </div>
-            </div>
+              <div id="grid-container" class="grid-container"></div>
+
+{#            <div class="col-sm-9">#}
+{#              <div class="input-group mb-3">#}
+{#                <img id="plot" src="{{url_for('device.pcp_plot')}}" width="1024" height="640"  alt="no image shown">#}
+{#              </div>#}
+{#            </div>#}
+{#            <div class="col-sm-9">#}
+{#              <div class="input-group mb-3">#}
+{#                <canvas id="cameraFrames"></canvas>#}
+{#              </div>#}
+{#            </div>#}
             </div>
 
 
@@ -376,47 +329,20 @@
 {#      <script src="https://cdn.jsdelivr.net/npm/blob-compare@latest"></script>#}
       <script src="https://unpkg.com/blob-compare@latest"></script>
       <script src="https://cdn.jsdelivr.net/gh/liqueurdetoile/blob-compare@latest/dist/index.min.js"></script>
-      <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
+{#      <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>#}
     <script>
         var old_blob = null
         var old_pcp_image_url = null
         const canvas = document.getElementById('cameraFrames');
-        const context = canvas.getContext('2d');
         // sending a connect request to the server.
         {#var socket = io.connect('http://localhost:5000');#}
         {#const socket = io.connect('http://' + document.domain + ':' + location.port);#}
-        var socket = io.connect();
+        {#var socket = io.connect();#}
 
         let pcpFileName = ""
         const pcpFileNameDisplay = document.getElementById('custom-file-label');
         document.getElementById('file').addEventListener('change', function(event) {
         const file = event.target.files[0];
-
-        socket.on('connect', function() {
-            socket.emit('test', {
-                   who: $(this).attr('id'),
-                   data: $(this).val()
-               });
-            console.log('Connected: ' + socket.connected);  // Should be true if successful
-
-        });
-
-        socket.on('after connect', function(msg) {
-               console.log('After connect', msg);
-        });
-
-        socket.on("connect_error", () => {
-          socket.connect();
-        });
-
-        socket.on('camera_frame', function(data) {
-            const img = new Image();
-            img.src = 'data:image/png;base64,' + data.frame;
-
-            img.onload = function() {
-              context.drawImage(img, 0, 0, canvas.width, canvas.height);
-            }
-        });
 
         if (file) {
             pcpFileNameDisplay.textContent = `Selected file: ${file.name}`;
@@ -428,15 +354,89 @@
                     method: 'POST',
                     body: JSON.stringify({"data": e.target.result})
                 })
-                .then(response => response.blob())
-                .then(blob => {
-                    // Create an object URL for the image and set it as the src for the img element
-                    const url = URL.createObjectURL(blob);
-                    document.getElementById('plot').src = url;
+                .then(response => response.text())
+                .then(body => {
+                    const data = JSON.parse(body)
+                    const ncols = data.ncols;
+                    const nrows = data.nrows;
+                    const shape_x = data.shape_x;
+                    const shape_y = data.shape_y;
                     console.log("fetchPCPPlotData")
+                    document.getElementById('file-content').setAttribute('ncols', ncols)
+                    document.getElementById('file-content').setAttribute('nrows', nrows)
+
+                    const gridContainer = document.getElementById('grid-container');
+                    gridContainer.innerHTML = '';
+                    const relative_button_width = 800/ncols
+                    const relative_button_height = 900/nrows
+                    gridContainer.style.gridTemplateColumns = `repeat(${ncols}, ${relative_button_width}px)`;
+                    gridContainer.style.gridTemplateRows = `repeat(${nrows}, ${relative_button_height}px)`;
+                    let row = 0;
+                    let col = 0;
+                    const minFontSize = 10;
+                    const maxFontSize = 24;
+                    let fontSize = Math.min(relative_button_width, relative_button_height) / 5;
+                    fontSize = Math.max(minFontSize, Math.min(maxFontSize, fontSize));
+
+                    for (let i = 0; i < nrows * ncols; i++) {
+                        const cellButton = document.createElement('text');
+
+                        cellButton.disabled = true;
+                        cellButton.innerText = `${(nrows-1-row)*ncols + col}`;
+                        cellButton.classList.add('grid-button');
+                        cellButton.style.fontSize = fontSize + 'px';
+                        cellButton.style.width = `${relative_button_width}px`;
+                        cellButton.style.height = `${relative_button_height}px`;
+                        cellButton.setAttribute('cellid', `${(nrows-1-row)*ncols + col}`);
+                        cellButton.setAttribute('colors', `None`);
+
+
+                        const tooltip = document.createElement('span');
+                        tooltip.innerText = '';
+                        tooltip.style.visibility = 'hidden';  // Hide the tooltip by default
+                        tooltip.style.position = 'relative';
+                        tooltip.style.bottom = '100%';  // Position above the button
+                        {#tooltip.style.left = '50%';#}
+                        {#tooltip.style.transform = 'translateX(-50%)';#}
+                        {#tooltip.style.backgroundColor = '#555';  // Tooltip background color#}
+                        tooltip.style.color = 'blue';
+                        {#tooltip.style.textAlign = 'left';#}
+                        tooltip.style.borderRadius = '5px';
+                        tooltip.style.padding = '5px';
+                        tooltip.style.width = '100%';
+                        tooltip.style.setProperty('white-space', 'nowrap');
+                        {#tooltip.style.opacity = '0';  // Make the tooltip fade in#}
+                        tooltip.style.transition = 'opacity 0.3s ease';  // Smooth fade transition
+
+                        // Append the tooltip to the button
+                        {#cellButton.appendChild(tooltip);#}
+                        cellButton.addEventListener('click', () => {
+                            console.log(cellButton.getAttribute('cellid') + ": color: " + cellButton.getAttribute('colors'))
+                        });
+                        {#cellButton.addEventListener('mouseover', () => {#}
+                        {#  console.log(cellButton.getAttribute('cellid') + ": color: " + cellButton.getAttribute('colors'))#}
+                        {#});#}
+                        {##}
+                        {#cellButton.addEventListener('mouseenter', () => {#}
+                        {# tooltip.style.visibility = 'visible';  // Show the tooltip#}
+                        {# tooltip.style.opacity = '1';  // Fade in#}
+                        {#});#}
+                        {##}
+                        {#cellButton.addEventListener('mouseleave', () => {#}
+                        {#  tooltip.style.visibility = 'hidden';#}
+                        {#  tooltip.style.opacity = '0'; // Hide the tooltip with opacity#}
+                        {#});#}
+
+                        gridContainer.appendChild(cellButton);
+                        if(col == (ncols-1)) {
+                            col = 0
+                            row = row+1
+                        } else {
+                            col = col+1
+                        }
+                    }
                 });
             };
-
             reader.readAsText(file);
         } else {
             alert('Please select a valid text file.');
@@ -457,11 +457,9 @@
                     single_bed_temp: document.getElementById('single_bed_temp').value
                 },
                 success: function (data) {
-                    console.log("success send pcp file")
+                    console.log("success send params to printer")
                 }
             });
-
-            console.log("Run PCP File")
         }
 
       function updatePlot() {
@@ -488,27 +486,71 @@
         }
 
       $("#runpcpbutton").click(function() {
-        console.log(document.getElementById('cell-ids').value)
+        console.log(document.getElementById('starting_cell_id').value)
+        if (typeof document.getElementById('campaign-name').value == "undefined" || document.getElementById('campaign-name').value.value == '') {
+            return
+        }
+        if(typeof pcpFileName == "undefined" || pcpFileName == '') {
+            return
+        }
         $.ajax({
             url: "{{ url_for('device.send_pcp_file', id=2) }}",
             type: 'POST',
             data: {
+                campaignName: document.getElementById('campaign-name').value,
                 pcpFileName: pcpFileName,
-                cell_ids: document.getElementById('cell-ids').value
+                starting_cell_id: document.getElementById('starting_cell_id').value,
+                grid_ncols: document.getElementById('file-content').getAttribute('ncols'),
+                grid_nrows: document.getElementById('file-content').getAttribute('nrows'),
+                z_abs_height: document.getElementById('z_abs_height').value,
+                bed_temp: document.getElementById('single_bed_temp').value,
+                pressure: document.getElementById('single_pressure').value,
+                print_speed: document.getElementById('single_print_speed').value,
+                max_loops: document.getElementById('max_loops').value,
+                number_prints_trigger_prediction: document.getElementById('number_prints_trigger_prediction').value,
+                hue: document.getElementById('hue').value,
+                saturation: document.getElementById('saturation').value,
+                value: document.getElementById('value').value,
+                min_bed_temp: document.getElementById('min_bed_temp').value,
+                max_bed_temp: document.getElementById('max_bed_temp').value,
+                min_pressure: document.getElementById('min_pressure').value,
+                max_pressure: document.getElementById('max_pressure').value,
+                min_speed: document.getElementById('min_speed').value,
+                max_speed: document.getElementById('max_speed').value,
+                min_zheight: document.getElementById('min_zheight').value,
+                max_zheight: document.getElementById('max_zheight').value,
             },
-            success: function(data){
+            success: function(data) {
+                document.getElementById("campaign_name").innerHTML = data['campaign_name']
                 console.log("success send pcp file")
+                campaign_id = data['campaign_id']
+                let baseUrl = "{{ url_for('campaign.campaign', id='') }}";
+                let redirect_url = baseUrl + campaign_id;
+                window.location.href = redirect_url;
+                debugger
+                var sourceUrl = "{{ url_for('device.stream', _external=True) }}?campaign_id="+campaign_id;
+                var source = new EventSource(sourceUrl)
+                source.onmessage = function (event) {
+                    data = JSON.parse(event.data)
+                    cell_id = data['cell_id']
+                    color = data['color']
+                    cell = document.querySelectorAll(`[cellid='${cell_id}']`)[0];
+                    cell.style.background='#9ACD32'
+                    cell.setAttribute('colors', cell.style.background);
+                    cell.getElementsByTagName('span')[0].innerText = cell.style.background
+                };
+
             }
         });
-        console.log("Run PCP File")
+        console.log("Run a campaign")
       });
-
+/*
       setInterval(updatePlot, 1000);
 
       window.onload = function() {
         updatePlot(); // Initial fetch on page load
       };
-
+*/
     function hideImage() {
         const imgElement = document.getElementById('plot');
         imgElement.style.display = 'none'; // Hide the image if it fails to load

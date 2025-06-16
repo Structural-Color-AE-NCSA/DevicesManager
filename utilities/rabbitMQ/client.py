@@ -4,7 +4,7 @@ import pika
 from pika.exceptions import ConnectionClosed, ChannelClosed, ChannelWrongStateError
 import re
 import json
-from config import Config
+from ...config import Config
 
 
 def parse_printer_pos(pos):

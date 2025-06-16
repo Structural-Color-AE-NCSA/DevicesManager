@@ -1,17 +1,3 @@
-#  Copyright 2020 Board of Trustees of the University of Illinois.
-#
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-
 import functools
 from bson.objectid import ObjectId
 import ldap
@@ -102,23 +88,23 @@ def role_required(role):
 
 
 def login_db(username, password, error):
-    user = find_one('user', condition={"username": username})
+    user = find_one(current_app.config['ACCOUNTS_COLLECTION'], condition={"username": username})
 
     if not user:
         error = 'Incorrect username.'
     # elif not check_password_hash(user['password_hash'], password):
     #     error = 'Incorrect password.'
-    session["access"] = "user"
-    session['user_id'] = "bing zhang"
-    session['admin'] = "bing zhang"
-    session["name"] = "bing"
-    # if error is None:
-    #     session.clear()
-    #     session['user_id'] = str(user['_id'])
-    return redirect(url_for("devices_listing.devices"))
-
-    # flash(error)
-    # return False
+    else:
+        session["access"] = "user"
+        session['user_id'] = username
+        session['admin'] = username
+        session["name"] = username
+        # if error is None:
+        #     session.clear()
+        #     session['user_id'] = str(user['_id'])
+        return redirect(url_for('management.home', title='Campaigns'))
+    flash(error)
+    return False
 
 
 def login_ldap(username, password, error):
@@ -163,14 +149,18 @@ def login_ldap(username, password, error):
     return False
 
 
-@bp.route('/login')
+@bp.route('/login', methods=['GET', 'POST'])
 # @check_login
 def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
     # if Config.LOGIN_MODE == "shibboleth":
     #     return login_shi()
-    session["state"] = rndstr()
-    session["nonce"] = rndstr()
-    return login_db("test", "test", None)
+        session["state"] = rndstr()
+        session["nonce"] = rndstr()
+        return login_db(username, password, None)
+    return render_template('login.html')
 
 
 @bp.before_app_request

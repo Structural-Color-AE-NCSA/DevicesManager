@@ -1,0 +1,33 @@
+axes.setPosMode("relative")
+#------------------Set Bed Temperature [BedTemp PARAMETER HERE]
+axes.move("M190 777\n")
+tool.setValue(0)
+tool.engage()
+#----------------First dot
+tool.setValue(20)
+time.sleep(2)
+tool.setValue(0)
+#---------------Move to second dot
+axes.move("G1 F100 X0 Y7 Z5\n")
+axes.move("M400\n")
+axes.move("G1 F40 X0 Y0 Z-5\n")
+axes.move("M400\n")
+#---------------Second dot
+tool.setValue(20)
+time.sleep(2)
+tool.setValue(0)
+#--------------------Move to experiment line
+axes.move("G1 F100 X5 Y0 Z7\n")
+axes.move("M400\n")
+axes.move("G1 F60 X0 Y0 Z-7\n")
+axes.move("M400\n")
+#---------------------Print Line [Pressure, PrintSpeed PARAMETERS HERE]
+tool.setValue(111)
+axes.move("G1 88 X7\n")
+axes.move("M400\n")
+tool.disengage()
+axes.move("G1 F60 Z5\n")
+axes.move("M400\n")
+tool.setValue(0)
+#------------Offset for camera
+axes.move("G1 F100 X-61 Y6 Z54.9\n")

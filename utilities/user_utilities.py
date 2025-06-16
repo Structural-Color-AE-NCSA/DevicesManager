@@ -17,7 +17,7 @@ import json
 import datetime
 import requests
 import traceback
-import googlemaps
+# import googlemaps
 import os
 import re
 import tempfile
