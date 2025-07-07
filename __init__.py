@@ -90,6 +90,6 @@ def create_app(config_class=Config):
 
     @app.errorhandler(500)
     def internal_error(e):
-        return render_template('errors/500.html'), 500
+        return render_template('errors/500.html', message=e.description), 500
 
     return app

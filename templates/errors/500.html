@@ -2,6 +2,10 @@
 
 {% block title %} Events Manager {% endblock %}
 {% block content %}
-    <h1>Unexpected error, please try again</h1>
+    {% if message %}
+        <h1>{{ message }}</h1>
+    {% else %}
+        <h1>Unexpected error, please try again</h1>
+    {% endif %}
     <a href="{{ url_for('home.home') }}" class="btn btn-primary btn-lg" role="button" >Back to home</a>
 {% endblock %}
