@@ -67,7 +67,7 @@ class PCPFile(object):
 
     def send_pcp_file(self, campaign_id, commands, cell_id=-1,  number_prints_trigger_prediction = 1, rank_run = 0,
                       accum_h_mu=0.0,
-                      bed_temp = None, print_speed = None, pressure = None,
+                      bed_temp = None, print_speed = None, pressure = None, auto_clean_abs_x = None, auto_clean_abs_y = None,
                       predict_ranges = None):
         metadata = dict()
         metadata['campaign_id'] = campaign_id

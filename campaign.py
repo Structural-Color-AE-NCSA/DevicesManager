@@ -121,6 +121,7 @@ def update_cell_color(campaign_id):
     campaign = find_one(current_app.config['CAMPAIGNS_COLLECTION'], condition={'_id': ObjectId(campaign_id)})
     number_prints_trigger_prediction = int(campaign.get('number_prints_trigger_prediction'))
     predict_ranges = campaign.get('predict_ranges')
+    nozzle_auto_clean_abs_posistions = campaign.get('nozzle_auto_clean_abs_posistions')
     cells = campaign.get('cells')
     if cells is None:
         cells = list()
@@ -194,9 +195,17 @@ def update_cell_color(campaign_id):
                 # replace parameters
                 file_content = replace_placeholders_content(file_content, bed_temp, pressure, print_speed, z_height)
                 pcp_commands = start_point_pos + "\r\n" + file_content + "Done\n"
+
+                autoclean_x_abs_pos = None
+                autoclean_y_abs_pos = None
+                if nozzle_auto_clean_abs_posistions:
+                    autoclean_x_abs_pos = nozzle_auto_clean_abs_posistions.get('autoclean_x_abs_pos')
+                    autoclean_y_abs_pos = nozzle_auto_clean_abs_posistions.get('autoclean_y_abs_pos')
                 pcp_file.send_pcp_file(campaign_id, pcp_commands, int(next_cell_id),
                                        number_prints_trigger_prediction, rank_run+1, accum_h_mu,
                                        bed_temp, print_speed, pressure,
+                                       autoclean_x_abs_pos,
+                                       autoclean_y_abs_pos,
                                        predict_ranges)
             except Exception as e:
                 pass

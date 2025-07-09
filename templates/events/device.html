@@ -93,14 +93,16 @@
                 </div>
                 <div class="contact-group dynamic-element">
                   <div class = "form-group row" >
-{#                    <div class="col-sm-3 offset-sm-3">#}
-{#                        <input class="form-control text-input" type="text" id="x_relative_pos" placeholder="set x relative pos" name="x_relative_pos">#}
-{#                    </div>#}
-{#                    <div class="col-sm-3">#}
-{#                      <input class="form-control text-input" type="text" id="y_relative_pos" placeholder="set y relative pos" name="y_relative_pos">#}
-{#                    </div>#}
+                    <div class="col-sm-3">
+                        <input class="form-control text-input" style="width:150px;"type="text" id="autoclean_x_abs_pos" placeholder="auto clean x pos" name="autoclean_x_abs_pos">
+                    </div>
+                    <div class="col-sm-3 offset-sm-3">
+                      <input class="form-control text-input" style="width:150px;" type="text" id="autoclean_y_abs_pos" placeholder="auto clean y pos" name="autoclean_y_abs_pos">
+                    </div>
+                  </div>
+                  <div class = "form-group row" >
                     <div class="col-sm-3 ">
-                      <input class="form-control text-input" style="width:150px;" type="text" id="z_abs_height" placeholder="set z height abs pos" name="z_abs_height">
+                      <input class="form-control text-input" style="width:150px;" type="text" id="z_abs_height" placeholder="set z height pos" name="z_abs_height">
                     </div>
                     <div class="col-sm-3 offset-sm-3">
                         <input class="form-control text-input" style="width:150px;" type="text" id="single_pressure" placeholder="set print pressure" name="single_pressure">
@@ -502,6 +504,8 @@
                 starting_cell_id: document.getElementById('starting_cell_id').value,
                 grid_ncols: document.getElementById('file-content').getAttribute('ncols'),
                 grid_nrows: document.getElementById('file-content').getAttribute('nrows'),
+                autoclean_x_abs_pos: document.getElementById('autoclean_x_abs_pos').value,
+                autoclean_y_abs_pos: document.getElementById('autoclean_y_abs_pos').value,
                 z_abs_height: document.getElementById('z_abs_height').value,
                 bed_temp: document.getElementById('single_bed_temp').value,
                 pressure: document.getElementById('single_pressure').value,
