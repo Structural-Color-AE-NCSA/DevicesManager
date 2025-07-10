@@ -84,6 +84,10 @@ class PCPFile(object):
             metadata['print_speed'] = print_speed
         if pressure:
             metadata['pressure'] = pressure
+        if auto_clean_abs_x:
+            metadata['auto_clean_abs_x'] = auto_clean_abs_x
+        if auto_clean_abs_y:
+            metadata['auto_clean_abs_y'] = auto_clean_abs_y
         json_string = json.dumps(metadata)
         print("send pcp file:" + json_string)
         self.status_request.send_message('pcp_file', json_string)
