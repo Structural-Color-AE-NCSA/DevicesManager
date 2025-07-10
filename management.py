@@ -1,5 +1,6 @@
 import json
 import datetime
+from werkzeug.security import generate_password_hash
 
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for, current_app, session, Request, jsonify, send_from_directory
@@ -123,7 +124,8 @@ def add_new_account():
     if username == '' or email == '':
         __logger.error("should have both ID and Name!")
         return "invalid", 200
-    new_account_doc = {"username" : username, "password": password, "email": email,
+    hashed_password = generate_password_hash(password)
+    new_account_doc = {"username" : username, "password": hashed_password, "email": email,
                        "firstname": firstname, "lastname": lastname,
                        "is_admin": is_admin, "is_active": is_active}
     insert_result = insert_one(current_app.config['ACCOUNTS_COLLECTION'], document = new_account_doc)
