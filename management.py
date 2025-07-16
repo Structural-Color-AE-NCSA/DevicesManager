@@ -35,7 +35,7 @@ def home(title):
     return render_template('management.html',
                             allsources=allsources, sourceId=0,
                             title=title, calendars=calendars, total=0,
-                            eventTypeValues=eventTypeValues, isUser=False)
+                            eventTypeValues=eventTypeValues, isUser=False, isAdmin = session['isAdmin'])
 
 
 @bp.route('/accounts', methods=('GET', 'POST'))

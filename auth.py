@@ -97,10 +97,11 @@ def login_db(username, password, error):
         session['user_id'] = username
         session['admin'] = username
         session["name"] = username
+        session['isAdmin'] = user.get('is_admin')
         # if error is None:
         #     session.clear()
         #     session['user_id'] = str(user['_id'])
-        return redirect(url_for('management.home', title='Campaigns', isadmin = user.get('is_admin')))
+        return redirect(url_for('management.home', title='Campaigns'))
     flash('❌ Invalid username or password!', 'error')
     abort(500, description="Invalid username or password!")
     return redirect(url_for('home.home'))
