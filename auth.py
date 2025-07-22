@@ -88,6 +88,7 @@ def role_required(role):
 
 def login_db(username, password, error):
     user = find_one(current_app.config['ACCOUNTS_COLLECTION'], condition={"username": username})
+    print(f"password {password}")
     if not user:
         error = 'Incorrect username.'
     elif not check_password_hash(user['password'], password):

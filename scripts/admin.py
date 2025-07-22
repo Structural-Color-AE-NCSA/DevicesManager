@@ -28,7 +28,8 @@ lastname = input("Last name: ")
 password = getpass.getpass("Password (hidden input): ")
 
 # Hash the password
-hashed_password = generate_password_hash(password)
+#hashed_password = generate_password_hash(password)
+hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
 
 # Create user document
 user_doc = {

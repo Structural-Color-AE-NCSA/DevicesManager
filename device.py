@@ -209,10 +209,10 @@ def send_pcp_file():
         z_abs_height = float(request.form.get('z_abs_height'))
     autoclean_x_abs_pos = None
     if request.form.get('autoclean_x_abs_pos'):
-        z_abs_height = float(request.form.get('autoclean_x_abs_pos'))
+        autoclean_x_abs_pos = float(request.form.get('autoclean_x_abs_pos'))
     autoclean_y_abs_pos = None
     if request.form.get('autoclean_y_abs_pos'):
-        z_abs_height = float(request.form.get('autoclean_y_abs_pos'))
+        autoclean_y_abs_pos = float(request.form.get('autoclean_y_abs_pos'))
 
     if filename == '' or campaign_name == '':
         return "fail", 400
