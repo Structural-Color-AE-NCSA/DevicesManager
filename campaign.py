@@ -1,4 +1,6 @@
 import traceback
+from xmlrpc.client import Boolean
+
 from flask import Flask, Response, render_template, url_for, flash, redirect, Blueprint, request, session, current_app, \
     send_from_directory, abort
 from bson.json_util import dumps, loads
@@ -105,6 +107,11 @@ def get_campaign_cell_info(campaign_id, cell_id):
 # @role_required("user")
 def update_cell_color(campaign_id):
     data = json.loads(request.data)
+    is_skip = True
+    is_success = bool(data.get('is_success'))
+    if is_success:
+        is_skip = False
+    print(f"print success is {is_success} and is_skip: {is_skip}")
     cell_id = data.get('cell_id')
     bed_temp = data.get('BedTemp')
     pressure = data.get('Pressure')
@@ -117,7 +124,7 @@ def update_cell_color(campaign_id):
     update_cell = {"cell_id": cell_id, "file_id": file_id, "rank_run": rank_run, "printability_score": printability_score,
                    "cell_color": cell_color,
                    "bed_temp": bed_temp, "pressure": pressure,
-                   "print_speed": print_speed, "z_height": z_height}
+                   "print_speed": print_speed, "z_height": z_height, "is_success": is_success}
     campaign = find_one(current_app.config['CAMPAIGNS_COLLECTION'], condition={'_id': ObjectId(campaign_id)})
     number_prints_trigger_prediction = int(campaign.get('number_prints_trigger_prediction'))
     predict_ranges = campaign.get('predict_ranges')
@@ -170,24 +177,32 @@ def update_cell_color(campaign_id):
         else:
             try:
                 accum_h_mu = 0.0
-                if (rank_run +1)%number_prints_trigger_prediction != 0:
+                if is_success:
+                    if (rank_run +1)%number_prints_trigger_prediction != 0:
+                        bed_temp = campaign.get('bed_temp')
+                        pressure = campaign.get('pressure')
+                        print_speed = campaign.get('print_speed')
+                        z_height = campaign.get('z_abs_height')
+
+                        for cell in cells:
+                            accum_h_mu += cell['cell_color'].get('h_mu')
+                    else:
+                        find_one_and_update(current_app.config['CAMPAIGNS_COLLECTION'],
+                                            condition = {"_id": ObjectId(campaign_id)},
+                                            update = {"$set": {"bed_temp": bed_temp, "pressure": pressure,
+                                                               "print_speed": print_speed, "z_abs_height": z_height}})
+                else:
+                    if (rank_run + 1) % number_prints_trigger_prediction == 0:
+                        is_skip = False # reset
                     bed_temp = campaign.get('bed_temp')
                     pressure = campaign.get('pressure')
                     print_speed = campaign.get('print_speed')
                     z_height = campaign.get('z_abs_height')
 
-                    for cell in cells:
-                        accum_h_mu += cell['cell_color'].get('h_mu')
-                else:
-                    find_one_and_update(current_app.config['CAMPAIGNS_COLLECTION'],
-                                        condition = {"_id": ObjectId(campaign_id)},
-                                        update = {"$set": {"bed_temp": bed_temp, "pressure": pressure,
-                                                           "print_speed": print_speed, "z_abs_height": z_height}})
-
                 abs_x, abs_y = grid_plot.get_top_left_corner_pos_by_cell_id(int(next_cell_id))
                 X = "\"X=" + str(abs_x)
                 Y = "Y=" + str(abs_y)
-                Z = "Z=21.4" + "\""
+                # Z = "Z=21.4" + "\""
                 if z_height:
                     Z = "Z="+str(z_height) + "\""
                 start_point_pos = "axes.startPoint(" + X + " " + Y + " " + Z + ")"
@@ -201,12 +216,13 @@ def update_cell_color(campaign_id):
                 if nozzle_auto_clean_abs_posistions:
                     autoclean_x_abs_pos = nozzle_auto_clean_abs_posistions.get('abs_x')
                     autoclean_y_abs_pos = nozzle_auto_clean_abs_posistions.get('abs_y')
+                print(f" next rank_run: {rank_run+1}, is_skip: {is_skip}")
                 pcp_file.send_pcp_file(campaign_id, pcp_commands, int(next_cell_id),
                                        number_prints_trigger_prediction, rank_run+1, accum_h_mu,
                                        bed_temp, print_speed, pressure,
                                        autoclean_x_abs_pos,
                                        autoclean_y_abs_pos,
-                                       predict_ranges)
+                                       predict_ranges, is_skip)
             except Exception as e:
                 pass
 
