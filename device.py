@@ -218,6 +218,7 @@ def send_pcp_file():
         return "fail", 400
     print(f'PCP File Name: {filename}')
     path_to_pcp_file = os.path.join(os.getcwd(), 'DevicesManager/pcp', filename)
+    # path_to_pcp_file = os.path.join(os.getcwd(), 'pcp', filename)
     file_content = ""
     with open(path_to_pcp_file, 'r') as file:
         file_content = file.read()

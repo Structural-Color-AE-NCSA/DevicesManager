@@ -103,6 +103,15 @@ def get_campaign_cell_info(campaign_id, cell_id):
             return jsonify([cell]), 200
     return jsonify([]), 404
 
+def get_group_ranks(group_size, k):
+    group_start = (k // group_size) * group_size
+    group = list(range(group_start, group_start + group_size))
+    return group
+
+def get_group_cells(cells, group_size, k):
+    group_start = (k // group_size) * group_size
+    return cells[group_start:k + 1]
+
 @campaigns_bp.route('/campaign/<campaign_id>/update_cell_color', methods=['POST'])
 # @role_required("user")
 def update_cell_color(campaign_id):
@@ -111,7 +120,6 @@ def update_cell_color(campaign_id):
     is_success = bool(data.get('is_success'))
     if is_success:
         is_skip = False
-    print(f"print success is {is_success} and is_skip: {is_skip}")
     cell_id = data.get('cell_id')
     bed_temp = data.get('BedTemp')
     pressure = data.get('Pressure')
@@ -119,6 +127,9 @@ def update_cell_color(campaign_id):
     z_height = data.get('ZHeight')
     file_id = data.get('file_id')
     rank_run = data.get('rank_run')
+
+    print(f"rank_run {rank_run}'s print success is {is_success} and is_skip: {is_skip}")
+
     printability_score = data.get('printability_score')
     cell_color = data.get('cell_color')
     update_cell = {"cell_id": cell_id, "file_id": file_id, "rank_run": rank_run, "printability_score": printability_score,
@@ -177,23 +188,31 @@ def update_cell_color(campaign_id):
         else:
             try:
                 accum_h_mu = 0.0
-                if is_success:
-                    if (rank_run +1)%number_prints_trigger_prediction != 0:
-                        bed_temp = campaign.get('bed_temp')
-                        pressure = campaign.get('pressure')
-                        print_speed = campaign.get('print_speed')
-                        z_height = campaign.get('z_abs_height')
+                group_ranks = get_group_ranks(number_prints_trigger_prediction, rank_run)
+                group_cells = get_group_cells(cells, number_prints_trigger_prediction, rank_run)
+                n_success = 0
+                for cell in group_cells:
+                    if cell['is_success']:
+                        n_success += 1
 
+                if n_success == number_prints_trigger_prediction:
+                    is_skip = False  # reset
+                    print(f"group {group_ranks} all success, and update the prediction params in db!")
+                    find_one_and_update(current_app.config['CAMPAIGNS_COLLECTION'],
+                                        condition = {"_id": ObjectId(campaign_id)},
+                                        update = {"$set": {"bed_temp": bed_temp, "pressure": pressure,
+                                                           "print_speed": print_speed, "z_abs_height": z_height}})
+                else:
+                    if is_success:
                         for cell in cells:
                             accum_h_mu += cell['cell_color'].get('h_mu')
+
+                    if n_success == len(group_cells):
+                        is_skip = False
+                    elif number_prints_trigger_prediction == len(group_cells):
+                        is_skip = False
                     else:
-                        find_one_and_update(current_app.config['CAMPAIGNS_COLLECTION'],
-                                            condition = {"_id": ObjectId(campaign_id)},
-                                            update = {"$set": {"bed_temp": bed_temp, "pressure": pressure,
-                                                               "print_speed": print_speed, "z_abs_height": z_height}})
-                else:
-                    if (rank_run + 1) % number_prints_trigger_prediction == 0:
-                        is_skip = False # reset
+                        is_skip = True
                     bed_temp = campaign.get('bed_temp')
                     pressure = campaign.get('pressure')
                     print_speed = campaign.get('print_speed')
@@ -217,6 +236,7 @@ def update_cell_color(campaign_id):
                     autoclean_x_abs_pos = nozzle_auto_clean_abs_posistions.get('abs_x')
                     autoclean_y_abs_pos = nozzle_auto_clean_abs_posistions.get('abs_y')
                 print(f" next rank_run: {rank_run+1}, is_skip: {is_skip}")
+                print(f" group ranks: {group_ranks}, n_success: {n_success}")
                 pcp_file.send_pcp_file(campaign_id, pcp_commands, int(next_cell_id),
                                        number_prints_trigger_prediction, rank_run+1, accum_h_mu,
                                        bed_temp, print_speed, pressure,
@@ -224,7 +244,7 @@ def update_cell_color(campaign_id):
                                        autoclean_y_abs_pos,
                                        predict_ranges, is_skip)
             except Exception as e:
-                pass
+                traceback.print_exc()
 
     # update front grid cells
     messenger = Messenger(campaign_id)
