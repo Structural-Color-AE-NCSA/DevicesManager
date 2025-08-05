@@ -232,10 +232,11 @@ def send_pcp_file():
     new_campaign_doc = {"campaignName": campaign_name, "submitter": session['name'],
                         "grid_ncols": grid_ncols, "grid_nrows": grid_nrows,
                         "init_settings": init_settings,
+                        "z_abs_height": z_abs_height,
                         "nozzle_auto_clean_abs_posistions": nozzle_auto_clean_abs_posistions,
                         "predict_ranges": predict_ranges,
                         "bed_temp": bed_temp, "pressure": pressure,
-                        "print_speed": print_speed, "z_abs_height": z_abs_height,
+                        "print_speed": print_speed, "z_delta_height": None,
                         "max_loops": max_loops, "number_prints_trigger_prediction": number_prints_trigger_prediction,
                         "hue": hue, "saturation": saturation,
                         "value": value,
@@ -279,7 +280,7 @@ def send_pcp_file():
         print(start_point_pos)
 
         # replace parameters
-        file_content = replace_placeholders_content(file_content, bed_temp, pressure, print_speed, z_abs_height)
+        file_content = replace_placeholders_content(file_content, bed_temp, pressure, print_speed, None)
         pcp_commands = start_point_pos + "\r\n" + file_content + "Done\n"
         pcp_file.send_pcp_file(campaign_id, pcp_commands, int(cell_id), number_prints_trigger_prediction, 0, 0.0, bed_temp, print_speed, pressure,
                                autoclean_x_abs_pos,

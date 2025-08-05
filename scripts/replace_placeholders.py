@@ -12,7 +12,7 @@ def replace_placeholders(input_file, output_file, BedTemp, Pressure, PrintSpeed,
         file.write(content)
     print(f"Replacements complete. The output file has been saved as '{output_file}'.")
 
-def replace_placeholders_content(content, BedTemp, Pressure, PrintSpeed, Z_delta_height):
+def replace_placeholders_content(content, BedTemp, Pressure, PrintSpeed, Z_delta_height = None):
     # Replace placeholders with the actual values
     if BedTemp:
         content = content.replace(f"R(BedTemp)", "R"+str(BedTemp))  # Replace R(BedTemp)
@@ -20,8 +20,17 @@ def replace_placeholders_content(content, BedTemp, Pressure, PrintSpeed, Z_delta
         content = content.replace(f"F(PrintSpeed)", "F"+str(PrintSpeed))  # Replace F(PrintSpeed)
     if Pressure:
         content = content.replace(f"P(PRESSURE)", str(Pressure))  # Replace P(Pressure)
-    if Z_delta_height:
-        content = content.replace(f"Z(Delta_Height)", "Z"+str(Z_delta_height))
+    # if Z_delta_height:
+    #     content = content.replace(f"Z(Delta_Height)", "Z"+str(Z_delta_height))
+    # else:
+    #     content = content.replace(f"Z(Delta_Height)", "Z" + str(0))
+    # else:
+    #     lines = content.splitlines()
+    #     filtered_lines = [
+    #         line for line in lines
+    #         if "Z(Delta_Height)" not in line and line.strip() != ""
+    #     ]
+    #     content = "\n".join(filtered_lines)
     return content
 
 if __name__ == "__main__":
@@ -31,6 +40,6 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--pressure", required=True, help="the value of pressure")
     parser.add_argument("-s", "--speed", required=True, help="print speed")
     parser.add_argument("-b", "--bed_temp", required=True, help="bed temp")
-    parser.add_argument("-z", "--delta_z_height", required=True, help="delta z height")
+    parser.add_argument("-z", "--delta_z_height", required=False, help="delta z height")
     args = parser.parse_args()
     replace_placeholders(args.input_file, args.output_file, args.bed_temp, args.pressure, args.speed, args.delta_z_height)

@@ -125,6 +125,7 @@ def update_cell_color(campaign_id):
     pressure = data.get('Pressure')
     print_speed = data.get('PrintSpeed')
     z_height = data.get('ZHeight')
+    z_delta_height = z_height
     file_id = data.get('file_id')
     rank_run = data.get('rank_run')
 
@@ -140,6 +141,7 @@ def update_cell_color(campaign_id):
     number_prints_trigger_prediction = int(campaign.get('number_prints_trigger_prediction'))
     predict_ranges = campaign.get('predict_ranges')
     nozzle_auto_clean_abs_posistions = campaign.get('nozzle_auto_clean_abs_posistions')
+    z_abs_height = campaign.get('z_abs_height')
     cells = campaign.get('cells')
     if cells is None:
         cells = list()
@@ -213,21 +215,25 @@ def update_cell_color(campaign_id):
                         is_skip = False
                     else:
                         is_skip = True
-                    bed_temp = campaign.get('bed_temp')
-                    pressure = campaign.get('pressure')
-                    print_speed = campaign.get('print_speed')
-                    z_height = campaign.get('z_abs_height')
+
+
+                campaign = find_one(current_app.config['CAMPAIGNS_COLLECTION'],
+                                    condition={'_id': ObjectId(campaign_id)})
+                bed_temp = campaign.get('bed_temp')
+                pressure = campaign.get('pressure')
+                print_speed = campaign.get('print_speed')
+                z_abs_height = campaign.get('z_abs_height')
 
                 abs_x, abs_y = grid_plot.get_top_left_corner_pos_by_cell_id(int(next_cell_id))
                 X = "\"X=" + str(abs_x)
                 Y = "Y=" + str(abs_y)
                 # Z = "Z=21.4" + "\""
-                if z_height:
-                    Z = "Z="+str(z_height) + "\""
+                if z_abs_height:
+                    Z = "Z="+str(z_abs_height) + "\""
                 start_point_pos = "axes.startPoint(" + X + " " + Y + " " + Z + ")"
                 print(start_point_pos)
                 # replace parameters
-                file_content = replace_placeholders_content(file_content, bed_temp, pressure, print_speed, z_height)
+                file_content = replace_placeholders_content(file_content, bed_temp, pressure, print_speed)
                 pcp_commands = start_point_pos + "\r\n" + file_content + "Done\n"
 
                 autoclean_x_abs_pos = None
