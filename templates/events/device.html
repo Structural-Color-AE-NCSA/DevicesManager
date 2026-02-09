@@ -84,6 +84,43 @@
 
         </div>
 
+
+          <!-- G-code sender -->
+
+          <div class="grid container"
+               style="display: grid; grid-auto-flow: column; grid-auto-row: auto;
+               grid-template-columns: [left] 66.67% [right] 33.33%; margin-top: 10px;">
+              <div class="item3" style="grid-area: auto / left;">
+                  <div class="row align-items-center">
+                      <div class="col-12 col-sm-3">
+                          <h5>Manual G-Code</h5>
+                      </div>
+
+                      <div class="col-sm-6">
+                          <input class="form-control text-input"
+                                 type="text"
+                                 id="manual_gcode"
+                                 name="manual_gcode"
+                                 placeholder="Enter G-code (e.g. G1 X10 Y10 Z5)"
+                                 style="width: 100%;">
+                      </div>
+
+                      <div class="col-sm-3">
+                          <button type="button"
+                                  class="white-background-button"
+                                  onclick="sendManualGCode()">
+                          </button>
+                      </div>
+
+
+                  </div>
+              </div>
+      </div>
+
+
+
+
+
           <div class="grid container"
         style="display: grid;grid-auto-flow: column;grid-auto-rows: auto;grid-template-columns: [left] 66.67% [right] 33.33%;">
               <div class="item3" style="grid-area: auto / left;">
@@ -559,6 +596,38 @@
         const imgElement = document.getElementById('plot');
         imgElement.style.display = 'none'; // Hide the image if it fails to load
     }
+
+        function sendManualGCode() {
+            const gcode = document.getElementById('manual_gcode').value;
+
+            if(!gcode) {
+            alert("Please enter a G-code command first!");
+            return;
+            }
+
+            fetch("/structural-color-printing/user-events/send_gcode", {
+                method: 'POST'
+                headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ gcode: gcode })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === 'success') {
+                alert('Sent: ${gcode}');
+                document.getElementById('manual_gcode').value = '';
+            } else {
+                alert('Error: ${data.message}');
+            }
+        })
+        .catch(error => {
+            console.error('Error sending G-code', error);
+            alert('Something went wrong while sending the G-code.');
+        });
+       }
+
+
 
     </script>
 
