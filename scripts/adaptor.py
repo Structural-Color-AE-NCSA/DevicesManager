@@ -5,6 +5,9 @@ import json
 import re
 import time
 
+#Lamya Changes
+#import serial
+
 # from scripts import clowder
 # from ximea_camera import XimeaCamera
 #
@@ -191,6 +194,26 @@ def on_request(ch, method, props, body):
     elif type == 'printing_params':
         send_printing_params(message)
         status = "OK"
+    elif type == 'manual_gcode':
+        gcode = message.get('data')
+        print(f"Recieved manual G-code: {gcode}")
+
+        if lulzbot is not None:
+            try:
+                response = lulzbot.move(gcode + "\n")
+                cur_pos = lulzbot.move("M114\n")
+
+                status = dict()
+                status["pos"] = cur_pos
+                send_message('printer_movement',json.dumps(status))
+
+                print(f"Sent to LulzBot: {gcode}")
+            except Exception as e:
+                print(f"failed to send G-code to LulzBot: {e}")
+            else:
+                print("LulzBot not connected.")
+            status = "OK"
+        #Lamya Changes
     elif type == 'activate':
         if message['data'] == 'tool':
             if tool is not None:

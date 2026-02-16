@@ -815,7 +815,34 @@ def view_image(id):
             abort(404)
 
     #Gcode Route Sender Lamya Adding
+    @userbp.route("/send_gcode", methods=["POST"])
+    @role_required("user")
 
+
+    def send_gcode():
+        from .utilities.rabbitMQ.connector import DeviceConnector
+        from flask import request, jsonify
+        import json
+
+        data = request.get_json()
+        gcode = data.get("gcode")
+
+        if not gcode:
+            return jsonify({"status": "error", "message": "No G-code provided"}), 400
+        try:
+            connector = DeviceConnector(queue_name=None, routing_key="printer_movement")
+            connector.connect()
+
+            payload = {
+                "type": "manual_gcode",
+                "data": gcode
+            }
+
+            connector.send_message("printer_movement", json.dumps(payload))
+            return jsonify({"status": "success", "message": f"G-code '{gcode}' sent successfully!"})
+        except Exception as e:
+            print("Error sending G-code", e)
+            return jsonify({"status": "error", "message": str(e)}), 500
 
 
 

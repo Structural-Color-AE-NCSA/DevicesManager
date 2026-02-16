@@ -600,6 +600,8 @@
 
         function sendManualGCode() {
             const gcode = document.getElementById('manual_gcode').value;
+            console.log("button clicked 1");
+            console.log("Gcode value: ",gcode);
 
             if(!gcode) {
             alert("Please enter a G-code command first!");
