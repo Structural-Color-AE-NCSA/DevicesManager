@@ -91,13 +91,14 @@
                style="display: grid; grid-auto-flow: column; grid-auto-row: auto;
                grid-template-columns: [left] 66.67% [right] 33.33%; margin-top: 10px;">
               <div class="item3" style="grid-area: auto / left;">
-                  <div class="row align-items-center">
+
+                  <div class="row align-items-center mb-4">
                       <div class="col-12 col-sm-3">
                           <h5>Manual G-Code</h5>
                       </div>
 
                       <div class="col-sm-6">
-                          <input class="form-control text-input"
+                          <input class="form-control form-control-lg"
                                  type="text"
                                  id="manual_gcode"
                                  name="manual_gcode"
@@ -105,10 +106,10 @@
                                  style="width: 100%;">
                       </div>
 
-                      <div class="col-sm-3">
+                      <div class="col-sm-3 d-flex align-items-end">
                           <button type="button"
-                                  class="white-background-button"
-                                  onclick="sendManualGCode()">
+                                  class="btn btn-outline-primary w-100"
+                                  onclick="sendManualGCode()"> Send
                           </button>
                       </div>
 

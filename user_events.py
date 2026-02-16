@@ -814,6 +814,12 @@ def view_image(id):
         except IndexError:
             abort(404)
 
+    #Gcode Route Sender Lamya Adding
+
+
+
+
+
 @userbp.route('/event/publish/<platformEventId>',  methods=['GET'])
 @role_required("user")
 def sub_event_platform(platformEventId):
