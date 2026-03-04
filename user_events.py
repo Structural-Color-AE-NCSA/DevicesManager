@@ -101,6 +101,47 @@ def user_events():
                             groups=groups,
                             selected_group=session.get('group'))
 
+#Gcode Route Sender Lamya Adding
+@userbp.route("/send_gcode", methods=["POST"])
+@role_required("user")
+
+
+def send_gcode():
+    print("/send_gcode route HIT")
+    from .utilities.rabbitMQ.connector import DeviceConnector
+    from flask import request, jsonify
+    import json
+
+    data = request.get_json()
+    print("Raw request of data:", data)
+    gcode = data.get("gcode")
+    print("the extracted G-code: ",gcode)
+
+    if not gcode:
+        return jsonify({"status": "error", "message": "No G-code provided"}), 400
+    try:
+        connector = DeviceConnector(queue_name=None, routing_key="printer_movement")
+        connector.connect()
+
+        payload = {
+            "type": "manual_gcode",
+            "data": gcode
+        }
+
+        print("Message payload sent to RabbitMQ")
+
+        connector.send_message("printer_movement", json.dumps(payload))
+
+        print("message sent to rabbitMQ")
+        return jsonify({"status": "success", "message": f"G-code '{gcode}' sent successfully!"})
+    except Exception as e:
+        print("Error sending G-code", e)
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+
+#my additions are done^^
+
 @userbp.route('/event/<id>',  methods=['GET'])
 @role_required("user")
 def user_an_event(id):
@@ -813,38 +854,6 @@ def view_image(id):
             return send_from_directory(directory, image_name)
         except IndexError:
             abort(404)
-
-    #Gcode Route Sender Lamya Adding
-    @userbp.route("/send_gcode", methods=["POST"])
-    @role_required("user")
-
-
-    def send_gcode():
-        from .utilities.rabbitMQ.connector import DeviceConnector
-        from flask import request, jsonify
-        import json
-
-        data = request.get_json()
-        gcode = data.get("gcode")
-
-        if not gcode:
-            return jsonify({"status": "error", "message": "No G-code provided"}), 400
-        try:
-            connector = DeviceConnector(queue_name=None, routing_key="printer_movement")
-            connector.connect()
-
-            payload = {
-                "type": "manual_gcode",
-                "data": gcode
-            }
-
-            connector.send_message("printer_movement", json.dumps(payload))
-            return jsonify({"status": "success", "message": f"G-code '{gcode}' sent successfully!"})
-        except Exception as e:
-            print("Error sending G-code", e)
-            return jsonify({"status": "error", "message": str(e)}), 500
-
-
 
 
 @userbp.route('/event/publish/<platformEventId>',  methods=['GET'])

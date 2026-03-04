@@ -609,7 +609,7 @@
             }
 
             fetch("/structural-color-printing/user-events/send_gcode", {
-                method: 'POST'
+                method: 'POST',
                 headers: {
                 'Content-Type': 'application/json'
             },
@@ -618,10 +618,10 @@
         .then(response => response.json())
         .then(data => {
             if(data.status === 'success') {
-                alert('Sent: ${gcode}');
+                alert(`Sent: ${gcode}`);
                 document.getElementById('manual_gcode').value = '';
             } else {
-                alert('Error: ${data.message}');
+                alert(`Error: ${data.message}`);
             }
         })
         .catch(error => {

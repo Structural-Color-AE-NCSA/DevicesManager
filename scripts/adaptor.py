@@ -46,6 +46,13 @@ def listen_device_status():
         exchange=EXCHANGE_NAME, queue=queue_name, routing_key='device_status')
     channel.basic_consume(
         queue=queue_name, on_message_callback=on_request, auto_ack=True)
+#Listerner I added
+def listen_printer_movement():
+    queue_name = "printer_movement_queue"
+    channel.queue_declare(queue=queue_name, durable=True)
+    channel.queue_bind(exchange=EXCHANGE_NAME, queue=queue_name, routing_key='printer_movement')
+    channel.basic_consume(queue=queue_name, on_message_callback=on_request, auto_ack=True)
+
 def listen_device_activate_deactivate():
     queue_name = "device_activate_deactivate_queue"
     channel.queue_declare(queue=queue_name, durable=True)
@@ -210,10 +217,10 @@ def on_request(ch, method, props, body):
                 print(f"Sent to LulzBot: {gcode}")
             except Exception as e:
                 print(f"failed to send G-code to LulzBot: {e}")
-            else:
-                print("LulzBot not connected.")
-            status = "OK"
         #Lamya Changes
+    elif type == 'printing_params':
+        send_printing_params(message)
+        status = "OK"
     elif type == 'activate':
         if message['data'] == 'tool':
             if tool is not None:
@@ -321,5 +328,6 @@ listen_device_status()
 listen_pcp_commands()
 listen_printing_params()
 listen_device_activate_deactivate()
+listen_printer_movement()
 print(" [x] Adaptor starting")
 channel.start_consuming()
